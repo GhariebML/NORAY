@@ -21,6 +21,7 @@ async def generate_sop_endpoint(request: SOPGenerateRequest):
     return {
         "status": "generated",
         "content": sop.content,
+        "sop": sop.content,
         "word_count": sop.word_count,
         "sections": sop.sections,
         "key_decisions": sop.key_decisions,
@@ -36,6 +37,7 @@ async def generate_motivation_endpoint(request: MotivationGenerateRequest):
     return {
         "status": "generated",
         "content": motivation.content,
+        "motivation": motivation.content,
         "word_count": motivation.word_count,
         "sections": motivation.sections,
     }
@@ -54,6 +56,7 @@ async def generate_research_proposal_endpoint(request: ResearchProposalRequest):
         "status": "generated",
         "title": proposal.title,
         "content": proposal.content,
+        "research_proposal": proposal.content,
         "word_count": proposal.word_count,
         "sections": proposal.sections,
         "references": proposal.references,
