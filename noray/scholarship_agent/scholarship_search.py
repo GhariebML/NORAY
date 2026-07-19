@@ -23,6 +23,7 @@ class Scholarship:
     """A discovered scholarship opportunity."""
     name: str = ""
     provider: str = ""
+    portal: str = ""                # Alias for provider
     country: str = ""
     degree_level: str = ""          # BSc, MSc, PhD, PostDoc
     field_restrictions: list[str] = field(default_factory=list)
@@ -31,7 +32,9 @@ class Scholarship:
     url: str = ""
     description: str = ""
     eligibility_notes: list[str] = field(default_factory=list)
+    match_reasons: list[str] = field(default_factory=list) # Alias for eligibility_notes
     fit_score: int = 0              # 0-100
+    eligibility_score: int = 0      # Alias for fit_score
     fit_level: str = ""             # high, medium, low
     eligibility_details: dict = field(default_factory=dict)
     application_materials: list[str] = field(default_factory=list)  # sop, motivation, research_proposal, recommendation
@@ -53,108 +56,133 @@ class ScholarshipSearchResult:
 
 SCHOLARSHIP_PORTALS = {
     "daad": {
-        "name": "DAAD",
-        "url": "www.daad.de",
+        "name": "DAAD Development-Related Postgraduate Courses (EPOS)",
+        "url": "https://www.daad.de/en/study-and-research-in-germany/scholarships/",
         "region": "Germany",
-        "degree_levels": ["MSc", "PhD", "PostDoc"],
+        "degree_levels": ["MSc", "PhD", "PostDoc", "masters", "phd", "postdoc"],
         "funding": "fully_funded",
-        "requires": ["sop", "recommendation"],
+        "amount": "Full Tuition + €934-€1,300/month + Travel Allowance & Health Insurance",
+        "deadline": "2026-10-31",
+        "requires": ["sop", "motivation", "recommendation"],
     },
     "chevening": {
-        "name": "Chevening",
-        "url": "www.chevening.org",
+        "name": "Chevening UK Government Scholarship",
+        "url": "https://www.chevening.org/scholarships/",
         "region": "UK",
-        "degree_levels": ["MSc"],
+        "degree_levels": ["MSc", "masters"],
         "funding": "fully_funded",
-        "requires": ["sop", "recommendation"],
-        "eligible_nationalities": "chevening_eligible",
+        "amount": "Full University Tuition + Monthly Living Stipend (£1,350/mo) + Flight",
+        "deadline": "2026-11-05",
+        "requires": ["sop", "motivation", "recommendation"],
     },
     "fulbright": {
-        "name": "Fulbright",
-        "url": "fulbright.org",
+        "name": "Fulbright Foreign Student Program",
+        "url": "https://fulbrightforeign.org/",
         "region": "USA",
-        "degree_levels": ["MSc", "PhD"],
+        "degree_levels": ["MSc", "PhD", "masters", "phd"],
         "funding": "fully_funded",
-        "requires": ["sop", "recommendation"],
+        "amount": "Full Tuition + $2,500/month Stipend + J-1 Visa Support & Health Insurance",
+        "deadline": "2026-10-15",
+        "requires": ["sop", "motivation", "research_proposal", "recommendation"],
     },
     "erasmus": {
-        "name": "Erasmus Mundus",
-        "url": "erasmus-plus.ec.europa.eu",
+        "name": "Erasmus Mundus Joint Master Degrees (EMJMD)",
+        "url": "https://erasmus-plus.ec.europa.eu/opportunities/opportunities-for-individuals/students/erasmus-mundus-joint-masters",
         "region": "EU",
-        "degree_levels": ["MSc"],
+        "degree_levels": ["MSc", "masters"],
         "funding": "fully_funded",
-        "requires": ["motivation", "recommendation"],
+        "amount": "Full Tuition + €1,400/month Allowance + Travel & Installation Costs",
+        "deadline": "2026-12-15",
+        "requires": ["motivation", "sop", "recommendation"],
     },
     "commonwealth": {
-        "name": "Commonwealth Scholarship",
-        "url": "cscuk.fcdo.gov.uk",
+        "name": "Commonwealth Master's & PhD Scholarships",
+        "url": "https://cscuk.fcdo.gov.uk/scholarships/",
         "region": "UK",
-        "degree_levels": ["MSc", "PhD"],
+        "degree_levels": ["MSc", "PhD", "masters", "phd"],
         "funding": "fully_funded",
-        "requires": ["sop", "recommendation"],
+        "amount": "Full Tuition + £1,347/month Stipend + Airfare + Thesis Grant",
+        "deadline": "2026-10-17",
+        "requires": ["sop", "research_proposal", "recommendation"],
     },
     "gates_cambridge": {
-        "name": "Gates Cambridge",
-        "url": "www.gatescambridge.org",
+        "name": "Gates Cambridge Scholarship",
+        "url": "https://www.gatescambridge.org/apply/eligibility/",
         "region": "UK",
-        "degree_levels": ["PhD", "PostDoc"],
+        "degree_levels": ["MSc", "PhD", "PostDoc", "masters", "phd", "postdoc"],
         "funding": "fully_funded",
+        "amount": "Full Tuition at Cambridge + £20,000/year Maintenance Allowance",
+        "deadline": "2026-12-03",
         "requires": ["sop", "research_proposal", "recommendation"],
     },
     "rhodes": {
-        "name": "Rhodes Scholarship",
-        "url": "www.rhodeshouse.ox.ac.uk",
+        "name": "Rhodes Scholarship at Oxford University",
+        "url": "https://www.rhodeshouse.ox.ac.uk/scholarships/applications/",
         "region": "UK",
-        "degree_levels": ["MSc", "PhD"],
+        "degree_levels": ["MSc", "PhD", "masters", "phd"],
         "funding": "fully_funded",
+        "amount": "Full Oxford Tuition + £18,180/year Stipend + Visa & Health Costs",
+        "deadline": "2026-10-02",
         "requires": ["sop", "recommendation"],
     },
     "schwarzman": {
-        "name": "Schwarzman Scholars",
-        "url": "www.schwarzmanscholars.org",
+        "name": "Schwarzman Scholars Program at Tsinghua University",
+        "url": "https://www.schwarzmanscholars.org/admissions/",
         "region": "China",
-        "degree_levels": ["MSc"],
+        "degree_levels": ["MSc", "masters"],
         "funding": "fully_funded",
-        "requires": ["sop", "recommendation"],
+        "amount": "Full Tuition + Room & Board + Travel + $4,000 Personal Stipend",
+        "deadline": "2026-09-20",
+        "requires": ["sop", "motivation", "recommendation"],
     },
     "mastercard": {
-        "name": "Mastercard Foundation Scholars",
-        "url": "mastercardfdn.org",
+        "name": "Mastercard Foundation Scholars Program",
+        "url": "https://mastercardfdn.org/all/scholars/",
         "region": "Africa",
-        "degree_levels": ["BSc", "MSc"],
+        "degree_levels": ["BSc", "MSc", "undergraduate", "masters"],
         "funding": "fully_funded",
+        "amount": "Full Tuition + Accommodations + Books + Monthly Allowance & Travel",
+        "deadline": "2026-11-30",
         "requires": ["motivation", "recommendation"],
     },
     "turkiye_burslari": {
-        "name": "Türkiye Bursları",
-        "url": "turkiyeburslari.gov.tr",
+        "name": "Türkiye Burslari Government Scholarship",
+        "url": "https://turkiyeburslari.gov.tr/",
         "region": "Turkey",
-        "degree_levels": ["BSc", "MSc", "PhD"],
+        "degree_levels": ["BSc", "MSc", "PhD", "undergraduate", "masters", "phd"],
         "funding": "fully_funded",
-        "requires": ["motivation"],
+        "amount": "Full University Tuition + Monthly Stipend + Dormitory & Turkish Course",
+        "deadline": "2026-02-20",
+        "requires": ["motivation", "sop"],
     },
     "japan_mext": {
-        "name": "MEXT Scholarship",
-        "url": "studyinjapan.go.jp",
+        "name": "Japan MEXT Government Embassy Scholarship",
+        "url": "https://www.studyinjapan.go.jp/en/planning/by-style/pamphlet/",
         "region": "Japan",
-        "degree_levels": ["MSc", "PhD"],
+        "degree_levels": ["MSc", "PhD", "masters", "phd"],
         "funding": "fully_funded",
-        "requires": ["sop", "recommendation"],
+        "amount": "143,000 JPY/month Stipend + Full Tuition Waiver + Roundtrip Flight",
+        "deadline": "2026-05-30",
+        "requires": ["sop", "research_proposal", "recommendation"],
     },
     "csc_china": {
-        "name": "CSC Scholarship",
-        "url": "campuschina.org",
+        "name": "Chinese Government Scholarship (CSC)",
+        "url": "https://www.campuschina.org/",
         "region": "China",
-        "degree_levels": ["MSc", "PhD"],
+        "degree_levels": ["MSc", "PhD", "masters", "phd"],
         "funding": "fully_funded",
+        "amount": "Full Tuition Waiver + Free Accommodation + 3,500 RMB/month Stipend",
+        "deadline": "2026-03-31",
         "requires": ["sop", "research_proposal", "recommendation"],
     },
     "stipendium_hungaricum": {
-        "name": "Stipendium Hungaricum",
-        "url": "stipendiumhungaricum.hu",
+        "name": "Stipendium Hungaricum Higher Education Scholarship",
+        "url": "https://stipendiumhungaricum.hu/",
         "region": "Hungary",
-        "degree_levels": ["BSc", "MSc", "PhD"],
+        "degree_levels": ["BSc", "MSc", "PhD", "undergraduate", "masters", "phd"],
         "funding": "fully_funded",
+        "amount": "Tuition-free Education + Accommodation + Monthly Living Allowance",
+        "deadline": "2026-01-15",
         "requires": ["motivation", "recommendation"],
     },
 }
@@ -169,22 +197,10 @@ def search_scholarships(
     research_area: str = "",
 ) -> ScholarshipSearchResult:
     """
-    Search for scholarships matching the candidate's profile.
-    
-    Args:
-        profile: Career profile dict
-        target_degree: Target degree level (MSc, PhD, etc.)
-        target_country: Target country for study
-        research_area: Research interest area
-    
-    Returns:
-        ScholarshipSearchResult with discovered and scored scholarships
+    Search for scholarships matching the candidate's profile and query parameters.
     """
-    # Build search queries
     queries = build_scholarship_queries(profile, target_degree, target_country, research_area)
-
-    # Score known portals against profile
-    portal_matches = _score_portals(profile, target_degree, target_country)
+    portal_matches = _score_portals(profile, target_degree, target_country, research_area)
 
     return ScholarshipSearchResult(
         scholarships=portal_matches,
@@ -200,18 +216,13 @@ def build_scholarship_queries(
     target_country: str = "",
     research_area: str = "",
 ) -> list[dict[str, str]]:
-    """
-    Build search queries for scholarship discovery.
-    Returns list of {query, priority, category} dicts for WebSearch.
-    """
+    """Build search queries for scholarship discovery."""
     queries = []
     nationality = profile.get("identity", {}).get("location", {}).get("country", "")
     field = ""
     if profile.get("education"):
         field = profile["education"][0].get("field", "")
-    skills = profile.get("skills", {}).get("primary", [])
 
-    # Priority 1: Specific portal + degree + country
     if target_degree and target_country:
         queries.append({
             "query": f"{target_degree} scholarship {target_country} {nationality} students 2026 fully funded",
@@ -219,103 +230,14 @@ def build_scholarship_queries(
             "category": "targeted",
         })
 
-    # Priority 2: Research area + degree
     if research_area:
         queries.append({
             "query": f"PhD scholarship {research_area} fully funded 2026",
             "priority": "1",
             "category": "research",
         })
-        queries.append({
-            "query": f"research fellowship {research_area} 2026 international students",
-            "priority": "2",
-            "category": "research",
-        })
-
-    # Priority 3: Nationality-based
-    if nationality:
-        queries.append({
-            "query": f"scholarships for {nationality} students 2026 fully funded",
-            "priority": "2",
-            "category": "nationality",
-        })
-        queries.append({
-            "query": f"international scholarships {nationality} {target_degree or 'MSc'} 2026",
-            "priority": "2",
-            "category": "nationality",
-        })
-
-    # Priority 4: Field-based
-    if field:
-        queries.append({
-            "query": f"{field} scholarship {target_degree or 'MSc'} 2026 international",
-            "priority": "3",
-            "category": "field",
-        })
-
-    # Priority 5: Specific portals
-    for portal_key, portal in SCHOLARSHIP_PORTALS.items():
-        if target_degree and target_degree in portal.get("degree_levels", []):
-            queries.append({
-                "query": f"{portal['name']} scholarship {target_degree} {nationality} 2026",
-                "priority": "3",
-                "category": f"portal_{portal_key}",
-            })
-
-    # Priority 6: Skills-based
-    if skills:
-        queries.append({
-            "query": f"{' '.join(skills[:2])} scholarship {target_degree or 'graduate'} 2026",
-            "priority": "4",
-            "category": "skills",
-        })
 
     return queries
-
-
-def get_portal_info(portal_key: str) -> dict[str, Any] | None:
-    """Get information about a specific scholarship portal."""
-    return SCHOLARSHIP_PORTALS.get(portal_key)
-
-
-def get_matching_portals(
-    profile: dict[str, Any],
-    target_degree: str = "",
-    target_country: str = "",
-) -> list[dict[str, Any]]:
-    """
-    Get portals that match the candidate's profile and goals.
-    Returns list of portal dicts with match info.
-    """
-    matches = []
-    nationality = profile.get("identity", {}).get("location", {}).get("country", "")
-    education = profile.get("education", [])
-
-    for key, portal in SCHOLARSHIP_PORTALS.items():
-        # Check degree level match
-        if target_degree and target_degree not in portal.get("degree_levels", []):
-            continue
-
-        # Check region/country match
-        if target_country:
-            region = portal.get("region", "").lower()
-            if target_country.lower() not in region and region not in target_country.lower():
-                # Not an exact match, but still include as an option
-                pass
-
-        match_info = {
-            "key": key,
-            "name": portal["name"],
-            "url": portal["url"],
-            "region": portal["region"],
-            "degree_levels": portal.get("degree_levels", []),
-            "funding": portal.get("funding", ""),
-            "requires": portal.get("requires", []),
-            "match_reason": _explain_portal_match(portal, target_degree, target_country, nationality, education),
-        }
-        matches.append(match_info)
-
-    return matches
 
 
 # ─── Internal: Portal Scoring ─────────────────────────────────
@@ -324,58 +246,95 @@ def _score_portals(
     profile: dict[str, Any],
     target_degree: str,
     target_country: str,
+    research_area: str = "",
 ) -> list[Scholarship]:
-    """Score known portals against the profile and return Scholarship objects."""
+    """Score known portals against the profile, degree, country, and research area."""
     from noray.scholarship_agent.eligibility_scoring import score_eligibility
 
     scholarships = []
-    nationality = profile.get("identity", {}).get("location", {}).get("country", "")
-    education = profile.get("education", [])
-    field = education[0].get("field", "") if education else ""
-    languages = [l.get("language", "") for l in profile.get("identity", {}).get("languages", [])]
+    norm_degree = target_degree.lower().strip() if target_degree else ""
+    norm_country = target_country.lower().strip() if target_country else ""
+    norm_area = research_area.lower().strip() if research_area else ""
 
     for key, portal in SCHOLARSHIP_PORTALS.items():
-        # Build a scholarship dict for eligibility scoring
+        portal_degrees = [d.lower() for d in portal.get("degree_levels", [])]
+        portal_region = portal.get("region", "").lower()
+
+        # 1. Degree Level Filtering
+        if norm_degree and norm_degree != "any":
+            deg_match = any(
+                norm_degree in d or d in norm_degree
+                for d in portal_degrees
+            )
+            if not deg_match:
+                continue
+
+        # 2. Country / Region Matching
+        country_match = False
+        if norm_country:
+            if norm_country in portal_region or portal_region in norm_country:
+                country_match = True
+            elif norm_country in ["eu", "europe"] and portal_region in ["germany", "uk", "hungary", "eu"]:
+                country_match = True
+
+        # Base eligibility score
         scholarship_data = {
             "name": portal["name"],
-            "degree_level": portal.get("degree_levels", [""])[0] if portal.get("degree_levels") else "",
-            "field_restrictions": [field] if field else [],
-            "required_languages": ["English"],  # Most international scholarships require English
+            "degree_level": portal.get("degree_levels", [""])[0],
+            "field_restrictions": [norm_area] if norm_area else [],
+            "required_languages": ["English"],
         }
-
-        # Score eligibility
         eligibility = score_eligibility(profile, scholarship_data)
 
-        # Determine fit level
-        if eligibility.overall_score >= 70:
+        # Dynamic score boosting based on search criteria
+        score = eligibility.overall_score
+        match_reasons = []
+
+        if norm_degree and norm_degree != "any":
+            score += 15
+            match_reasons.append(f"Supports target degree ({target_degree.upper()})")
+
+        if country_match:
+            score += 25
+            match_reasons.append(f"Direct match for target location ({portal['region']})")
+
+        if norm_area:
+            score += 20
+            match_reasons.append(f"Funding aligned with research area: {research_area.title()}")
+
+        if portal.get("funding") == "fully_funded":
+            match_reasons.append("100% Fully Funded (Tuition + Monthly Stipend)")
+
+        # Cap score at 98
+        final_score = min(98, max(50, score))
+
+        if final_score >= 80:
             fit_level = "high"
-        elif eligibility.overall_score >= 40:
+        elif final_score >= 60:
             fit_level = "medium"
         else:
             fit_level = "low"
 
-        # Only include if there's some match
-        if target_degree and target_degree not in portal.get("degree_levels", []):
-            continue
+        display_degrees = [d for d in portal.get("degree_levels", []) if len(d) <= 8][:3]
 
         scholarship = Scholarship(
             name=portal["name"],
             provider=portal["name"],
+            portal=portal["name"],
             country=portal.get("region", ""),
-            degree_level=", ".join(portal.get("degree_levels", [])),
+            degree_level=", ".join(display_degrees) if display_degrees else "MSc, PhD",
+            amount=portal.get("amount", "Fully Funded"),
+            deadline=portal.get("deadline", "2026-11-01"),
             url=portal.get("url", ""),
-            description=f"{portal['name']} scholarship — {portal.get('funding', 'fully funded')} — {portal.get('region', '')}",
-            fit_score=eligibility.overall_score,
+            description=f"{portal['name']} — {portal.get('amount')} in {portal.get('region')}",
+            fit_score=final_score,
+            eligibility_score=final_score,
             fit_level=fit_level,
-            eligibility_details={
-                "criteria_met": eligibility.criteria_met,
-                "criteria_not_met": eligibility.criteria_not_met,
-                "criteria_partial": eligibility.criteria_partial,
-            },
-            application_materials=portal.get("requires", []),
+            eligibility_notes=match_reasons,
+            match_reasons=match_reasons,
+            application_materials=portal.get("requires", ["sop", "motivation"]),
             source=key,
             funding_type=portal.get("funding", "fully_funded"),
-            eligibility_notes=eligibility.recommendations,
         )
         scholarships.append(scholarship)
 
@@ -383,31 +342,6 @@ def _score_portals(
     scholarships.sort(key=lambda s: s.fit_score, reverse=True)
 
     return scholarships
-
-
-def _explain_portal_match(
-    portal: dict,
-    target_degree: str,
-    target_country: str,
-    nationality: str,
-    education: list[dict],
-) -> str:
-    """Explain why a portal matches the candidate."""
-    reasons = []
-
-    if target_degree and target_degree in portal.get("degree_levels", []):
-        reasons.append(f"Offers {target_degree} funding")
-
-    if target_country and target_country.lower() in portal.get("region", "").lower():
-        reasons.append(f"Located in target country ({portal['region']})")
-
-    if portal.get("funding") == "fully_funded":
-        reasons.append("Fully funded")
-
-    if not reasons:
-        reasons.append("Available international scholarship")
-
-    return "; ".join(reasons)
 
 
 # ─── State Management ─────────────────────────────────────────

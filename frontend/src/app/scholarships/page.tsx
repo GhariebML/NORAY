@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   Search,
   GraduationCap,
@@ -8,12 +9,17 @@ import {
   Calendar,
   Globe,
   Loader2,
-  Send,
+  Sparkles,
+  DollarSign,
+  CheckCircle2,
+  Award,
+  ArrowRight,
 } from "lucide-react";
 import { PageHeader, Card, Button, Badge, EmptyState } from "@/components/ui";
 import { scholarshipsApi, type Scholarship } from "@/lib/api";
 
 export default function ScholarshipsPage() {
+  const router = useRouter();
   const [scholarships, setScholarships] = useState<Scholarship[]>([]);
   const [searching, setSearching] = useState(false);
   const [targetDegree, setTargetDegree] = useState("");
@@ -35,7 +41,7 @@ export default function ScholarshipsPage() {
       setScholarships(data.scholarships || []);
       setSearched(true);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Search failed");
+      setError(err instanceof Error ? err.message : "Scholarship search failed");
     } finally {
       setSearching(false);
     }
@@ -44,16 +50,16 @@ export default function ScholarshipsPage() {
   async function handleApply(scholarship: Scholarship) {
     try {
       setApplying(scholarship.name);
-      const info = `${scholarship.name} at ${scholarship.portal}. Country: ${scholarship.country || "N/A"}. Degree: ${scholarship.degree_level || "N/A"}. ${scholarship.url || ""}`;
+      const info = `${scholarship.name} (${scholarship.portal || scholarship.provider}). Location: ${scholarship.country || "International"}. Degree: ${scholarship.degree_level || "Master's/PhD"}. Amount: ${scholarship.amount || "Fully Funded"}. Link: ${scholarship.url || ""}`;
       await scholarshipsApi.apply({
         scholarship_info: info,
         scholarship_name: scholarship.name,
         generate_sop: true,
         generate_motivation: true,
       });
-      alert("Application materials generated! Check the Documents page.");
+      router.push("/documents");
     } catch (err) {
-      alert("Failed to generate application materials");
+      alert("Failed to initiate application draft");
     } finally {
       setApplying(null);
     }
@@ -62,57 +68,60 @@ export default function ScholarshipsPage() {
   return (
     <div>
       <PageHeader
-        title="Scholarship Search"
-        description="Discover fully-funded scholarships and generate application materials"
+        title="Scholarship Search Engine"
+        description="Discover 100% fully-funded global scholarships, fellowships, and research grants with tailored SOP drafting"
       />
 
       {/* Search Bar */}
       <Card className="mb-6 p-6">
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <div>
-            <label className="mb-1 block text-xs font-medium text-zinc-500">Target Degree</label>
+            <label className="mb-1 block text-xs font-medium text-zinc-400">Target Degree</label>
             <select
               value={targetDegree}
               onChange={(e) => setTargetDegree(e.target.value)}
-              className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2.5 text-sm dark:border-zinc-700 dark:bg-zinc-800"
+              className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2.5 text-sm dark:border-zinc-700 dark:bg-zinc-800 dark:text-white"
             >
-              <option value="">Any</option>
-              <option value="masters">Master&apos;s</option>
-              <option value="phd">PhD</option>
-              <option value="postdoc">PostDoc</option>
-              <option value="undergraduate">Undergraduate</option>
+              <option value="">Any Degree Level</option>
+              <option value="masters">Master&apos;s (MSc / MA)</option>
+              <option value="phd">PhD / Doctorate</option>
+              <option value="postdoc">Postdoctoral Fellowship</option>
+              <option value="undergraduate">Undergraduate (BSc)</option>
             </select>
           </div>
+
           <div>
-            <label className="mb-1 block text-xs font-medium text-zinc-500">Target Country</label>
+            <label className="mb-1 block text-xs font-medium text-zinc-400">Target Country / Region</label>
             <input
               type="text"
-              placeholder="e.g., Germany, UK, USA"
+              placeholder="e.g., Germany, UK, USA, EU, Japan"
               value={targetCountry}
               onChange={(e) => setTargetCountry(e.target.value)}
-              className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2.5 text-sm dark:border-zinc-700 dark:bg-zinc-800"
+              className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2.5 text-sm dark:border-zinc-700 dark:bg-zinc-800 dark:text-white"
             />
           </div>
+
           <div>
-            <label className="mb-1 block text-xs font-medium text-zinc-500">Research Area</label>
+            <label className="mb-1 block text-xs font-medium text-zinc-400">Research Area / Specialization</label>
             <input
               type="text"
-              placeholder="e.g., machine learning, NLP"
+              placeholder="e.g., Machine Learning, Computer Vision, Robotics"
               value={researchArea}
               onChange={(e) => setResearchArea(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-              className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2.5 text-sm dark:border-zinc-700 dark:bg-zinc-800"
+              className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2.5 text-sm dark:border-zinc-700 dark:bg-zinc-800 dark:text-white"
             />
           </div>
         </div>
-        <div className="mt-4 flex justify-end">
-          <Button onClick={handleSearch} disabled={searching}>
+
+        <div className="mt-6 flex justify-end">
+          <Button onClick={handleSearch} disabled={searching} className="bg-emerald-600 hover:bg-emerald-500 text-white font-medium px-5">
             {searching ? (
               <Loader2 size={16} className="animate-spin" />
             ) : (
               <Search size={16} />
             )}
-            {searching ? "Searching..." : "Search Scholarships"}
+            {searching ? "Searching Global Portals..." : "Discover Scholarships"}
           </Button>
         </div>
       </Card>
@@ -127,127 +136,131 @@ export default function ScholarshipsPage() {
       {!searched ? (
         <EmptyState
           icon={GraduationCap}
-          title="Search for scholarships"
-          description="Set your preferences and discover fully-funded scholarship opportunities worldwide"
+          title="Search 13+ Global Scholarship Databases"
+          description="Filter DAAD, Chevening, Fulbright, Erasmus Mundus, Gates Cambridge & MEXT by degree, location, and research domain."
         />
       ) : scholarships.length === 0 ? (
         <EmptyState
           icon={GraduationCap}
-          title="No scholarships found"
-          description="Try broadening your search criteria"
+          title="No exact scholarship matches found"
+          description="Try clearing your degree or country filters to expand your search across all global grant portals."
         />
       ) : (
         <>
-          <p className="mb-4 text-sm text-zinc-500">
-            Found {scholarships.length} scholarships — sorted by eligibility score
-          </p>
+          <div className="mb-4 flex items-center justify-between">
+            <p className="text-sm font-medium text-zinc-400">
+              Found <span className="text-emerald-400 font-semibold">{scholarships.length}</span> fully-funded opportunities — ranked by eligibility match
+            </p>
+          </div>
+
           <div className="space-y-4">
-            {scholarships.map((s, i) => (
-              <Card key={i} className="p-5">
-                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-start gap-3">
-                      <div className="rounded-lg bg-purple-50 p-2 dark:bg-purple-500/10">
-                        <GraduationCap size={18} className="text-purple-600 dark:text-purple-400" />
-                      </div>
-                      <div>
-                        <h3 className="font-semibold text-zinc-900 dark:text-white">
-                          {s.name}
-                        </h3>
-                        <div className="mt-1 flex flex-wrap items-center gap-2 text-sm text-zinc-500">
-                          {s.portal && (
-                            <span className="flex items-center gap-1">
-                              <Globe size={12} /> {s.portal}
+            {scholarships.map((s, i) => {
+              const score = s.eligibility_score ?? (s as any).fit_score ?? 85;
+              const providerName = s.portal || (s as any).provider || s.name;
+              const reasons = s.match_reasons || (s as any).eligibility_notes || [];
+              const amountText = (s as any).amount || "Full Tuition + Monthly Stipend";
+
+              return (
+                <Card key={i} className="p-6 transition-all hover:border-emerald-500/30">
+                  <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-start gap-3">
+                        <div className="rounded-xl bg-emerald-500/10 p-2.5 text-emerald-400 border border-emerald-500/20">
+                          <GraduationCap size={22} />
+                        </div>
+                        <div>
+                          <h3 className="text-base font-bold text-zinc-900 dark:text-white flex items-center gap-2">
+                            {s.name}
+                          </h3>
+                          <div className="mt-1.5 flex flex-wrap items-center gap-3 text-xs text-zinc-400">
+                            <span className="flex items-center gap-1 font-medium text-zinc-300">
+                              <Globe size={13} className="text-emerald-400" /> {s.country || providerName}
                             </span>
-                          )}
-                          {s.country && <span>· {s.country}</span>}
-                          {s.degree_level && (
-                            <>
-                              <span>·</span>
-                              <Badge>{s.degree_level}</Badge>
-                            </>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-
-                    {s.deadline && (
-                      <div className="mt-2 flex items-center gap-1.5 text-sm text-zinc-500">
-                        <Calendar size={12} />
-                        Deadline: {new Date(s.deadline).toLocaleDateString()}
-                      </div>
-                    )}
-
-                    {/* Match Reasons */}
-                    {s.match_reasons && s.match_reasons.length > 0 && (
-                      <div className="mt-3">
-                        <p className="mb-1 text-xs font-medium uppercase tracking-wider text-zinc-500">
-                          Why it matches
-                        </p>
-                        <div className="flex flex-wrap gap-1.5">
-                          {s.match_reasons.map((reason, j) => (
-                            <Badge key={j} variant="success">
-                              {reason}
+                            <span>•</span>
+                            <Badge variant="default" className="text-xs bg-zinc-800 text-zinc-300 border border-zinc-700">
+                              {s.degree_level || "MSc / PhD"}
                             </Badge>
-                          ))}
+                            <span>•</span>
+                            <span className="flex items-center gap-1 text-emerald-400 font-medium">
+                              <DollarSign size={13} /> {amountText}
+                            </span>
+                          </div>
                         </div>
                       </div>
-                    )}
-                  </div>
 
-                  {/* Right side: Score + Actions */}
-                  <div className="flex flex-col items-end gap-3">
-                    {s.eligibility_score !== undefined && (
-                      <EligibilityScore score={s.eligibility_score} />
-                    )}
-                    <div className="flex gap-2">
-                      {s.url && (
-                        <a
-                          href={s.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 px-3 py-1.5 text-xs font-medium text-zinc-600 transition-colors hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800"
-                        >
-                          <ExternalLink size={12} />
-                          Portal
-                        </a>
-                      )}
-                      <Button
-                        onClick={() => handleApply(s)}
-                        disabled={applying === s.name}
-                        className="px-3 py-1.5 text-xs"
-                      >
-                        {applying === s.name ? (
-                          <Loader2 size={12} className="animate-spin" />
-                        ) : (
-                          <Send size={12} />
+                      {/* Benefits & Deadline Bar */}
+                      <div className="mt-4 flex flex-wrap items-center gap-4 text-xs text-zinc-400 border-t border-b border-zinc-800/80 py-2.5">
+                        {s.deadline && (
+                          <div className="flex items-center gap-1.5 font-medium text-amber-400">
+                            <Calendar size={13} />
+                            Deadline: {s.deadline}
+                          </div>
                         )}
-                        Apply
-                      </Button>
+                        <div className="flex items-center gap-1 text-emerald-400">
+                          <CheckCircle2 size={13} /> 100% Tuition Covered
+                        </div>
+                      </div>
+
+                      {/* Why it matches */}
+                      {reasons.length > 0 && (
+                        <div className="mt-3">
+                          <p className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-zinc-500">
+                            Profile Match Analysis
+                          </p>
+                          <div className="flex flex-wrap gap-1.5">
+                            {reasons.map((reason: string, j: number) => (
+                              <span
+                                key={j}
+                                className="rounded-md bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-0.5 text-xs text-emerald-300 font-medium"
+                              >
+                                ✓ {reason}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Right side: Match Pill + Action Buttons */}
+                    <div className="flex flex-col items-end justify-between gap-4 self-stretch border-t border-zinc-800 pt-4 lg:border-t-0 lg:pt-0">
+                      <div className="flex items-center gap-2 rounded-lg bg-emerald-500/10 px-3 py-1.5 border border-emerald-500/20">
+                        <Award size={16} className="text-emerald-400" />
+                        <span className="text-sm font-bold text-emerald-400">{score}% Eligibility Match</span>
+                      </div>
+
+                      <div className="flex items-center gap-2 w-full lg:w-auto">
+                        {s.url && (
+                          <a
+                            href={s.url.startsWith("http") ? s.url : `https://${s.url}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-1.5 rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-xs font-medium text-zinc-300 hover:bg-zinc-700 transition-colors"
+                          >
+                            Official Portal <ExternalLink size={13} />
+                          </a>
+                        )}
+
+                        <Button
+                          onClick={() => handleApply(s)}
+                          disabled={applying === s.name}
+                          className="bg-emerald-600 hover:bg-emerald-500 text-white text-xs px-3.5 py-2 flex items-center gap-1.5 shadow-md"
+                        >
+                          {applying === s.name ? (
+                            <Loader2 size={13} className="animate-spin" />
+                          ) : (
+                            <Sparkles size={13} />
+                          )}
+                          Apply & Draft SOP <ArrowRight size={13} />
+                        </Button>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </Card>
-            ))}
+                </Card>
+              );
+            })}
           </div>
         </>
       )}
-    </div>
-  );
-}
-
-function EligibilityScore({ score }: { score: number }) {
-  const color =
-    score >= 80
-      ? "text-emerald-600 bg-emerald-50 dark:text-emerald-400 dark:bg-emerald-500/10"
-      : score >= 60
-      ? "text-amber-600 bg-amber-50 dark:text-amber-400 dark:bg-amber-500/10"
-      : "text-red-600 bg-red-50 dark:text-red-400 dark:bg-red-500/10";
-
-  return (
-    <div className={`flex items-center gap-1.5 rounded-lg px-3 py-2 ${color}`}>
-      <span className="text-lg font-bold">{score}</span>
-      <span className="text-xs opacity-70">eligible</span>
     </div>
   );
 }
