@@ -85,7 +85,7 @@ export function ExplainableAIDrawer({
           animate={{ x: 0 }}
           exit={{ x: "100%" }}
           transition={{ type: "spring", damping: 25, stiffness: 200 }}
-          className="relative z-50 h-full w-full max-w-lg border-l border-zinc-800 bg-[#0b111e] p-6 shadow-2xl overflow-y-auto font-sans"
+          className="relative z-50 h-full w-full max-w-lg border-l border-emerald-500/20 bg-[#060911]/95 backdrop-blur-xl p-6 shadow-2xl overflow-y-auto font-sans"
         >
           {/* Header */}
           <div className="flex items-center justify-between border-b border-zinc-800 pb-4">

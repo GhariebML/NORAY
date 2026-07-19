@@ -120,9 +120,9 @@ Results-driven Machine Learning Engineer with expertise in Agentic RAG Operating
       {/* Top Bar */}
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3 border-b border-zinc-800 pb-3">
         <div>
-          <h1 className="text-xl font-bold text-zinc-100 font-heading flex items-center gap-2">
+          <h1 className="text-xl font-bold font-heading flex items-center gap-2">
             <Sparkles className="text-emerald-400" size={22} />
-            Dual-Pane AI Workspace Canvas
+            <span className="gradient-text-emerald">Dual-Pane AI Workspace Canvas</span>
           </h1>
           <p className="text-xs text-zinc-400">
             Work side-by-side with your multi-agent AI engine in real time

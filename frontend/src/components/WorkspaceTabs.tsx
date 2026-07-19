@@ -49,7 +49,7 @@ export function WorkspaceTabs() {
   };
 
   return (
-    <div className="flex items-center gap-1 border-b border-zinc-800/80 bg-[#0b111e]/90 px-3 py-1.5 overflow-x-auto text-xs select-none">
+    <div className="flex items-center gap-1 border-b border-slate-800/80 bg-[#090e1a]/95 backdrop-blur-md px-3 py-1.5 overflow-x-auto text-xs select-none">
       {tabs.map((tab) => {
         const Icon = tab.icon;
         const isActive = pathname === tab.href || (tab.href !== "/" && pathname.startsWith(tab.href));
@@ -60,8 +60,8 @@ export function WorkspaceTabs() {
             onClick={() => router.push(tab.href)}
             className={`group relative flex items-center gap-2 rounded-md px-3 py-1.5 font-medium transition-all cursor-pointer ${
               isActive
-                ? "bg-[#161f2d] text-emerald-400 border border-emerald-500/30 shadow-md shadow-emerald-500/5"
-                : "text-zinc-400 hover:bg-zinc-800/60 hover:text-zinc-200 border border-transparent"
+                ? "bg-[#131c31] text-emerald-300 border border-emerald-500/40 shadow-lg shadow-emerald-500/10 font-semibold"
+                : "text-slate-400 hover:bg-slate-800/60 hover:text-slate-200 border border-transparent"
             }`}
           >
             <Icon size={14} className={isActive ? "text-emerald-400" : "text-zinc-500 group-hover:text-zinc-300"} />

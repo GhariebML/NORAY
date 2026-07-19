@@ -33,7 +33,7 @@ export function AgentPipeline({ steps }: { steps?: AgentStep[] }) {
   const activeSteps = steps && steps.length > 0 ? steps : defaultSteps;
 
   return (
-    <div className="rounded-xl border border-zinc-800 bg-[#161f2d]/80 p-4 backdrop-blur-md shadow-xl">
+    <div className="rounded-xl border border-slate-800/80 bg-[#131c31]/90 p-4 backdrop-blur-md shadow-2xl">
       <div className="mb-3 flex items-center justify-between border-b border-zinc-800 pb-2.5">
         <div className="flex items-center gap-2">
           <Zap size={16} className="text-emerald-400" />

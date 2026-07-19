@@ -21,10 +21,10 @@ export default function RootLayout({
       className="h-full antialiased dark"
       suppressHydrationWarning
     >
-      <body className="min-h-full flex flex-col lg:flex-row bg-[#070b12] text-zinc-100 selection:bg-emerald-500/30 selection:text-emerald-300" suppressHydrationWarning>
+      <body className="min-h-full flex flex-col lg:flex-row bg-[#060911] text-[#f8fafc] selection:bg-emerald-500/30 selection:text-emerald-300" suppressHydrationWarning>
         <ClientWrapper>
           <Sidebar />
-          <main className="flex-1 flex flex-col min-w-0 overflow-hidden bg-[#070b12]">
+          <main className="flex-1 flex flex-col min-w-0 overflow-hidden bg-[#060911]">
             <WorkspaceTabs />
             <div className="flex-1 overflow-auto px-4 py-6 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full">
               {children}
