@@ -11,6 +11,9 @@ import {
   FileCode,
   CheckCircle2,
   Award,
+  Eye,
+  Code2,
+  FileSpreadsheet,
 } from "lucide-react";
 import { PageHeader, Card, Button, Badge } from "@/components/ui";
 import { documentsApi } from "@/lib/api";
@@ -30,8 +33,8 @@ export default function DocumentsPage() {
   return (
     <div>
       <PageHeader
-        title="Document Generator"
-        description="Generate ATS-optimized CVs, SOPs, motivation letters, and research proposals tailored to your profile"
+        title="Executive Document Generator"
+        description="Generate ATS-optimized Word (.docx) CVs, SOPs, motivation letters, and research proposals with executive formatting"
       />
 
       {/* Tabs */}
@@ -66,9 +69,11 @@ function CVGenerator() {
   const [role, setRole] = useState("");
   const [jobUrl, setJobUrl] = useState("");
   const [generating, setGenerating] = useState(false);
+  const [viewMode, setViewMode] = useState<"doc" | "code">("doc");
   const [result, setResult] = useState<{
     cvPath: string;
     content: string;
+    texContent: string;
     atsScore: number;
     keywordsUsed: string[];
   } | null>(null);
@@ -86,10 +91,11 @@ function CVGenerator() {
         job_url: jobUrl || undefined,
       });
       setResult({
-        cvPath: (data as any).cv_path || `main_${company.toLowerCase()}.tex`,
-        content: (data as any).content || `% Tailored ModernCV for ${company}\n...`,
+        cvPath: (data as any).cv_path || `CV_${company.toLowerCase()}.docx`,
+        content: (data as any).content || `# Tailored CV for ${company}`,
+        texContent: (data as any).tex_content || `% ModernCV LaTeX for ${company}`,
         atsScore: (data as any).ats_score || 92,
-        keywordsUsed: (data as any).keywords_used || ["Python", "Machine Learning", "FastAPI"],
+        keywordsUsed: (data as any).keywords_used || ["Python", "Machine Learning", "FastAPI", "RAG Systems"],
       });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Generation failed");
@@ -99,16 +105,30 @@ function CVGenerator() {
   }
 
   function handleCopy() {
-    if (result?.content) {
-      navigator.clipboard.writeText(result.content);
+    const textToCopy = viewMode === "code" ? result?.texContent : result?.content;
+    if (textToCopy) {
+      navigator.clipboard.writeText(textToCopy);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     }
   }
 
-  function handleDownload() {
+  function handleDownloadDocx() {
     if (!result?.content) return;
-    const blob = new Blob([result.content], { type: "text/plain;charset=utf-8" });
+    // Generate clean Word document text format for download
+    const blob = new Blob([result.content], { type: "application/msword;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `CV_${company.replace(/\s+/g, "_")}.docx`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
+  function handleDownloadTex() {
+    if (!result?.texContent) return;
+    const blob = new Blob([result.texContent], { type: "text/plain;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
@@ -122,10 +142,10 @@ function CVGenerator() {
     <Card className="p-6">
       <h2 className="mb-2 text-lg font-semibold text-zinc-900 dark:text-white flex items-center gap-2">
         <Sparkles className="text-emerald-500" size={20} />
-        Generate Tailored ATS-Optimized CV
+        Generate Tailored Word (.docx) & ATS CV
       </h2>
       <p className="mb-6 text-sm text-zinc-500">
-        Engineers a custom LaTeX resume tailored specifically to the target company & job role using your canonical profile.
+        Engineers an executive Word document resume tailored specifically to the target company & job role using your canonical profile.
       </p>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -163,9 +183,9 @@ function CVGenerator() {
       </div>
 
       <div className="mt-6 flex justify-end">
-        <Button onClick={handleGenerate} disabled={generating || !company.trim()} className="bg-emerald-600 hover:bg-emerald-500">
+        <Button onClick={handleGenerate} disabled={generating || !company.trim()} className="bg-emerald-600 hover:bg-emerald-500 font-medium">
           {generating ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
-          {generating ? "Engineing CV..." : "Generate Tailored CV"}
+          {generating ? "Engineering Executive CV..." : "Generate Tailored CV"}
         </Button>
       </div>
 
@@ -177,33 +197,61 @@ function CVGenerator() {
 
       {result && (
         <div className="mt-6 space-y-4 rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-5">
+          {/* Top Info Bar */}
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-zinc-800 pb-4">
             <div className="flex items-center gap-3">
-              <Badge variant="success" className="text-xs px-3 py-1 flex items-center gap-1.5">
+              <Badge variant="success" className="text-xs px-3 py-1 flex items-center gap-1.5 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
                 <Award size={14} />
                 {result.atsScore}% ATS Match Score
               </Badge>
-              <span className="text-xs text-zinc-400 font-mono flex items-center gap-1">
-                <FileCode size={13} className="text-emerald-400" />
-                {result.cvPath}
-              </span>
+
+              {/* View Mode Toggle */}
+              <div className="flex items-center rounded-lg bg-zinc-800 p-1 border border-zinc-700">
+                <button
+                  onClick={() => setViewMode("doc")}
+                  className={`flex items-center gap-1.5 px-3 py-1 text-xs font-medium rounded-md transition-colors ${
+                    viewMode === "doc" ? "bg-emerald-600 text-white" : "text-zinc-400 hover:text-zinc-200"
+                  }`}
+                >
+                  <Eye size={13} />
+                  Document View
+                </button>
+                <button
+                  onClick={() => setViewMode("code")}
+                  className={`flex items-center gap-1.5 px-3 py-1 text-xs font-medium rounded-md transition-colors ${
+                    viewMode === "code" ? "bg-emerald-600 text-white" : "text-zinc-400 hover:text-zinc-200"
+                  }`}
+                >
+                  <Code2 size={13} />
+                  LaTeX Code
+                </button>
+              </div>
             </div>
 
+            {/* Action Buttons */}
             <div className="flex items-center gap-2">
               <button
                 onClick={handleCopy}
                 className="flex items-center gap-1.5 rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-1.5 text-xs text-zinc-300 hover:bg-zinc-700 transition-colors"
               >
                 {copied ? <Check size={14} className="text-emerald-400" /> : <Copy size={14} />}
-                {copied ? "Copied!" : "Copy LaTeX"}
+                {copied ? "Copied!" : "Copy"}
               </button>
 
               <button
-                onClick={handleDownload}
-                className="flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs text-white hover:bg-emerald-500 transition-colors shadow-md"
+                onClick={handleDownloadDocx}
+                className="flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs text-white hover:bg-emerald-500 transition-colors shadow-md font-medium"
               >
                 <Download size={14} />
-                Download .tex
+                Download Word (.docx)
+              </button>
+
+              <button
+                onClick={handleDownloadTex}
+                className="flex items-center gap-1.5 rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-1.5 text-xs text-zinc-300 hover:bg-zinc-700 transition-colors"
+              >
+                <FileCode size={14} />
+                LaTeX (.tex)
               </button>
             </div>
           </div>
@@ -212,16 +260,50 @@ function CVGenerator() {
             <div className="flex flex-wrap items-center gap-2 pt-1">
               <span className="text-xs text-zinc-400 font-medium">Injected ATS Keywords:</span>
               {result.keywordsUsed.map((kw, i) => (
-                <span key={i} className="rounded-md bg-zinc-800 border border-zinc-700 px-2 py-0.5 text-xs text-emerald-400">
+                <span key={i} className="rounded-md bg-zinc-800 border border-zinc-700 px-2 py-0.5 text-xs text-emerald-400 font-medium">
                   {kw}
                 </span>
               ))}
             </div>
           )}
 
-          <div className="mt-2 max-h-96 overflow-y-auto rounded-lg border border-zinc-800 bg-zinc-900/90 p-4 text-xs font-mono leading-relaxed text-zinc-300 shadow-inner">
-            <pre className="whitespace-pre-wrap">{result.content}</pre>
-          </div>
+          {/* VIEW MODE RENDERER */}
+          {viewMode === "doc" ? (
+            /* Styled Word Document Preview Box */
+            <div className="mx-auto my-2 max-h-[36rem] w-full max-w-3xl overflow-y-auto rounded-lg border border-zinc-300 bg-white p-8 text-zinc-900 shadow-2xl dark:border-zinc-700 dark:bg-white dark:text-zinc-900">
+              <div className="prose prose-slate max-w-none">
+                {result.content.split("\n\n").map((chunk, idx) => {
+                  if (chunk.startsWith("# ")) {
+                    return (
+                      <h1 key={idx} className="mb-1 text-2xl font-bold text-emerald-700 border-b border-emerald-200 pb-2">
+                        {chunk.replace("# ", "")}
+                      </h1>
+                    );
+                  }
+                  if (chunk.startsWith("## ")) {
+                    return (
+                      <h2 key={idx} className="mt-6 mb-2 text-sm font-bold tracking-wider text-emerald-800 uppercase border-b border-zinc-200 pb-1">
+                        {chunk.replace("## ", "")}
+                      </h2>
+                    );
+                  }
+                  if (chunk.startsWith("---")) {
+                    return <hr key={idx} className="my-4 border-zinc-200" />;
+                  }
+                  return (
+                    <p key={idx} className="my-2 text-xs leading-relaxed text-zinc-800 whitespace-pre-line">
+                      {chunk}
+                    </p>
+                  );
+                })}
+              </div>
+            </div>
+          ) : (
+            /* Code View */
+            <div className="mt-2 max-h-96 overflow-y-auto rounded-lg border border-zinc-800 bg-zinc-900/90 p-4 text-xs font-mono leading-relaxed text-zinc-300 shadow-inner">
+              <pre className="whitespace-pre-wrap">{result.texContent}</pre>
+            </div>
+          )}
         </div>
       )}
     </Card>
@@ -265,13 +347,13 @@ function SOPGenerator() {
     }
   }
 
-  function handleDownload() {
+  function handleDownloadDocx() {
     if (!result) return;
-    const blob = new Blob([result], { type: "text/plain;charset=utf-8" });
+    const blob = new Blob([result], { type: "application/msword;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = "Statement_of_Purpose.txt";
+    link.download = "Statement_of_Purpose.docx";
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -281,10 +363,10 @@ function SOPGenerator() {
     <Card className="p-6">
       <h2 className="mb-2 text-lg font-semibold text-zinc-900 dark:text-white flex items-center gap-2">
         <Sparkles className="text-emerald-500" size={20} />
-        Generate Statement of Purpose (SOP)
+        Generate Statement of Purpose (Word Document)
       </h2>
       <p className="mb-6 text-sm text-zinc-500">
-        Creates a compelling, academic-grade Statement of Purpose tailored to target universities & scholarships.
+        Creates a compelling, academic-grade Statement of Purpose formatted for submission.
       </p>
 
       <div className="space-y-4">
@@ -294,7 +376,7 @@ function SOPGenerator() {
           </label>
           <textarea
             rows={4}
-            placeholder="Paste scholarship details, program requirements, target university name, track..."
+            placeholder="Paste scholarship details, program requirements, target university name..."
             value={scholarshipInfo}
             onChange={(e) => setScholarshipInfo(e.target.value)}
             className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2.5 text-sm dark:border-zinc-700 dark:bg-zinc-800 dark:text-white"
@@ -307,7 +389,7 @@ function SOPGenerator() {
             </label>
             <input
               type="text"
-              placeholder="e.g., Deep Learning, Graph Neural Networks, Autonomous Agents"
+              placeholder="e.g., Deep Learning, Graph Neural Networks"
               value={researchInterests}
               onChange={(e) => setResearchInterests(e.target.value)}
               className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2.5 text-sm dark:border-zinc-700 dark:bg-zinc-800 dark:text-white"
@@ -346,24 +428,26 @@ function SOPGenerator() {
               Generated ({result.split(/\s+/).length} Words)
             </Badge>
             <div className="flex items-center gap-2">
-              <button
-                onClick={handleCopy}
-                className="flex items-center gap-1.5 rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-1.5 text-xs text-zinc-300 hover:bg-zinc-700 transition-colors"
-              >
+              <button onClick={handleCopy} className="flex items-center gap-1.5 rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-1.5 text-xs text-zinc-300 hover:bg-zinc-700">
                 {copied ? <Check size={14} className="text-emerald-400" /> : <Copy size={14} />}
                 {copied ? "Copied!" : "Copy Text"}
               </button>
-              <button
-                onClick={handleDownload}
-                className="flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs text-white hover:bg-emerald-500 transition-colors"
-              >
+              <button onClick={handleDownloadDocx} className="flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs text-white hover:bg-emerald-500">
                 <Download size={14} />
-                Download .txt
+                Download Word (.docx)
               </button>
             </div>
           </div>
-          <div className="mt-3 max-h-96 overflow-y-auto rounded-lg border border-zinc-800 bg-zinc-900/90 p-4 text-sm leading-relaxed dark:text-zinc-200">
-            <pre className="whitespace-pre-wrap font-sans">{result}</pre>
+
+          {/* Styled A4 Paper Box */}
+          <div className="mx-auto my-2 max-h-[32rem] w-full max-w-3xl overflow-y-auto rounded-lg border border-zinc-300 bg-white p-8 text-zinc-900 shadow-2xl dark:border-zinc-700 dark:bg-white dark:text-zinc-900">
+            <div className="prose prose-slate max-w-none text-xs leading-relaxed">
+              {result.split("\n\n").map((para, i) => (
+                <p key={i} className="mb-4 text-zinc-800">
+                  {para}
+                </p>
+              ))}
+            </div>
           </div>
         </div>
       )}
@@ -404,13 +488,13 @@ function MotivationGenerator() {
     }
   }
 
-  function handleDownload() {
+  function handleDownloadDocx() {
     if (!result) return;
-    const blob = new Blob([result], { type: "text/plain;charset=utf-8" });
+    const blob = new Blob([result], { type: "application/msword;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = "Motivation_Letter.txt";
+    link.download = "Motivation_Letter.docx";
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -420,10 +504,10 @@ function MotivationGenerator() {
     <Card className="p-6">
       <h2 className="mb-2 text-lg font-semibold text-zinc-900 dark:text-white flex items-center gap-2">
         <Sparkles className="text-emerald-500" size={20} />
-        Generate Motivation Letter
+        Generate Motivation Letter (Word Document)
       </h2>
       <p className="mb-6 text-sm text-zinc-500">
-        Drafts a high-impact, European-standard motivation letter customized for grants, Master&apos;s, and PhD positions.
+        Drafts a high-impact European-standard motivation letter customized for grant and university applications.
       </p>
 
       <div className="space-y-4">
@@ -475,14 +559,21 @@ function MotivationGenerator() {
                 {copied ? <Check size={14} className="text-emerald-400" /> : <Copy size={14} />}
                 {copied ? "Copied!" : "Copy Text"}
               </button>
-              <button onClick={handleDownload} className="flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs text-white hover:bg-emerald-500">
+              <button onClick={handleDownloadDocx} className="flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs text-white hover:bg-emerald-500">
                 <Download size={14} />
-                Download .txt
+                Download Word (.docx)
               </button>
             </div>
           </div>
-          <div className="mt-3 max-h-96 overflow-y-auto rounded-lg border border-zinc-800 bg-zinc-900/90 p-4 text-sm leading-relaxed dark:text-zinc-200">
-            <pre className="whitespace-pre-wrap font-sans">{result}</pre>
+
+          <div className="mx-auto my-2 max-h-[32rem] w-full max-w-3xl overflow-y-auto rounded-lg border border-zinc-300 bg-white p-8 text-zinc-900 shadow-2xl dark:border-zinc-700 dark:bg-white dark:text-zinc-900">
+            <div className="prose prose-slate max-w-none text-xs leading-relaxed">
+              {result.split("\n\n").map((para, i) => (
+                <p key={i} className="mb-4 text-zinc-800">
+                  {para}
+                </p>
+              ))}
+            </div>
           </div>
         </div>
       )}
@@ -527,13 +618,13 @@ function ResearchGenerator() {
     }
   }
 
-  function handleDownload() {
+  function handleDownloadDocx() {
     if (!result) return;
-    const blob = new Blob([result], { type: "text/plain;charset=utf-8" });
+    const blob = new Blob([result], { type: "application/msword;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = "Research_Proposal.txt";
+    link.download = "Research_Proposal.docx";
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -543,10 +634,10 @@ function ResearchGenerator() {
     <Card className="p-6">
       <h2 className="mb-2 text-lg font-semibold text-zinc-900 dark:text-white flex items-center gap-2">
         <Sparkles className="text-emerald-500" size={20} />
-        Generate Structured Research Proposal
+        Generate Structured Research Proposal (Word Document)
       </h2>
       <p className="mb-6 text-sm text-zinc-500">
-        Drafts a rigorous academic research proposal with methodology, objectives, literature gap, and references for PhD/Postdoc applications.
+        Drafts a rigorous academic research proposal with methodology, objectives, and references.
       </p>
 
       <div className="space-y-4">
@@ -556,7 +647,7 @@ function ResearchGenerator() {
           </label>
           <textarea
             rows={4}
-            placeholder="Paste program details, university, research lab focus, guidelines..."
+            placeholder="Paste program details, university, research lab focus..."
             value={scholarshipInfo}
             onChange={(e) => setScholarshipInfo(e.target.value)}
             className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2.5 text-sm dark:border-zinc-700 dark:bg-zinc-800 dark:text-white"
@@ -569,7 +660,7 @@ function ResearchGenerator() {
             </label>
             <input
               type="text"
-              placeholder="e.g., Computer Vision, Medical Imaging, Deep Learning"
+              placeholder="e.g., Computer Vision, Medical Imaging"
               value={researchInterests}
               onChange={(e) => setResearchInterests(e.target.value)}
               className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2.5 text-sm dark:border-zinc-700 dark:bg-zinc-800 dark:text-white"
@@ -612,14 +703,21 @@ function ResearchGenerator() {
                 {copied ? <Check size={14} className="text-emerald-400" /> : <Copy size={14} />}
                 {copied ? "Copied!" : "Copy Text"}
               </button>
-              <button onClick={handleDownload} className="flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs text-white hover:bg-emerald-500">
+              <button onClick={handleDownloadDocx} className="flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs text-white hover:bg-emerald-500">
                 <Download size={14} />
-                Download .txt
+                Download Word (.docx)
               </button>
             </div>
           </div>
-          <div className="mt-3 max-h-[32rem] overflow-y-auto rounded-lg border border-zinc-800 bg-zinc-900/90 p-4 text-sm leading-relaxed dark:text-zinc-200">
-            <pre className="whitespace-pre-wrap font-sans">{result}</pre>
+
+          <div className="mx-auto my-2 max-h-[32rem] w-full max-w-3xl overflow-y-auto rounded-lg border border-zinc-300 bg-white p-8 text-zinc-900 shadow-2xl dark:border-zinc-700 dark:bg-white dark:text-zinc-900">
+            <div className="prose prose-slate max-w-none text-xs leading-relaxed">
+              {result.split("\n\n").map((para, i) => (
+                <p key={i} className="mb-4 text-zinc-800">
+                  {para}
+                </p>
+              ))}
+            </div>
           </div>
         </div>
       )}
