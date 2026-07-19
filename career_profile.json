@@ -1,0 +1,610 @@
+{
+  "meta": {
+    "version": "1.0.0",
+    "created_at": "",
+    "updated_at": "2026-07-18T14:35:58.015499",
+    "sources": [
+      "api_test",
+      "web",
+      "github_import"
+    ]
+  },
+  "identity": {
+    "name": "",
+    "email": "",
+    "phone": "",
+    "location": {
+      "city": "",
+      "country": ""
+    },
+    "linkedin_url": "",
+    "github_url": "",
+    "website_url": "",
+    "languages": []
+  },
+  "education": [],
+  "experience": [],
+  "projects": [
+    {
+      "name": "apex-performance-app",
+      "description": "Live ML app predicting body fitness performance (A-D) using 11 physiological metrics. Random Forest classifier deployed on Vercel.",
+      "technologies": [
+        "Jupyter Notebook"
+      ],
+      "url": "https://github.com/GhariebML/apex-performance-app",
+      "highlights": [
+        "⭐ 3 stars"
+      ]
+    },
+    {
+      "name": "Hotel-Intelligence-System",
+      "description": "Live Hotel Intelligence System: 11-table SQL database from 119,390 records, ML cancellation prediction, guest segmentation, and Power BI KPI dashboard. Deployed on Vercel.",
+      "technologies": [
+        "Jupyter Notebook",
+        "Python",
+        "TypeScript",
+        "Batchfile"
+      ],
+      "url": "https://github.com/GhariebML/Hotel-Intelligence-System",
+      "highlights": [
+        "⭐ 1 stars"
+      ]
+    },
+    {
+      "name": "English_Pre",
+      "description": "TED-style presentation about Overthinking built with PptxGenJS — by Mohamed Gharieb",
+      "technologies": [
+        "HTML",
+        "JavaScript"
+      ],
+      "url": "https://github.com/GhariebML/English_Pre",
+      "highlights": []
+    },
+    {
+      "name": "Telco_Churn_Prediction",
+      "description": "End-to-End Telco Customer Churn Prediction with ML and Interactive App",
+      "technologies": [
+        "Python"
+      ],
+      "url": "https://github.com/GhariebML/Telco_Churn_Prediction",
+      "highlights": []
+    }
+  ],
+  "skills": {
+    "primary": [],
+    "secondary": [],
+    "domain": [
+      "artificial-intelligence",
+      "bert",
+      "churn-prediction",
+      "classification",
+      "cnn",
+      "computer-vision",
+      "coursera",
+      "cybersecurity",
+      "data-analysis",
+      "data-analytics",
+      "data-science",
+      "deep-learning",
+      "eda",
+      "english",
+      "github-pages",
+      "ibm",
+      "javascript",
+      "jupyter-notebook",
+      "machine-learning",
+      "mcit",
+      "natural-language-processing",
+      "neural-networks",
+      "nlp",
+      "overthinking",
+      "password-strength",
+      "portfolio",
+      "pptxgenjs",
+      "presentation",
+      "python",
+      "random-forest",
+      "react",
+      "rnn",
+      "road-accidents",
+      "scikit-learn",
+      "spss",
+      "sql",
+      "statistics",
+      "tensorflow",
+      "text-classification",
+      "tf-idf",
+      "typescript",
+      "word2vec",
+      "xgboost"
+    ],
+    "tools": [
+      "Batchfile",
+      "CSS",
+      "Dockerfile",
+      "HTML",
+      "JavaScript",
+      "Jupyter Notebook",
+      "Makefile",
+      "Mako",
+      "PowerShell",
+      "Python",
+      "Shell",
+      "TeX",
+      "TypeScript"
+    ]
+  },
+  "certifications": [],
+  "awards": [],
+  "publications": [],
+  "behavioral": {
+    "assessment_type": "",
+    "traits": [],
+    "strengths": [],
+    "growth_areas": [],
+    "work_style": "",
+    "management_style": "",
+    "ideal_environment": ""
+  },
+  "goals": {
+    "target_roles": [
+      "ML Engineer"
+    ]
+  },
+  "scholarship_goals": {
+    "target_degrees": [],
+    "target_countries": [],
+    "research_interests": [],
+    "funding_needed": "",
+    "deadlines": []
+  },
+  "github": {
+    "username": "GhariebML",
+    "repos": [
+      {
+        "name": "apex-performance-app",
+        "description": "Live ML app predicting body fitness performance (A-D) using 11 physiological metrics. Random Forest classifier deployed on Vercel.",
+        "language": "Jupyter Notebook",
+        "languages": {
+          "Jupyter Notebook": 969621
+        },
+        "stars": 3,
+        "forks": 0,
+        "topics": [],
+        "url": "https://github.com/GhariebML/apex-performance-app",
+        "homepage": "https://apex-performance-app.vercel.app",
+        "created_at": "2026-03-26T22:56:40Z",
+        "updated_at": "2026-04-21T06:46:47Z",
+        "size_kb": 7117,
+        "archived": false
+      },
+      {
+        "name": "Hotel-Intelligence-System",
+        "description": "Live Hotel Intelligence System: 11-table SQL database from 119,390 records, ML cancellation prediction, guest segmentation, and Power BI KPI dashboard. Deployed on Vercel.",
+        "language": "Jupyter Notebook",
+        "languages": {
+          "Jupyter Notebook": 75961,
+          "Python": 26185,
+          "TypeScript": 25371,
+          "Batchfile": 396
+        },
+        "stars": 1,
+        "forks": 0,
+        "topics": [],
+        "url": "https://github.com/GhariebML/Hotel-Intelligence-System",
+        "homepage": "https://hotel-booking-dashboard-nine.vercel.app",
+        "created_at": "2026-03-27T01:26:43Z",
+        "updated_at": "2026-04-21T06:46:50Z",
+        "size_kb": 8313,
+        "archived": false
+      },
+      {
+        "name": "NORAY",
+        "description": "",
+        "language": "Python",
+        "languages": {
+          "Python": 560144,
+          "TypeScript": 114853,
+          "TeX": 13498,
+          "CSS": 774,
+          "JavaScript": 559
+        },
+        "stars": 0,
+        "forks": 0,
+        "topics": [],
+        "url": "https://github.com/GhariebML/NORAY",
+        "homepage": "",
+        "created_at": "2026-06-04T14:18:52Z",
+        "updated_at": "2026-06-04T14:41:20Z",
+        "size_kb": 0,
+        "archived": false
+      },
+      {
+        "name": "AutoAnalyst-AI",
+        "description": "",
+        "language": "Jupyter Notebook",
+        "languages": {
+          "Jupyter Notebook": 64705,
+          "Python": 25351
+        },
+        "stars": 0,
+        "forks": 1,
+        "topics": [],
+        "url": "https://github.com/GhariebML/AutoAnalyst-AI",
+        "homepage": "",
+        "created_at": "2026-05-12T09:32:47Z",
+        "updated_at": "2026-06-03T11:36:13Z",
+        "size_kb": 642,
+        "archived": false
+      },
+      {
+        "name": "physics_note",
+        "description": "",
+        "language": "HTML",
+        "languages": {
+          "HTML": 124125,
+          "CSS": 18666,
+          "JavaScript": 13178
+        },
+        "stars": 0,
+        "forks": 0,
+        "topics": [],
+        "url": "https://github.com/GhariebML/physics_note",
+        "homepage": "https://dr-gharieb-physics.vercel.app",
+        "created_at": "2026-05-30T15:19:59Z",
+        "updated_at": "2026-05-30T16:21:48Z",
+        "size_kb": 99743,
+        "archived": false
+      },
+      {
+        "name": "Bingo",
+        "description": "",
+        "language": "TypeScript",
+        "languages": {
+          "TypeScript": 363046,
+          "Python": 159414,
+          "CSS": 3026,
+          "Mako": 469,
+          "PowerShell": 297,
+          "JavaScript": 287,
+          "Dockerfile": 196,
+          "Makefile": 150,
+          "Shell": 134
+        },
+        "stars": 0,
+        "forks": 0,
+        "topics": [],
+        "url": "https://github.com/GhariebML/Bingo",
+        "homepage": "https://bingo-ten-drab.vercel.app",
+        "created_at": "2026-05-21T13:45:52Z",
+        "updated_at": "2026-05-29T10:15:51Z",
+        "size_kb": 75415,
+        "archived": false
+      },
+      {
+        "name": "SADAR_NEW",
+        "description": "",
+        "language": "Jupyter Notebook",
+        "languages": {
+          "Jupyter Notebook": 524274,
+          "Python": 325944,
+          "TypeScript": 271316,
+          "CSS": 87482,
+          "Batchfile": 1230,
+          "HTML": 522
+        },
+        "stars": 0,
+        "forks": 0,
+        "topics": [],
+        "url": "https://github.com/GhariebML/SADAR_NEW",
+        "homepage": "",
+        "created_at": "2026-05-23T07:43:57Z",
+        "updated_at": "2026-05-23T09:13:40Z",
+        "size_kb": 5193,
+        "archived": false
+      },
+      {
+        "name": "English_Pre",
+        "description": "TED-style presentation about Overthinking built with PptxGenJS — by Mohamed Gharieb",
+        "language": "HTML",
+        "languages": {
+          "HTML": 53617,
+          "JavaScript": 47880
+        },
+        "stars": 0,
+        "forks": 0,
+        "topics": [
+          "english",
+          "javascript",
+          "overthinking",
+          "pptxgenjs",
+          "presentation"
+        ],
+        "url": "https://github.com/GhariebML/English_Pre",
+        "homepage": "https://ghariebml.github.io/English_Pre/",
+        "created_at": "2026-05-14T22:29:25Z",
+        "updated_at": "2026-05-15T17:14:55Z",
+        "size_kb": 430,
+        "archived": false
+      },
+      {
+        "name": "AeroMind_Sentinel",
+        "description": "",
+        "language": "Python",
+        "languages": {
+          "Python": 389591,
+          "TypeScript": 128022,
+          "HTML": 86511,
+          "Jupyter Notebook": 50201,
+          "JavaScript": 24047,
+          "CSS": 15669,
+          "PowerShell": 12476,
+          "Batchfile": 8127,
+          "Makefile": 7082,
+          "Dockerfile": 3559,
+          "Shell": 963
+        },
+        "stars": 0,
+        "forks": 0,
+        "topics": [],
+        "url": "https://github.com/GhariebML/AeroMind_Sentinel",
+        "homepage": "https://aero-mind-sentinel2.vercel.app",
+        "created_at": "2026-05-13T08:23:00Z",
+        "updated_at": "2026-05-13T11:40:18Z",
+        "size_kb": 24091,
+        "archived": false
+      },
+      {
+        "name": "Telco_Churn_Prediction",
+        "description": "End-to-End Telco Customer Churn Prediction with ML and Interactive App",
+        "language": "Python",
+        "languages": {
+          "Python": 21499
+        },
+        "stars": 0,
+        "forks": 0,
+        "topics": [
+          "churn-prediction",
+          "classification",
+          "data-science",
+          "eda",
+          "machine-learning",
+          "python",
+          "scikit-learn",
+          "xgboost"
+        ],
+        "url": "https://github.com/GhariebML/Telco_Churn_Prediction",
+        "homepage": "",
+        "created_at": "2026-02-28T16:39:54Z",
+        "updated_at": "2026-04-10T16:26:09Z",
+        "size_kb": 2059,
+        "archived": false
+      },
+      {
+        "name": "SecurePass-AI",
+        "description": "🔐 ML-powered password strength analyzer & random password generator using Random Forest — Graduation Project",
+        "language": "Jupyter Notebook",
+        "languages": {},
+        "stars": 0,
+        "forks": 0,
+        "topics": [
+          "classification",
+          "cybersecurity",
+          "machine-learning",
+          "nlp",
+          "password-strength",
+          "python",
+          "random-forest"
+        ],
+        "url": "https://github.com/GhariebML/SecurePass-AI",
+        "homepage": "",
+        "created_at": "2025-08-29T18:46:24Z",
+        "updated_at": "2026-04-10T16:25:42Z",
+        "size_kb": 794,
+        "archived": false
+      },
+      {
+        "name": "GhariebML",
+        "description": "",
+        "language": "",
+        "languages": {},
+        "stars": 0,
+        "forks": 0,
+        "topics": [],
+        "url": "https://github.com/GhariebML/GhariebML",
+        "homepage": "",
+        "created_at": "2026-03-12T14:48:25Z",
+        "updated_at": "2026-04-10T16:14:52Z",
+        "size_kb": 59,
+        "archived": false
+      },
+      {
+        "name": "Orbital_ML",
+        "description": "Full-stack ML platform with API backend, interactive frontend, and Vercel deployment. TypeScript-based AI/ML application with REST API architecture.",
+        "language": "TypeScript",
+        "languages": {},
+        "stars": 0,
+        "forks": 0,
+        "topics": [],
+        "url": "https://github.com/GhariebML/Orbital_ML",
+        "homepage": "https://orbital-ml.vercel.app",
+        "created_at": "2026-03-16T11:05:34Z",
+        "updated_at": "2026-04-10T11:06:17Z",
+        "size_kb": 170,
+        "archived": false
+      },
+      {
+        "name": "EduQuest",
+        "description": "AI-powered educational platform with interactive quizzes, smart learning paths, and progress tracking. Built with React, Node.js and deployed on Vercel.",
+        "language": "JavaScript",
+        "languages": {},
+        "stars": 0,
+        "forks": 0,
+        "topics": [],
+        "url": "https://github.com/GhariebML/EduQuest",
+        "homepage": "https://edu-quest-self.vercel.app",
+        "created_at": "2026-03-21T21:50:50Z",
+        "updated_at": "2026-04-10T11:05:39Z",
+        "size_kb": 2900,
+        "archived": false
+      },
+      {
+        "name": "Student_Performance_Statistical_Analysis_SPSS",
+        "description": "Statistical Analysis of Student Performance Dataset (n=20) using IBM SPSS — EDA, Outlier Detection, Independent-Samples t-Test, and Pearson Correlation | Applied Statistics & Data Analysis | MTC",
+        "language": "",
+        "languages": {},
+        "stars": 0,
+        "forks": 0,
+        "topics": [
+          "data-analysis",
+          "data-science",
+          "machine-learning",
+          "python",
+          "spss",
+          "statistics"
+        ],
+        "url": "https://github.com/GhariebML/Student_Performance_Statistical_Analysis_SPSS",
+        "homepage": "",
+        "created_at": "2026-03-12T16:59:56Z",
+        "updated_at": "2026-03-12T17:19:28Z",
+        "size_kb": 696,
+        "archived": false
+      },
+      {
+        "name": "UK-Road-Accident-Analysis",
+        "description": "End-to-end Data Science project analyzing UK road accident data using EDA and machine learning models to predict accident severity.",
+        "language": "Jupyter Notebook",
+        "languages": {},
+        "stars": 0,
+        "forks": 0,
+        "topics": [
+          "data-analysis",
+          "data-science",
+          "eda",
+          "machine-learning",
+          "python",
+          "road-accidents",
+          "scikit-learn"
+        ],
+        "url": "https://github.com/GhariebML/UK-Road-Accident-Analysis",
+        "homepage": "",
+        "created_at": "2026-03-04T10:09:26Z",
+        "updated_at": "2026-03-12T15:35:08Z",
+        "size_kb": 42178,
+        "archived": false
+      },
+      {
+        "name": "portfolio",
+        "description": "AI and Data Science portfolio website deployed on GitHub Pages - built with React, TypeScript and Vite",
+        "language": "TypeScript",
+        "languages": {},
+        "stars": 0,
+        "forks": 0,
+        "topics": [
+          "data-science",
+          "github-pages",
+          "portfolio",
+          "react",
+          "typescript"
+        ],
+        "url": "https://github.com/GhariebML/portfolio",
+        "homepage": "",
+        "created_at": "2026-03-08T07:04:27Z",
+        "updated_at": "2026-03-12T15:33:14Z",
+        "size_kb": 13368,
+        "archived": false
+      },
+      {
+        "name": "NLP_Text_Representation_Techniques",
+        "description": "A comprehensive notebook demonstrating various text representation techniques in Natural Language Processing (NLP), including Bag of Words, TF-IDF, Word2Vec, and BERT embeddings.",
+        "language": "Jupyter Notebook",
+        "languages": {},
+        "stars": 0,
+        "forks": 0,
+        "topics": [
+          "bert",
+          "machine-learning",
+          "natural-language-processing",
+          "nlp",
+          "python",
+          "text-classification",
+          "tf-idf",
+          "word2vec"
+        ],
+        "url": "https://github.com/GhariebML/NLP_Text_Representation_Techniques",
+        "homepage": "",
+        "created_at": "2025-11-05T22:10:11Z",
+        "updated_at": "2026-03-12T15:27:39Z",
+        "size_kb": 15,
+        "archived": false
+      },
+      {
+        "name": "The_Complete_Deep_Learning_Course",
+        "description": "Comprehensive deep learning projects and hands-on notebooks covering core AI concepts, model building, and real-world applications.",
+        "language": "Jupyter Notebook",
+        "languages": {},
+        "stars": 0,
+        "forks": 0,
+        "topics": [
+          "cnn",
+          "computer-vision",
+          "deep-learning",
+          "neural-networks",
+          "nlp",
+          "python",
+          "rnn",
+          "tensorflow"
+        ],
+        "url": "https://github.com/GhariebML/The_Complete_Deep_Learning_Course",
+        "homepage": "",
+        "created_at": "2025-11-04T14:26:35Z",
+        "updated_at": "2026-03-12T15:25:43Z",
+        "size_kb": 231851,
+        "archived": false
+      },
+      {
+        "name": "ML_Complete_Course_By_Python",
+        "description": "Complete Machine Learning course notebooks — from Python basics to advanced ML algorithms with hands-on examples",
+        "language": "Jupyter Notebook",
+        "languages": {},
+        "stars": 0,
+        "forks": 0,
+        "topics": [
+          "data-science",
+          "deep-learning",
+          "jupyter-notebook",
+          "machine-learning",
+          "python",
+          "scikit-learn",
+          "statistics"
+        ],
+        "url": "https://github.com/GhariebML/ML_Complete_Course_By_Python",
+        "homepage": "",
+        "created_at": "2025-11-24T00:08:08Z",
+        "updated_at": "2026-03-12T15:24:37Z",
+        "size_kb": 33493,
+        "archived": false
+      }
+    ],
+    "languages": [
+      "Batchfile",
+      "CSS",
+      "Dockerfile",
+      "HTML",
+      "JavaScript",
+      "Jupyter Notebook",
+      "Makefile",
+      "Mako",
+      "PowerShell",
+      "Python",
+      "Shell",
+      "TeX",
+      "TypeScript"
+    ],
+    "contributions": 4,
+    "highlights": [
+      "⭐ apex-performance-app: Live ML app predicting body fitness performance (A-D) using 11 physiological metrics. Random Forest classifier deployed on Vercel.",
+      "⭐ Hotel-Intelligence-System: Live Hotel Intelligence System: 11-table SQL database from 119,390 records, ML cancellation prediction, guest segmentation, and Power BI KPI dashboard. Deployed on Vercel."
+    ]
+  }
+}

@@ -1,0 +1,56 @@
+"""
+NORAY — LLM Provider Factory
+Instantiates and pools LLM provider connections dynamically.
+"""
+
+from __future__ import annotations
+from typing import Dict, Optional
+
+from noray.llm.providers.base_provider import BaseLLMProvider
+from noray.llm.providers.openai_provider import OpenAIProvider
+from noray.llm.providers.anthropic_provider import AnthropicProvider
+from noray.llm.providers.gemini_provider import GeminiProvider
+from noray.llm.providers.ollama_provider import OllamaProvider
+from noray.llm.providers.openrouter_provider import OpenRouterProvider
+from noray.llm.providers.deepseek_provider import DeepSeekProvider
+from noray.llm.providers.mistral_provider import MistralProvider
+from noray.llm.providers.together_provider import TogetherProvider
+
+
+class LLMProviderFactory:
+    """Factory creating and caching instances of specific LLM Providers."""
+    
+    _instances: Dict[str, BaseLLMProvider] = {}
+
+    @classmethod
+    def get_provider(cls, provider_name: str) -> BaseLLMProvider:
+        """Returns a cached provider instance or instantiates a new one."""
+        name = provider_name.lower().strip()
+        
+        if name in cls._instances:
+            return cls._instances[name]
+
+        from noray.config import settings
+
+        if name == "openai":
+            provider = OpenAIProvider(api_key=settings.OPENAI_API_KEY)
+        elif name == "anthropic":
+            provider = AnthropicProvider(api_key=settings.ANTHROPIC_API_KEY)
+        elif name == "gemini":
+            provider = GeminiProvider(api_key=settings.GOOGLE_API_KEY)
+        elif name in ["local", "ollama"]:
+            provider = OllamaProvider(base_url=settings.OLLAMA_BASE_URL)
+        elif name == "openrouter":
+            provider = OpenRouterProvider(api_key=settings.OPENROUTER_API_KEY)
+        elif name == "deepseek":
+            provider = DeepSeekProvider(api_key=settings.DEEPSEEK_API_KEY)
+        elif name == "mistral":
+            provider = MistralProvider(api_key=settings.MISTRAL_API_KEY)
+        elif name == "together":
+            provider = TogetherProvider(api_key=settings.TOGETHER_API_KEY)
+        else:
+            # Default fallback to local Ollama runtime
+            provider = OllamaProvider(base_url=settings.OLLAMA_BASE_URL)
+
+        cls._instances[name] = provider
+        return provider

@@ -1,0 +1,26 @@
+id: planner_v1
+version: "1.0.0"
+description: "Decomposes a user goal into a JSON Execution DAG"
+variables:
+  - goal
+  - context
+constraints:
+  - Rely on available agent capabilities.
+  - Return ONLY valid JSON format.
+output_format: "JSON Array of TaskNodes"
+few_shot_examples:
+  - input: "Find ML jobs and tailor my CV"
+    output: |
+      [
+        {"id": "t1", "description": "Search ML openings", "agent": "career", "required_capabilities": ["job_search"]},
+        {"id": "t2", "description": "Tailor CV to best job match", "agent": "career", "required_capabilities": ["cv_optimization"], "dependencies": ["t1"]}
+      ]
+metadata:
+  domain: "Orchestration"
+template: |
+  You are the Planner Agent for NORAY. 
+  Your mission is to decompose the user's goal: "{{goal}}" into a structured DAG.
+  Available context is:
+  {{context}}
+
+  Return only the JSON array of tasks. Do not write explanations.

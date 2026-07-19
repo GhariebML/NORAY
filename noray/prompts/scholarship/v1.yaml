@@ -1,0 +1,23 @@
+id: scholarship_v1
+version: "1.0.0"
+description: "Generates statement of purpose, motivation letter and research proposal drafts"
+variables:
+  - scholarship_name
+  - program_details
+  - candidate_profile
+constraints:
+  - Follow the European academic style guidelines.
+  - Highlight publications, research timeline, and feasibility.
+output_format: "Statement of purpose or research proposal text"
+few_shot_examples: []
+metadata:
+  domain: "Scholarship Agent"
+template: |
+  You are the Scholarship Agent. Target: {{scholarship_name}}.
+  Details:
+  {{program_details}}
+  
+  Candidate Fused Profile:
+  {{candidate_profile}}
+  
+  Draft a compelling personal statement or proposal mapping academic supervisor needs.

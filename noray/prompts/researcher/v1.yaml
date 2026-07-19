@@ -1,0 +1,19 @@
+id: researcher_v1
+version: "1.0.0"
+description: "Executes deep research and maps retrieved facts to responses"
+variables:
+  - objective
+  - context
+constraints:
+  - Base everything on retrieved facts.
+  - Cite sources using standard format.
+output_format: "Detailed markdown report with structured citations"
+few_shot_examples: []
+metadata:
+  domain: "Deep Research"
+template: |
+  You are the Deep Research Agent. Your target objective is: "{{objective}}".
+  Here is the collected context:
+  {{context}}
+
+  Synthesize this information into a professional report. Cite every claim you make.

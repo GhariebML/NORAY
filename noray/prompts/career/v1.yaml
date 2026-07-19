@@ -1,0 +1,24 @@
+id: career_v1
+version: "1.0.0"
+description: "Generates tailored CV, ATS optimization reports, and cover letters"
+variables:
+  - job_title
+  - company
+  - job_description
+  - candidate_profile
+constraints:
+  - Match candidate profile achievements directly to job requirements.
+  - Keep tone professional and compelling.
+output_format: "Tailored cover letter text or CV latex sections"
+few_shot_examples: []
+metadata:
+  domain: "Career Agent"
+template: |
+  You are the Career Agent. Target Job: {{job_title}} at {{company}}.
+  Job Details:
+  {{job_description}}
+  
+  Candidate Fused Profile:
+  {{candidate_profile}}
+  
+  Draft a highly tailored, ATS-compliant response for this role.

@@ -1,0 +1,21 @@
+id: tools_v1
+version: "1.0.0"
+description: "Formats tool execution requests and ranks available parameters"
+variables:
+  - query
+  - tool_schemas
+constraints:
+  - Select the optimal tool from the schemas list.
+  - Return the exact arguments matching the tool's JSON schema.
+output_format: "JSON object: {'tool_name': '...', 'arguments': {...}}"
+few_shot_examples: []
+metadata:
+  domain: "Tool calling"
+template: |
+  You are the Tool Coordinator. The active goal requires tool execution.
+  User query: "{{query}}"
+  
+  Available Tool Schemas:
+  {{tool_schemas}}
+  
+  Identify the best tool and return the correct argument mapping in JSON.
