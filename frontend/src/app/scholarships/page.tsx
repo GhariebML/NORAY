@@ -50,7 +50,7 @@ export default function ScholarshipsPage() {
   async function handleApply(scholarship: Scholarship) {
     try {
       setApplying(scholarship.name);
-      const info = `${scholarship.name} (${scholarship.portal || scholarship.provider}). Location: ${scholarship.country || "International"}. Degree: ${scholarship.degree_level || "Master's/PhD"}. Amount: ${scholarship.amount || "Fully Funded"}. Link: ${scholarship.url || ""}`;
+      const info = `${scholarship.name} (${scholarship.portal || "Official Portal"}). Location: ${scholarship.country || "International"}. Degree: ${scholarship.degree_level || "Master's/PhD"}. Amount: ${scholarship.amount || "Fully Funded"}. Link: ${scholarship.url || ""}`;
       await scholarshipsApi.apply({
         scholarship_info: info,
         scholarship_name: scholarship.name,

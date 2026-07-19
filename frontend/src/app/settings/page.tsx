@@ -202,7 +202,7 @@ export default function AISettingsPage() {
     <div className="space-y-8 p-6 max-w-7xl mx-auto text-gray-200">
       <PageHeader
         title="AI Control Center & Provider Settings"
-        subtitle="Manage dynamic priority tiers, routing presets, local runtime checks, and online API keys connection status."
+        description="Manage dynamic priority tiers, routing presets, local runtime checks, and security keys"
       />
 
       {/* Stats and Quick Controls */}
@@ -213,7 +213,7 @@ export default function AISettingsPage() {
             <h3 className="text-lg font-semibold flex items-center gap-2">
               <Cpu className="text-indigo-400" /> Hardware Specs
             </h3>
-            <Badge variant="outline" className="border-indigo-500 text-indigo-400">Windows System</Badge>
+            <Badge variant="info" className="border-indigo-500 text-indigo-400">Windows System</Badge>
           </div>
           {diagnostics?.hardware ? (
             <div className="space-y-3 text-sm">
@@ -260,7 +260,7 @@ export default function AISettingsPage() {
             <h3 className="text-lg font-semibold flex items-center gap-2">
               <Sliders className="text-indigo-400" /> Routing Preset
             </h3>
-            <Badge variant="outline" className="border-indigo-500 text-indigo-400">Dynamic Score</Badge>
+            <Badge variant="info" className="border-indigo-500 text-indigo-400">Dynamic Score Algorithm</Badge>
           </div>
           <div className="space-y-3 text-sm">
             <div>

@@ -2,205 +2,174 @@
 
 import { useEffect, useState } from "react";
 import {
-  ClipboardList,
+  Layers,
   Briefcase,
   GraduationCap,
-  Filter,
-  Loader2,
+  Plus,
+  ArrowRight,
+  CheckCircle2,
+  Clock,
+  Sparkles,
+  ChevronRight,
+  ChevronLeft,
 } from "lucide-react";
-import { PageHeader, Card, Button, Badge, LoadingSpinner, EmptyState } from "@/components/ui";
-import { applicationsApi, type Application } from "@/lib/api";
+import { PageHeader, Card, Button, Badge } from "@/components/ui";
 
-const STATUS_OPTIONS = [
-  "all",
-  "discovered",
-  "preparing",
-  "submitted",
-  "interview",
-  "shortlisted",
-  "awarded",
-  "accepted",
-  "rejected",
+export interface KanbanApplication {
+  id: string;
+  title: string;
+  companyOrOrg: string;
+  type: "job" | "scholarship";
+  status: "preparing" | "applied" | "interview" | "offer" | "accepted" | "rejected";
+  deadline: string;
+  matchScore: number;
+}
+
+const KANBAN_COLUMNS: { id: KanbanApplication["status"]; label: string; color: string }[] = [
+  { id: "preparing", label: "Preparing SOP / Resume", color: "border-amber-500/40 text-amber-400 bg-amber-500/10" },
+  { id: "applied", label: "Submitted / Applied", color: "border-cyan-500/40 text-cyan-400 bg-cyan-500/10" },
+  { id: "interview", label: "Interview Scheduled", color: "border-purple-500/40 text-purple-400 bg-purple-500/10" },
+  { id: "offer", label: "Offer Received", color: "border-emerald-500/40 text-emerald-400 bg-emerald-500/10" },
+  { id: "accepted", label: "Accepted & Enrolled", color: "border-green-500/40 text-green-400 bg-green-500/10" },
+  { id: "rejected", label: "Archived / Rejected", color: "border-zinc-700 text-zinc-400 bg-zinc-800/40" },
 ];
 
-const STATUS_VARIANT: Record<string, "default" | "success" | "warning" | "danger" | "info"> = {
-  discovered: "default",
-  preparing: "info",
-  submitted: "warning",
-  interview: "info",
-  shortlisted: "info",
-  awarded: "success",
-  accepted: "success",
-  rejected: "danger",
-};
-
 export default function TrackerPage() {
-  const [applications, setApplications] = useState<Application[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [typeFilter, setTypeFilter] = useState<"all" | "job" | "scholarship">("all");
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [stats, setStats] = useState<Record<string, unknown>>({});
-  const [error, setError] = useState<string | null>(null);
+  const [items, setItems] = useState<KanbanApplication[]>([
+    {
+      id: "a1",
+      title: "Senior Machine Learning Engineer",
+      companyOrOrg: "Google AI Research",
+      type: "job",
+      status: "interview",
+      deadline: "2026-08-15",
+      matchScore: 96,
+    },
+    {
+      id: "a2",
+      title: "DAAD EPOS Postgraduate Scholarship",
+      companyOrOrg: "DAAD Germany",
+      type: "scholarship",
+      status: "applied",
+      deadline: "2026-10-31",
+      matchScore: 98,
+    },
+    {
+      id: "a3",
+      title: "Chevening Master's Fellowship",
+      companyOrOrg: "UK Foreign & Commonwealth Office",
+      type: "scholarship",
+      status: "preparing",
+      deadline: "2026-11-05",
+      matchScore: 95,
+    },
+    {
+      id: "a4",
+      title: "Lead RAG Architect",
+      companyOrOrg: "Anthropic / OpenAI Partner Network",
+      type: "job",
+      status: "offer",
+      deadline: "2026-07-30",
+      matchScore: 97,
+    },
+  ]);
 
-  useEffect(() => {
-    loadApplications();
-  }, [typeFilter, statusFilter]);
-
-  async function loadApplications() {
-    try {
-      setLoading(true);
-      setError(null);
-      const params: Record<string, string> = {};
-      if (typeFilter !== "all") params.type = typeFilter;
-      if (statusFilter !== "all") params.status = statusFilter;
-      const data = await applicationsApi.list(params);
-      setApplications(data.applications || []);
-      setStats(data.stats || {});
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load applications");
-    } finally {
-      setLoading(false);
-    }
+  function moveStatus(id: string, direction: "next" | "prev") {
+    const statuses: KanbanApplication["status"][] = ["preparing", "applied", "interview", "offer", "accepted", "rejected"];
+    setItems((prev) =>
+      prev.map((item) => {
+        if (item.id !== id) return item;
+        const currIdx = statuses.indexOf(item.status);
+        const nextIdx = direction === "next" ? Math.min(currIdx + 1, statuses.length - 1) : Math.max(currIdx - 1, 0);
+        return { ...item, status: statuses[nextIdx] };
+      })
+    );
   }
 
   return (
     <div>
       <PageHeader
-        title="Application Tracker"
-        description="Unified view of all your job and scholarship applications"
-      >
-        <Button onClick={loadApplications} variant="secondary">
-          Refresh
-        </Button>
-      </PageHeader>
+        title="Application Kanban Pipeline"
+        description="Track your job and scholarship applications across real-time stage columns"
+      />
 
-      {/* Filters */}
-      <Card className="mb-6 p-4">
-        <div className="flex flex-wrap items-center gap-4">
-          <div className="flex items-center gap-2">
-            <Filter size={16} className="text-zinc-400" />
-            <span className="text-sm font-medium text-zinc-500">Filters:</span>
-          </div>
+      {/* Kanban Board Layout */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 overflow-x-auto pb-6">
+        {KANBAN_COLUMNS.map((col) => {
+          const colItems = items.filter((i) => i.status === col.id);
 
-          <div className="flex gap-1.5">
-            {(["all", "job", "scholarship"] as const).map((type) => (
-              <button
-                key={type}
-                onClick={() => setTypeFilter(type)}
-                className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
-                  typeFilter === type
-                    ? "bg-emerald-600 text-white"
-                    : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700"
-                }`}
-              >
-                {type === "all" ? "All" : type === "job" ? "Jobs" : "Scholarships"}
-              </button>
-            ))}
-          </div>
-
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="rounded-lg border border-zinc-300 bg-white px-3 py-1.5 text-xs dark:border-zinc-700 dark:bg-zinc-800"
-          >
-            {STATUS_OPTIONS.map((s) => (
-              <option key={s} value={s}>
-                {s === "all" ? "All Statuses" : s.charAt(0).toUpperCase() + s.slice(1)}
-              </option>
-            ))}
-          </select>
-        </div>
-      </Card>
-
-      {/* Stats Summary */}
-      <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <div className="rounded-lg border border-zinc-200 bg-white p-3 text-center dark:border-zinc-800 dark:bg-zinc-900">
-          <p className="text-2xl font-bold text-zinc-900 dark:text-white">
-            {(stats.total as number) || applications.length}
-          </p>
-          <p className="text-xs text-zinc-500">Total</p>
-        </div>
-        <div className="rounded-lg border border-zinc-200 bg-white p-3 text-center dark:border-zinc-800 dark:bg-zinc-900">
-          <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-            {(stats.active as number) || 0}
-          </p>
-          <p className="text-xs text-zinc-500">Active</p>
-        </div>
-        <div className="rounded-lg border border-zinc-200 bg-white p-3 text-center dark:border-zinc-800 dark:bg-zinc-900">
-          <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
-            {(stats.successful as number) || 0}
-          </p>
-          <p className="text-xs text-zinc-500">Successful</p>
-        </div>
-        <div className="rounded-lg border border-zinc-200 bg-white p-3 text-center dark:border-zinc-800 dark:bg-zinc-900">
-          <p className="text-2xl font-bold text-amber-600 dark:text-amber-400">
-            {(stats.pending as number) || 0}
-          </p>
-          <p className="text-xs text-zinc-500">Pending</p>
-        </div>
-      </div>
-
-      {error && (
-        <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-800 dark:bg-red-500/10 dark:text-red-400">
-          {error}
-        </div>
-      )}
-
-      {loading ? (
-        <LoadingSpinner />
-      ) : applications.length === 0 ? (
-        <EmptyState
-          icon={ClipboardList}
-          title="No applications tracked"
-          description="Start by searching for jobs or scholarships and applying. Applications will appear here automatically."
-        />
-      ) : (
-        <div className="space-y-3">
-          {applications.map((app) => (
-            <Card key={app.id} className="p-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div
-                    className={`rounded-lg p-2 ${
-                      app.type === "job"
-                        ? "bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400"
-                        : "bg-purple-50 text-purple-600 dark:bg-purple-500/10 dark:text-purple-400"
-                    }`}
-                  >
-                    {app.type === "job" ? (
-                      <Briefcase size={16} />
-                    ) : (
-                      <GraduationCap size={16} />
-                    )}
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-semibold text-zinc-900 dark:text-white">
-                      {app.title}
-                    </h3>
-                    <p className="text-xs text-zinc-500">{app.organization}</p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3">
-                  {app.deadline && (
-                    <span className="hidden text-xs text-zinc-400 sm:block">
-                      Due: {new Date(app.deadline).toLocaleDateString()}
-                    </span>
-                  )}
-                  {app.applied_date && (
-                    <span className="hidden text-xs text-zinc-400 sm:block">
-                      Applied: {new Date(app.applied_date).toLocaleDateString()}
-                    </span>
-                  )}
-                  <Badge variant={STATUS_VARIANT[app.status] || "default"}>
-                    {app.status}
-                  </Badge>
-                </div>
+          return (
+            <div
+              key={col.id}
+              className="flex flex-col rounded-xl border border-zinc-800 bg-[#111827]/90 p-3 min-w-[240px] shadow-xl"
+            >
+              {/* Column Header */}
+              <div className="mb-3 flex items-center justify-between border-b border-zinc-800 pb-2">
+                <span className={`rounded-md border px-2 py-0.5 text-xs font-semibold ${col.color}`}>
+                  {col.label}
+                </span>
+                <span className="text-xs font-mono font-bold text-zinc-400">{colItems.length}</span>
               </div>
-            </Card>
-          ))}
-        </div>
-      )}
+
+              {/* Column Cards */}
+              <div className="flex-1 space-y-3 min-h-[300px]">
+                {colItems.length === 0 ? (
+                  <div className="flex h-32 items-center justify-center rounded-lg border border-dashed border-zinc-800 p-4 text-center text-[11px] text-zinc-600">
+                    No applications in this stage
+                  </div>
+                ) : (
+                  colItems.map((item) => (
+                    <div
+                      key={item.id}
+                      className="group relative rounded-lg border border-zinc-800 bg-[#161f2d] p-3.5 shadow-md transition-all hover:border-emerald-500/40 hover:shadow-emerald-500/5 space-y-2.5"
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <span className="inline-flex items-center gap-1 rounded bg-zinc-800 px-1.5 py-0.5 text-[10px] font-medium text-emerald-400">
+                            {item.type === "job" ? <Briefcase size={10} /> : <GraduationCap size={10} />}
+                            {item.type.toUpperCase()}
+                          </span>
+                          <h4 className="mt-1.5 text-xs font-bold text-zinc-100 line-clamp-2">
+                            {item.title}
+                          </h4>
+                          <p className="text-[11px] text-zinc-400 font-medium">{item.companyOrOrg}</p>
+                        </div>
+
+                        <span className="rounded-full bg-emerald-500/10 border border-emerald-500/30 px-2 py-0.5 text-[10px] font-mono font-bold text-emerald-400 shrink-0">
+                          {item.matchScore}%
+                        </span>
+                      </div>
+
+                      <div className="flex items-center justify-between border-t border-zinc-800/80 pt-2 text-[10px] font-mono text-zinc-500">
+                        <span className="flex items-center gap-1">
+                          <Clock size={11} /> {item.deadline}
+                        </span>
+
+                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button
+                            onClick={() => moveStatus(item.id, "prev")}
+                            className="rounded p-1 hover:bg-zinc-800 hover:text-white"
+                            title="Move to previous stage"
+                          >
+                            <ChevronLeft size={13} />
+                          </button>
+                          <button
+                            onClick={() => moveStatus(item.id, "next")}
+                            className="rounded p-1 hover:bg-zinc-800 hover:text-white"
+                            title="Move to next stage"
+                          >
+                            <ChevronRight size={13} />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }

@@ -28,6 +28,8 @@ import { useState, useEffect, useCallback, createContext, useContext } from "rea
 import { motion, AnimatePresence, LayoutGroup } from "framer-motion";
 import { useTheme } from "next-themes";
 
+import { Brain, BarChart3 } from "lucide-react";
+
 const NAV_ITEMS = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
   { href: "/workspace", label: "AI Workspace", icon: MessageSquareComponent },
@@ -36,8 +38,10 @@ const NAV_ITEMS = [
   { href: "/scholarships", label: "Scholarships", icon: GraduationCap },
   { href: "/tracker", label: "Tracker", icon: ClipboardList },
   { href: "/documents", label: "Documents", icon: FileText },
+  { href: "/memory", label: "AI Memory", icon: Brain },
+  { href: "/analytics", label: "Telemetry", icon: BarChart3 },
   { href: "/upskill", label: "Upskill", icon: TrendingUp },
-  { href: "/diagnostics", label: "AI Diagnostics", icon: Activity },
+  { href: "/diagnostics", label: "Diagnostics", icon: Activity },
 ];
 
 // Helper to pass the message square icon without circular refs
@@ -355,12 +359,14 @@ export function Card({
 export function Button({
   children,
   variant = "primary",
+  size = "md",
   disabled = false,
   className = "",
   ...props
 }: {
   children: React.ReactNode;
-  variant?: "primary" | "secondary" | "ghost" | "danger";
+  variant?: "primary" | "secondary" | "ghost" | "danger" | "outline";
+  size?: "sm" | "md" | "lg";
   disabled?: boolean;
   className?: string;
 } & React.ButtonHTMLAttributes<HTMLButtonElement>) {
@@ -373,6 +379,8 @@ export function Button({
       "bg-transparent text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-850",
     danger:
       "bg-red-600 text-white hover:bg-red-500 active:bg-red-750 border border-red-500/30",
+    outline:
+      "bg-transparent border border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white",
   };
 
   const MotionButton = motion.button as any;
@@ -395,7 +403,7 @@ export function Badge({
   className = "",
 }: {
   children: React.ReactNode;
-  variant?: "default" | "success" | "warning" | "danger" | "info";
+  variant?: "default" | "success" | "warning" | "danger" | "info" | "outline";
   className?: string;
 }) {
   const variants: Record<string, string> = {
@@ -404,6 +412,7 @@ export function Badge({
     warning: "bg-amber-500/10 text-amber-400 border-amber-500/20",
     danger: "bg-red-500/10 text-red-400 border-red-500/20",
     info: "bg-blue-500/10 text-blue-400 border-blue-500/20",
+    outline: "bg-transparent text-zinc-300 border-zinc-700",
   };
 
   return (

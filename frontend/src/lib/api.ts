@@ -109,6 +109,7 @@ export interface Scholarship {
   portal: string;
   country?: string;
   degree_level?: string;
+  amount?: string;
   deadline?: string;
   url?: string;
   eligibility_score?: number;
