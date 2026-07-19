@@ -2,7 +2,7 @@
   "meta": {
     "version": "1.0.0",
     "created_at": "",
-    "updated_at": "2026-07-18T14:35:58.015499",
+    "updated_at": "2026-07-19T07:09:35.637843",
     "sources": [
       "api_test",
       "web",
@@ -131,7 +131,8 @@
       "Python",
       "Shell",
       "TeX",
-      "TypeScript"
+      "TypeScript",
+      "PLpgSQL"
     ]
   },
   "certifications": [],
@@ -159,7 +160,7 @@
     "deadlines": []
   },
   "github": {
-    "username": "GhariebML",
+    "username": "ghariebml",
     "repos": [
       {
         "name": "apex-performance-app",
@@ -201,13 +202,18 @@
       {
         "name": "NORAY",
         "description": "",
-        "language": "Python",
+        "language": "Jupyter Notebook",
         "languages": {
-          "Python": 560144,
-          "TypeScript": 114853,
+          "Jupyter Notebook": 17914676,
+          "Python": 1134926,
+          "TypeScript": 273336,
           "TeX": 13498,
-          "CSS": 774,
-          "JavaScript": 559
+          "CSS": 3756,
+          "PowerShell": 3118,
+          "Shell": 2982,
+          "Makefile": 1168,
+          "JavaScript": 728,
+          "Mako": 704
         },
         "stars": 0,
         "forks": 0,
@@ -215,8 +221,8 @@
         "url": "https://github.com/GhariebML/NORAY",
         "homepage": "",
         "created_at": "2026-06-04T14:18:52Z",
-        "updated_at": "2026-06-04T14:41:20Z",
-        "size_kb": 0,
+        "updated_at": "2026-07-19T07:09:07Z",
+        "size_kb": 16254,
         "archived": false
       },
       {
@@ -228,13 +234,208 @@
           "Python": 25351
         },
         "stars": 0,
-        "forks": 1,
+        "forks": 2,
         "topics": [],
         "url": "https://github.com/GhariebML/AutoAnalyst-AI",
         "homepage": "",
         "created_at": "2026-05-12T09:32:47Z",
-        "updated_at": "2026-06-03T11:36:13Z",
-        "size_kb": 642,
+        "updated_at": "2026-07-12T06:32:01Z",
+        "size_kb": 11063,
+        "archived": false
+      },
+      {
+        "name": "SADAR_NEW",
+        "description": "",
+        "language": "Jupyter Notebook",
+        "languages": {
+          "Jupyter Notebook": 524274,
+          "Python": 352690,
+          "TypeScript": 329025,
+          "CSS": 90210,
+          "HTML": 34161,
+          "Batchfile": 1384,
+          "JavaScript": 438
+        },
+        "stars": 0,
+        "forks": 0,
+        "topics": [],
+        "url": "https://github.com/GhariebML/SADAR_NEW",
+        "homepage": "",
+        "created_at": "2026-05-23T07:43:57Z",
+        "updated_at": "2026-07-02T16:41:00Z",
+        "size_kb": 5383,
+        "archived": false
+      },
+      {
+        "name": "Digilians-Achievement-Portal-DAP-",
+        "description": "",
+        "language": "JavaScript",
+        "languages": {
+          "JavaScript": 2557711,
+          "CSS": 24911,
+          "PLpgSQL": 6201,
+          "HTML": 756
+        },
+        "stars": 0,
+        "forks": 0,
+        "topics": [],
+        "url": "https://github.com/GhariebML/Digilians-Achievement-Portal-DAP-",
+        "homepage": "https://digilians-achievement-portal.vercel.app",
+        "created_at": "2026-06-25T14:34:24Z",
+        "updated_at": "2026-06-27T11:45:47Z",
+        "size_kb": 4215,
+        "archived": false
+      },
+      {
+        "name": "rxsafe-ai",
+        "description": "",
+        "language": "Python",
+        "languages": {
+          "Python": 44866,
+          "TypeScript": 41882,
+          "PowerShell": 2001,
+          "Dockerfile": 1738,
+          "Shell": 963,
+          "Makefile": 705,
+          "CSS": 360,
+          "JavaScript": 80
+        },
+        "stars": 0,
+        "forks": 0,
+        "topics": [],
+        "url": "https://github.com/GhariebML/rxsafe-ai",
+        "homepage": "",
+        "created_at": "2026-06-22T06:23:50Z",
+        "updated_at": "2026-06-22T07:03:16Z",
+        "size_kb": 15582,
+        "archived": false
+      },
+      {
+        "name": "Freelance_Acc",
+        "description": "",
+        "language": "HTML",
+        "languages": {
+          "HTML": 154670,
+          "CSS": 13758,
+          "Python": 6889,
+          "JavaScript": 6335
+        },
+        "stars": 0,
+        "forks": 0,
+        "topics": [],
+        "url": "https://github.com/GhariebML/Freelance_Acc",
+        "homepage": "https://freelance-acc-wheat.vercel.app",
+        "created_at": "2026-06-10T11:07:48Z",
+        "updated_at": "2026-06-18T16:48:49Z",
+        "size_kb": 8496,
+        "archived": false
+      },
+      {
+        "name": "AliExpress_Affiliate_n8n",
+        "description": "",
+        "language": "PLpgSQL",
+        "languages": {
+          "PLpgSQL": 41627,
+          "Shell": 8606,
+          "JavaScript": 3122
+        },
+        "stars": 0,
+        "forks": 0,
+        "topics": [],
+        "url": "https://github.com/GhariebML/AliExpress_Affiliate_n8n",
+        "homepage": "",
+        "created_at": "2026-06-14T17:36:14Z",
+        "updated_at": "2026-06-15T07:00:35Z",
+        "size_kb": 128,
+        "archived": false
+      },
+      {
+        "name": "ADPilot_Dashboard",
+        "description": "",
+        "language": "Jupyter Notebook",
+        "languages": {
+          "Jupyter Notebook": 799539,
+          "Python": 110425
+        },
+        "stars": 0,
+        "forks": 1,
+        "topics": [],
+        "url": "https://github.com/GhariebML/ADPilot_Dashboard",
+        "homepage": "",
+        "created_at": "2026-06-13T16:55:19Z",
+        "updated_at": "2026-06-13T17:41:43Z",
+        "size_kb": 75015,
+        "archived": false
+      },
+      {
+        "name": "Gharieb_CV",
+        "description": "",
+        "language": "HTML",
+        "languages": {
+          "HTML": 20272
+        },
+        "stars": 0,
+        "forks": 0,
+        "topics": [],
+        "url": "https://github.com/GhariebML/Gharieb_CV",
+        "homepage": "",
+        "created_at": "2026-06-13T15:51:02Z",
+        "updated_at": "2026-06-13T16:09:32Z",
+        "size_kb": 4522,
+        "archived": false
+      },
+      {
+        "name": "n8n",
+        "description": "Enterprise-grade n8n data collection pipeline with dual sources (DummyJSON API + Apify Web Scraper), PostgreSQL storage, validation, error handling, and analytics.",
+        "language": "",
+        "languages": {},
+        "stars": 0,
+        "forks": 0,
+        "topics": [],
+        "url": "https://github.com/GhariebML/n8n",
+        "homepage": "http://localhost:5678/workflow/KJdrBy2CJn2iE5Ik",
+        "created_at": "2026-06-10T11:38:59Z",
+        "updated_at": "2026-06-10T11:44:32Z",
+        "size_kb": 18,
+        "archived": false
+      },
+      {
+        "name": "PLATA-Premium-Theme",
+        "description": "",
+        "language": "HTML",
+        "languages": {
+          "HTML": 154592,
+          "CSS": 78933,
+          "Python": 3744,
+          "JavaScript": 992
+        },
+        "stars": 0,
+        "forks": 0,
+        "topics": [],
+        "url": "https://github.com/GhariebML/PLATA-Premium-Theme",
+        "homepage": "https://plata-premium-theme.vercel.app",
+        "created_at": "2026-06-05T14:32:37Z",
+        "updated_at": "2026-06-05T16:00:44Z",
+        "size_kb": 6499,
+        "archived": false
+      },
+      {
+        "name": "Zid-Premium-Theme",
+        "description": "",
+        "language": "HTML",
+        "languages": {
+          "HTML": 97725,
+          "CSS": 38916,
+          "JavaScript": 15550
+        },
+        "stars": 0,
+        "forks": 0,
+        "topics": [],
+        "url": "https://github.com/GhariebML/Zid-Premium-Theme",
+        "homepage": "https://zid-premium-theme.vercel.app",
+        "created_at": "2026-06-04T16:57:47Z",
+        "updated_at": "2026-06-04T17:43:14Z",
+        "size_kb": 1977,
         "archived": false
       },
       {
@@ -279,28 +480,6 @@
         "created_at": "2026-05-21T13:45:52Z",
         "updated_at": "2026-05-29T10:15:51Z",
         "size_kb": 75415,
-        "archived": false
-      },
-      {
-        "name": "SADAR_NEW",
-        "description": "",
-        "language": "Jupyter Notebook",
-        "languages": {
-          "Jupyter Notebook": 524274,
-          "Python": 325944,
-          "TypeScript": 271316,
-          "CSS": 87482,
-          "Batchfile": 1230,
-          "HTML": 522
-        },
-        "stars": 0,
-        "forks": 0,
-        "topics": [],
-        "url": "https://github.com/GhariebML/SADAR_NEW",
-        "homepage": "",
-        "created_at": "2026-05-23T07:43:57Z",
-        "updated_at": "2026-05-23T09:13:40Z",
-        "size_kb": 5193,
         "archived": false
       },
       {
@@ -384,7 +563,9 @@
         "name": "SecurePass-AI",
         "description": "🔐 ML-powered password strength analyzer & random password generator using Random Forest — Graduation Project",
         "language": "Jupyter Notebook",
-        "languages": {},
+        "languages": {
+          "Jupyter Notebook": 61206
+        },
         "stars": 0,
         "forks": 0,
         "topics": [
@@ -402,188 +583,6 @@
         "updated_at": "2026-04-10T16:25:42Z",
         "size_kb": 794,
         "archived": false
-      },
-      {
-        "name": "GhariebML",
-        "description": "",
-        "language": "",
-        "languages": {},
-        "stars": 0,
-        "forks": 0,
-        "topics": [],
-        "url": "https://github.com/GhariebML/GhariebML",
-        "homepage": "",
-        "created_at": "2026-03-12T14:48:25Z",
-        "updated_at": "2026-04-10T16:14:52Z",
-        "size_kb": 59,
-        "archived": false
-      },
-      {
-        "name": "Orbital_ML",
-        "description": "Full-stack ML platform with API backend, interactive frontend, and Vercel deployment. TypeScript-based AI/ML application with REST API architecture.",
-        "language": "TypeScript",
-        "languages": {},
-        "stars": 0,
-        "forks": 0,
-        "topics": [],
-        "url": "https://github.com/GhariebML/Orbital_ML",
-        "homepage": "https://orbital-ml.vercel.app",
-        "created_at": "2026-03-16T11:05:34Z",
-        "updated_at": "2026-04-10T11:06:17Z",
-        "size_kb": 170,
-        "archived": false
-      },
-      {
-        "name": "EduQuest",
-        "description": "AI-powered educational platform with interactive quizzes, smart learning paths, and progress tracking. Built with React, Node.js and deployed on Vercel.",
-        "language": "JavaScript",
-        "languages": {},
-        "stars": 0,
-        "forks": 0,
-        "topics": [],
-        "url": "https://github.com/GhariebML/EduQuest",
-        "homepage": "https://edu-quest-self.vercel.app",
-        "created_at": "2026-03-21T21:50:50Z",
-        "updated_at": "2026-04-10T11:05:39Z",
-        "size_kb": 2900,
-        "archived": false
-      },
-      {
-        "name": "Student_Performance_Statistical_Analysis_SPSS",
-        "description": "Statistical Analysis of Student Performance Dataset (n=20) using IBM SPSS — EDA, Outlier Detection, Independent-Samples t-Test, and Pearson Correlation | Applied Statistics & Data Analysis | MTC",
-        "language": "",
-        "languages": {},
-        "stars": 0,
-        "forks": 0,
-        "topics": [
-          "data-analysis",
-          "data-science",
-          "machine-learning",
-          "python",
-          "spss",
-          "statistics"
-        ],
-        "url": "https://github.com/GhariebML/Student_Performance_Statistical_Analysis_SPSS",
-        "homepage": "",
-        "created_at": "2026-03-12T16:59:56Z",
-        "updated_at": "2026-03-12T17:19:28Z",
-        "size_kb": 696,
-        "archived": false
-      },
-      {
-        "name": "UK-Road-Accident-Analysis",
-        "description": "End-to-end Data Science project analyzing UK road accident data using EDA and machine learning models to predict accident severity.",
-        "language": "Jupyter Notebook",
-        "languages": {},
-        "stars": 0,
-        "forks": 0,
-        "topics": [
-          "data-analysis",
-          "data-science",
-          "eda",
-          "machine-learning",
-          "python",
-          "road-accidents",
-          "scikit-learn"
-        ],
-        "url": "https://github.com/GhariebML/UK-Road-Accident-Analysis",
-        "homepage": "",
-        "created_at": "2026-03-04T10:09:26Z",
-        "updated_at": "2026-03-12T15:35:08Z",
-        "size_kb": 42178,
-        "archived": false
-      },
-      {
-        "name": "portfolio",
-        "description": "AI and Data Science portfolio website deployed on GitHub Pages - built with React, TypeScript and Vite",
-        "language": "TypeScript",
-        "languages": {},
-        "stars": 0,
-        "forks": 0,
-        "topics": [
-          "data-science",
-          "github-pages",
-          "portfolio",
-          "react",
-          "typescript"
-        ],
-        "url": "https://github.com/GhariebML/portfolio",
-        "homepage": "",
-        "created_at": "2026-03-08T07:04:27Z",
-        "updated_at": "2026-03-12T15:33:14Z",
-        "size_kb": 13368,
-        "archived": false
-      },
-      {
-        "name": "NLP_Text_Representation_Techniques",
-        "description": "A comprehensive notebook demonstrating various text representation techniques in Natural Language Processing (NLP), including Bag of Words, TF-IDF, Word2Vec, and BERT embeddings.",
-        "language": "Jupyter Notebook",
-        "languages": {},
-        "stars": 0,
-        "forks": 0,
-        "topics": [
-          "bert",
-          "machine-learning",
-          "natural-language-processing",
-          "nlp",
-          "python",
-          "text-classification",
-          "tf-idf",
-          "word2vec"
-        ],
-        "url": "https://github.com/GhariebML/NLP_Text_Representation_Techniques",
-        "homepage": "",
-        "created_at": "2025-11-05T22:10:11Z",
-        "updated_at": "2026-03-12T15:27:39Z",
-        "size_kb": 15,
-        "archived": false
-      },
-      {
-        "name": "The_Complete_Deep_Learning_Course",
-        "description": "Comprehensive deep learning projects and hands-on notebooks covering core AI concepts, model building, and real-world applications.",
-        "language": "Jupyter Notebook",
-        "languages": {},
-        "stars": 0,
-        "forks": 0,
-        "topics": [
-          "cnn",
-          "computer-vision",
-          "deep-learning",
-          "neural-networks",
-          "nlp",
-          "python",
-          "rnn",
-          "tensorflow"
-        ],
-        "url": "https://github.com/GhariebML/The_Complete_Deep_Learning_Course",
-        "homepage": "",
-        "created_at": "2025-11-04T14:26:35Z",
-        "updated_at": "2026-03-12T15:25:43Z",
-        "size_kb": 231851,
-        "archived": false
-      },
-      {
-        "name": "ML_Complete_Course_By_Python",
-        "description": "Complete Machine Learning course notebooks — from Python basics to advanced ML algorithms with hands-on examples",
-        "language": "Jupyter Notebook",
-        "languages": {},
-        "stars": 0,
-        "forks": 0,
-        "topics": [
-          "data-science",
-          "deep-learning",
-          "jupyter-notebook",
-          "machine-learning",
-          "python",
-          "scikit-learn",
-          "statistics"
-        ],
-        "url": "https://github.com/GhariebML/ML_Complete_Course_By_Python",
-        "homepage": "",
-        "created_at": "2025-11-24T00:08:08Z",
-        "updated_at": "2026-03-12T15:24:37Z",
-        "size_kb": 33493,
-        "archived": false
       }
     ],
     "languages": [
@@ -595,6 +594,7 @@
       "Jupyter Notebook",
       "Makefile",
       "Mako",
+      "PLpgSQL",
       "PowerShell",
       "Python",
       "Shell",

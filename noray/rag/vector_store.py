@@ -227,13 +227,13 @@ class VectorStoreFactory:
 
     @staticmethod
     def get_vector_store(provider: str = None) -> BaseVectorStore:
-        if VectorStoreFactory._instance is not None:
+        target_provider = (provider or os.getenv("VECTOR_STORE_PROVIDER", "qdrant")).lower()
+        
+        if provider is None and VectorStoreFactory._instance is not None:
             return VectorStoreFactory._instance
 
-        provider = provider or os.getenv("VECTOR_STORE_PROVIDER", "qdrant").lower()
-        
-        if provider == "faiss":
-            VectorStoreFactory._instance = FAISSVectorStore()
+        if target_provider == "faiss":
+            instance = FAISSVectorStore()
         else:
             # Default is Qdrant
             # Check if Qdrant server is available via environment variables
@@ -242,14 +242,17 @@ class VectorStoreFactory:
             q_port = os.getenv("QDRANT_PORT", "6333")
             
             if q_url:
-                VectorStoreFactory._instance = QdrantVectorStore(url=q_url)
+                instance = QdrantVectorStore(url=q_url)
             elif q_host:
-                VectorStoreFactory._instance = QdrantVectorStore(url=f"http://{q_host}:{q_port}")
+                instance = QdrantVectorStore(url=f"http://{q_host}:{q_port}")
             else:
                 # Supports qdrant path mapping for file base persistence
                 db_path = os.getenv("QDRANT_PATH", "d:/NORAY/data/qdrant")
                 if not os.path.exists(db_path):
                     os.makedirs(db_path, exist_ok=True)
-                VectorStoreFactory._instance = QdrantVectorStore(path=db_path)
+                instance = QdrantVectorStore(path=db_path)
                 
-        return VectorStoreFactory._instance
+        if provider is None:
+            VectorStoreFactory._instance = instance
+            
+        return instance
