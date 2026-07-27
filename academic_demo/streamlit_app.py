@@ -1,3 +1,13 @@
+import sys
+from pathlib import Path
+
+# Ensure repository root & demo directory are in sys.path for Streamlit Cloud
+root_dir = Path(__file__).resolve().parent.parent
+demo_dir = Path(__file__).resolve().parent
+for p in (root_dir, demo_dir):
+    if str(p) not in sys.path:
+        sys.path.insert(0, str(p))
+
 import streamlit as st
 from academic_demo.components.utils import inject_custom_styles, render_header
 from academic_demo.components.api import get_health
