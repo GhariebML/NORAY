@@ -160,12 +160,21 @@ class QdrantVectorStore(BaseVectorStore):
             if conditions:
                 q_filter = Filter(must=conditions)
 
-        hits = self.client.search(
-            collection_name=collection_name,
-            query_vector=query_vector,
-            query_filter=q_filter,
-            limit=limit
-        )
+        if hasattr(self.client, "search"):
+            hits = self.client.search(
+                collection_name=collection_name,
+                query_vector=query_vector,
+                query_filter=q_filter,
+                limit=limit
+            )
+        else:
+            response = self.client.query_points(
+                collection_name=collection_name,
+                query=query_vector,
+                query_filter=q_filter,
+                limit=limit
+            )
+            hits = response.points
 
         result = []
         for hit in hits:

@@ -168,7 +168,7 @@ def _cfg(key: str, default: Any = None) -> Any:
             return default
     return val if val is not None else default
 
-FREE_PROVIDER_PRIORITY: list[str] = _cfg("provider_priority.free", ["gemini", "openrouter", "together", "deepseek"])
+FREE_PROVIDER_PRIORITY: list[str] = _cfg("provider_priority.free", ["mimio", "gemini", "openrouter", "together", "deepseek"])
 PREMIUM_PROVIDERS: list[str] = _cfg("provider_priority.premium", ["openai", "anthropic", "mistral"])
 ALL_PROVIDERS: list[str] = list(dict.fromkeys(FREE_PROVIDER_PRIORITY + ["ollama"] + PREMIUM_PROVIDERS))
 
@@ -193,9 +193,10 @@ HEALTH_PING_TIMEOUT: float = float(_cfg("health.ping_timeout_seconds", 5.0))
 
 WARM_UP_ENABLED: bool = _cfg("warm_up.enabled", True)
 WARM_UP_DELAY: float = float(_cfg("warm_up.delay_seconds", 2.0))
-WARM_UP_MODELS: list[str] = _cfg("warm_up.preferred_models", ["gemma4:12b", "qwen2.5-coder:7b"])
+WARM_UP_MODELS: list[str] = _cfg("warm_up.preferred_models", ["mimio-1.0", "gemma4:12b", "qwen2.5-coder:7b"])
 
 PROVIDER_DEFAULT_MODELS: dict[str, str] = _cfg("preferred_models", {
+    "mimio": "mimio-1.0",
     "gemini": "gemini-flash-latest",
     "openrouter": "openrouter/auto",
     "together": "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo",
@@ -685,8 +686,9 @@ class SmartRouter:
         # Extract query from messages if not provided
         if not query:
             for msg in reversed(messages):
-                if msg["role"] == "user":
-                    query = msg["content"]
+                role = getattr(msg, "role", None) or (msg.get("role") if isinstance(msg, dict) else "")
+                if role == "user":
+                    query = getattr(msg, "content", None) or (msg.get("content") if isinstance(msg, dict) else "")
                     break
 
         if provider and model:

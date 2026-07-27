@@ -7,6 +7,7 @@
 # Free providers are tried first, then local, then premium
 provider_priority:
   free:
+    - mimio
     - gemini
     - openrouter
     - together
@@ -23,10 +24,11 @@ provider_priority:
 # ─── Provider Weights (for load balancing) ────────────────
 # Higher weight = more traffic (when multiple healthy providers available)
 provider_weights:
-  gemini: 30
-  openrouter: 25
-  together: 15
-  deepseek: 15
+  mimio: 50
+  gemini: 20
+  openrouter: 15
+  together: 10
+  deepseek: 5
   ollama: 10
   openai: 3
   anthropic: 2
