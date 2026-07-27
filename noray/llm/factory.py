@@ -12,6 +12,7 @@ from noray.llm.providers.anthropic_provider import AnthropicProvider
 from noray.llm.providers.base_provider import BaseLLMProvider
 from noray.llm.providers.deepseek_provider import DeepSeekProvider
 from noray.llm.providers.gemini_provider import GeminiProvider
+from noray.llm.providers.mimio_provider import MimioProvider
 from noray.llm.providers.mistral_provider import MistralProvider
 from noray.llm.providers.ollama_provider import OllamaProvider
 from noray.llm.providers.openai_provider import OpenAIProvider
@@ -34,7 +35,9 @@ class LLMProviderFactory:
 
         from noray.config import settings
 
-        if name == "openai":
+        if name in ["mimio", "xiaomi", "default"]:
+            provider = MimioProvider(api_key=settings.MIMIO_API_KEY, base_url=settings.MIMIO_BASE_URL)
+        elif name == "openai":
             provider = OpenAIProvider(api_key=settings.OPENAI_API_KEY)
         elif name == "anthropic":
             provider = AnthropicProvider(api_key=settings.ANTHROPIC_API_KEY)

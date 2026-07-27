@@ -28,7 +28,20 @@ class ModelMetadata(BaseModel):
 
 # Standard pre-registered model definitions
 DEFAULT_REGISTRY: dict[str, ModelMetadata] = {
-    # --- Cloud Models (Google Gemini) ---
+    # --- Primary Cloud Models (Xiaomi Mimio) ---
+    "mimio-1.0": ModelMetadata(
+        name="mimio-1.0",
+        provider="mimio",
+        context_window=128000,
+        supports_tools=True,
+        supports_json=True,
+        supports_reasoning=True,
+        input_cost_per_1k=0.00005,
+        output_cost_per_1k=0.00015,
+        priority=1
+    ),
+
+    # --- Fallback Cloud Models (Google Gemini) ---
     "gemini-1.5-flash": ModelMetadata(
         name="gemini-1.5-flash",
         provider="gemini",
@@ -37,7 +50,7 @@ DEFAULT_REGISTRY: dict[str, ModelMetadata] = {
         supports_json=True,
         input_cost_per_1k=0.000075,
         output_cost_per_1k=0.0003,
-        priority=1
+        priority=2
     ),
 
     # --- Cloud Models (OpenRouter / Aggregated) ---
@@ -47,7 +60,7 @@ DEFAULT_REGISTRY: dict[str, ModelMetadata] = {
         context_window=128000,
         supports_tools=True,
         supports_json=True,
-        priority=2
+        priority=3
     ),
 
     # --- Cloud Models (Together AI) ---
@@ -56,7 +69,7 @@ DEFAULT_REGISTRY: dict[str, ModelMetadata] = {
         provider="together",
         context_window=8192,
         supports_tools=True,
-        priority=3
+        priority=4
     ),
 
     # --- Cloud / API Models (DeepSeek) ---
@@ -66,7 +79,7 @@ DEFAULT_REGISTRY: dict[str, ModelMetadata] = {
         context_window=64000,
         supports_reasoning=True,
         supports_tools=True,
-        priority=4
+        priority=5
     ),
 
     # --- Local Models (Ollama) ---
@@ -78,7 +91,7 @@ DEFAULT_REGISTRY: dict[str, ModelMetadata] = {
         supports_json=True,
         memory_usage_gb=2.0,
         gpu_required=False,
-        priority=5
+        priority=6
     ),
     "qwen2.5-coder:7b": ModelMetadata(
         name="qwen2.5-coder:7b",
@@ -88,7 +101,7 @@ DEFAULT_REGISTRY: dict[str, ModelMetadata] = {
         supports_json=True,
         memory_usage_gb=6.0,
         gpu_required=True,
-        priority=6
+        priority=7
     ),
     "llama3:8b": ModelMetadata(
         name="llama3:8b",

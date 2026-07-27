@@ -47,6 +47,9 @@ class Settings(BaseSettings):
     LINKEDIN_API_KEY: str | None = Field(default=None)
 
     # LLM Provider API Keys & Base URLs
+    MIMIO_API_KEY: str | None = Field(default="sk-scxcd6h8oe05k3xqrec5ahxv98a89si8xpy4t6qb22x429r9")
+    MIMIO_BASE_URL: str = Field(default="https://api.mimio.ai/v1")
+    MIMIO_MODEL: str = Field(default="mimio-1.0")
     OPENAI_API_KEY: str | None = Field(default=None)
     ANTHROPIC_API_KEY: str | None = Field(default=None)
     GOOGLE_API_KEY: str | None = Field(default=None)
@@ -68,7 +71,7 @@ class Settings(BaseSettings):
     ALLOWED_ORIGINS: str = Field(default="http://localhost:3000,http://127.0.0.1:3000")
 
     # AI & Vector Store Config
-    AI_PROVIDER: str = Field(default="local")
+    AI_PROVIDER: str = Field(default="mimio")
     VECTOR_STORE_PROVIDER: str = Field(default="qdrant")
     EMBEDDINGS_PROVIDER: str = Field(default="local")
     EMBEDDINGS_MODEL: str = Field(default="all-MiniLM-L6-v2")
