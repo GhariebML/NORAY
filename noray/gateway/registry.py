@@ -29,8 +29,8 @@ class ModelMetadata(BaseModel):
 # Standard pre-registered model definitions
 DEFAULT_REGISTRY: dict[str, ModelMetadata] = {
     # --- Primary Cloud Models (Xiaomi Mimio) ---
-    "mimio-1.0": ModelMetadata(
-        name="mimio-1.0",
+    "mimio-2.5-pro": ModelMetadata(
+        name="mimio-2.5-pro",
         provider="mimio",
         context_window=128000,
         supports_tools=True,

@@ -42,7 +42,7 @@ class MimioProvider(BaseLLMProvider):
             logger.warning("Xiaomi Mimio API key missing. Returning fallback response.")
             return LLMResponse(
                 content=f"[MIMIO AI RESPONSE] Answer to: {messages[-1].content}",
-                model=config.model or "mimio-1.0",
+                model=config.model or "mimio-2.5-pro",
                 provider="mimio",
                 latency_ms=(time.time() - start_time) * 1000
             )
@@ -54,7 +54,7 @@ class MimioProvider(BaseLLMProvider):
         }
 
         payload = {
-            "model": config.model or "mimio-1.0",
+            "model": config.model or "mimio-2.5-pro",
             "messages": self._convert_messages(messages),
             "temperature": config.temperature,
             "max_tokens": config.max_tokens,
@@ -83,7 +83,7 @@ class MimioProvider(BaseLLMProvider):
             logger.error(f"Mimio API call failed: {e}. Falling back to default response.")
             return LLMResponse(
                 content=f"Synthesized response powered by Xiaomi Mimio AI: {messages[-1].content}",
-                model=config.model or "mimio-1.0",
+                model=config.model or "mimio-2.5-pro",
                 provider="mimio",
                 latency_ms=(time.time() - start_time) * 1000
             )
@@ -102,7 +102,7 @@ class MimioProvider(BaseLLMProvider):
             "Content-Type": "application/json"
         }
         payload = {
-            "model": config.model or "mimio-1.0",
+            "model": config.model or "mimio-2.5-pro",
             "messages": self._convert_messages(messages),
             "temperature": config.temperature,
             "max_tokens": config.max_tokens,

@@ -124,7 +124,7 @@ class ReasoningEngine(IReasoningEngine):
                     )
                     res = type("MockResponse", (), {
                         "content": mock_content,
-                        "model": "mimio-1.0",
+                        "model": "mimio-2.5-pro",
                         "provider": "mimio",
                         "latency_ms": 10,
                         "input_tokens": 0,
