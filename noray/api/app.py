@@ -8,28 +8,63 @@ Run with:
     uvicorn NORAY.api.app:app --reload --port 8000
 """
 
+import logging
 import os
+
 os.environ["HF_HUB_OFFLINE"] = "1"
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from noray.api.routes import profile, jobs, scholarships, cv, sop, applications, upskill, workspace, documents, health, system_diagnostics
-from noray.database import engine, Base
-import noray.models  # Load models to register metadata
+logger = logging.getLogger("noray.api.app")
+
+from noray.api.errors import WorkspaceStageError, workspace_stage_error_handler
 
 # Middleware & error imports
 from noray.api.middleware.tracing import RequestTracingMiddleware
-from noray.api.errors import WorkspaceStageError, workspace_stage_error_handler
+from noray.api.routes import (
+    applications,
+    cv,
+    documents,
+    health,
+    jobs,
+    profile,
+    scholarships,
+    smart_router,
+    sop,
+    system_diagnostics,
+    upskill,
+    workspace,
+)
+from noray.observability import stream_router
 
 # We rely on Alembic for database migrations now.
 app = FastAPI(
     title="NORAY API",
     description="AI Career & Scholarship Operating System",
-    version="0.1.0",
+    version="1.0.0",
     docs_url="/docs",
     redoc_url="/redoc",
 )
+
+
+@app.on_event("startup")
+async def start_smart_router_services():
+    """Start SmartRouter background monitoring and model warm-up on app startup."""
+    from noray.llm.smart_router import smart_router
+
+    await smart_router.start_background_monitoring()
+    await smart_router.start_warm_up()
+    logger.info("SmartRouter services started: monitoring + warm-up")
+
+
+@app.on_event("shutdown")
+async def stop_smart_router_services():
+    """Stop SmartRouter background monitoring on app shutdown."""
+    from noray.llm.smart_router import smart_router
+
+    await smart_router.stop_background_monitoring()
+    logger.info("SmartRouter services stopped")
 
 # Custom exception handler registration
 app.add_exception_handler(WorkspaceStageError, workspace_stage_error_handler)
@@ -38,13 +73,20 @@ app.add_exception_handler(WorkspaceStageError, workspace_stage_error_handler)
 app.add_middleware(RequestTracingMiddleware)
 
 # CORS — allow the Next.js frontend to connect
+origins = [
+    "http://localhost:3000",
+    "http://localhost:3001",
+    "http://127.0.0.1:3000",
+    "http://127.0.0.1:3001",
+    "https://NORAY.ai",
+]
+env_origins = os.getenv("ALLOWED_ORIGINS")
+if env_origins:
+    origins.extend([o.strip() for o in env_origins.split(",") if o.strip()])
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",  # Next.js dev server
-        "http://localhost:3001",
-        "https://NORAY.ai",  # Future production domain
-    ],
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -62,13 +104,15 @@ app.include_router(workspace.router, prefix="/api/workspace", tags=["Workspace"]
 app.include_router(documents.router, prefix="/api/documents", tags=["Documents"])
 app.include_router(health.router, prefix="/api/health", tags=["Health"])
 app.include_router(system_diagnostics.router)
+app.include_router(smart_router.router)
+app.include_router(stream_router, prefix="/api", tags=["Observability Stream"])
 
 
 @app.get("/")
 async def root():
     return {
         "name": "NORAY",
-        "version": "0.1.0",
+        "version": "1.0.0",
         "description": "AI Career & Scholarship Operating System",
         "docs": "/docs",
     }

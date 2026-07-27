@@ -1,9 +1,11 @@
 import os
+from typing import Any
+
 import httpx
-from typing import List, Dict, Any, Tuple, Optional
+
 
 class BaseReranker:
-    def rerank(self, query: str, documents: List[Dict[str, Any]], top_k: int = 5) -> List[Dict[str, Any]]:
+    def rerank(self, query: str, documents: list[dict[str, Any]], top_k: int = 5) -> list[dict[str, Any]]:
         raise NotImplementedError
 
 class LocalReranker(BaseReranker):
@@ -17,10 +19,10 @@ class LocalReranker(BaseReranker):
             from sentence_transformers import CrossEncoder
             self.model = CrossEncoder(self.model_name)
 
-    def rerank(self, query: str, documents: List[Dict[str, Any]], top_k: int = 5) -> List[Dict[str, Any]]:
+    def rerank(self, query: str, documents: list[dict[str, Any]], top_k: int = 5) -> list[dict[str, Any]]:
         if not documents:
             return []
-            
+
         self._lazy_init()
         # Pair query with each document text
         pairs = []
@@ -30,7 +32,7 @@ class LocalReranker(BaseReranker):
 
         # Predict similarity scores
         scores = self.model.predict(pairs)
-        
+
         # Merge scores back to documents
         ranked_docs = []
         for score, doc in zip(scores, documents):
@@ -49,7 +51,7 @@ class JinaReranker(BaseReranker):
         self.model_name = model_name
         self.api_key = api_key or os.getenv("JINA_API_KEY", "")
 
-    def rerank(self, query: str, documents: List[Dict[str, Any]], top_k: int = 5) -> List[Dict[str, Any]]:
+    def rerank(self, query: str, documents: list[dict[str, Any]], top_k: int = 5) -> list[dict[str, Any]]:
         if not documents:
             return []
         if not self.api_key:
@@ -60,7 +62,7 @@ class JinaReranker(BaseReranker):
             "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json"
         }
-        
+
         # Prepare docs in API format
         api_docs = []
         for doc in documents:
@@ -78,7 +80,7 @@ class JinaReranker(BaseReranker):
             response = client.post(url, json=payload, headers=headers)
             response.raise_for_status()
             data = response.json()
-            
+
             ranked_docs = []
             for item in data.get("results", []):
                 idx = item["index"]
@@ -94,7 +96,7 @@ class CohereReranker(BaseReranker):
         self.model_name = model_name
         self.api_key = api_key or os.getenv("COHERE_API_KEY", "")
 
-    def rerank(self, query: str, documents: List[Dict[str, Any]], top_k: int = 5) -> List[Dict[str, Any]]:
+    def rerank(self, query: str, documents: list[dict[str, Any]], top_k: int = 5) -> list[dict[str, Any]]:
         if not documents:
             return []
         if not self.api_key:
@@ -105,7 +107,7 @@ class CohereReranker(BaseReranker):
             "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json"
         }
-        
+
         # Prepare docs
         api_docs = []
         for doc in documents:
@@ -123,7 +125,7 @@ class CohereReranker(BaseReranker):
             response = client.post(url, json=payload, headers=headers)
             response.raise_for_status()
             data = response.json()
-            
+
             ranked_docs = []
             for item in data.get("results", []):
                 idx = item["index"]
@@ -135,15 +137,15 @@ class CohereReranker(BaseReranker):
 
 class RerankerManager:
     """Manager to load and initialize selected reranker client dynamically."""
-    _instance: Optional[BaseReranker] = None
+    _instance: BaseReranker | None = None
 
     @staticmethod
     def get_reranker(provider: str = None, model_name: str = None) -> BaseReranker:
         if RerankerManager._instance is not None:
             return RerankerManager._instance
-            
+
         provider = provider or os.getenv("RERANKER_PROVIDER", "local").lower()
-        
+
         if provider == "jina":
             model = model_name or os.getenv("RERANKER_MODEL", "jina-reranker-v2-base-multilingual")
             RerankerManager._instance = JinaReranker(model_name=model)
@@ -153,5 +155,5 @@ class RerankerManager:
         else:
             model = model_name or os.getenv("RERANKER_MODEL", "BAAI/bge-reranker-base")
             RerankerManager._instance = LocalReranker(model_name=model)
-            
+
         return RerankerManager._instance

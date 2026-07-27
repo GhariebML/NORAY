@@ -8,10 +8,27 @@ class WebsocketClient {
   connect() {
     if (this.ws?.readyState === WebSocket.OPEN) return;
     
-    this.ws = new WebSocket('ws://localhost:8001/api/stream');
+    let wsUrl = '';
+    const nextPublicUrl = process.env.NEXT_PUBLIC_API_URL;
+    if (nextPublicUrl) {
+      wsUrl = nextPublicUrl.replace(/^http/, 'ws') + '/api/stream';
+    } else if (typeof window !== 'undefined') {
+      const proto = window.location.protocol === 'https:' ? 'wss' : 'ws';
+      let host = window.location.host;
+      if (host.includes('localhost:3000')) {
+        host = host.replace('localhost:3000', 'localhost:8001');
+      } else if (host.includes('127.0.0.1:3000')) {
+        host = host.replace('127.0.0.1:3000', '127.0.0.1:8001');
+      }
+      wsUrl = `${proto}://${host}/api/stream`;
+    } else {
+      wsUrl = 'ws://localhost:8001/api/stream';
+    }
+    
+    this.ws = new WebSocket(wsUrl);
     
     this.ws.onopen = () => {
-      console.log('Connected to AI Kernel Stream');
+      // Connection logged via store below
       useLogStore.getState().addLog({
         event_id: 'sys-connect',
         timestamp: new Date().toISOString(),
@@ -31,7 +48,7 @@ class WebsocketClient {
     };
 
     this.ws.onclose = () => {
-      console.log('Disconnected from AI Kernel. Reconnecting in 3s...');
+      // Auto-reconnect scheduled — logged via store on reconnection
       this.reconnectTimer = setTimeout(() => this.connect(), 3000);
     };
   }

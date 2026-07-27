@@ -1,28 +1,30 @@
-import os
-import psycopg2
 from pathlib import Path
+
+import psycopg2
 from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
+
 from noray.config import settings
+
 
 def update_env_file(key: str, value: str):
     """Updates or adds a key-value pair in the .env file to persist configurations."""
     env_path = Path(".env")
     lines = []
     if env_path.exists():
-        with open(env_path, "r", encoding="utf-8") as f:
+        with open(env_path, encoding="utf-8") as f:
             lines = f.readlines()
-            
+
     found = False
     for i, line in enumerate(lines):
         if line.startswith(f"{key}="):
             lines[i] = f"{key}={value}\n"
             found = True
             break
-            
+
     if not found:
         lines.append(f"{key}={value}\n")
-        
+
     with open(env_path, "w", encoding="utf-8") as f:
         f.writelines(lines)
 
@@ -59,13 +61,16 @@ def resolve_database_url() -> str:
     4. Falls back to SQLite if no Postgres is available.
     """
     if settings.DATABASE_URL:
-        return settings.DATABASE_URL
+        url = settings.DATABASE_URL
+        if url.startswith("postgres://"):
+            url = url.replace("postgres://", "postgresql://", 1)
+        return url
 
     # Priority 1: Configured Port
     if test_postgres_connection(settings.POSTGRES_PORT):
         print(f"[OK] Validated PostgreSQL connection on {settings.POSTGRES_HOST}:{settings.POSTGRES_PORT}")
         return f"postgresql://{settings.POSTGRES_USER}:{settings.POSTGRES_PASSWORD}@{settings.POSTGRES_HOST}:{settings.POSTGRES_PORT}/{settings.POSTGRES_DB}"
-    
+
     # Priority 2: Fallback Docker Port (e.g. native Windows DB occupies 5432, we map Docker to 5433)
     fallback_port = "5433" if settings.POSTGRES_PORT == "5432" else "5432"
     if test_postgres_connection(fallback_port):
@@ -99,3 +104,59 @@ def get_db():
         yield db
     finally:
         db.close()
+
+
+# ─── Database Engine Detection ───────────────────────────────────
+
+_engine_dialect: str | None = None
+
+
+def detect_database_engine() -> str:
+    """Detect the active database engine: 'postgresql' or 'sqlite'."""
+    global _engine_dialect
+    if _engine_dialect:
+        return _engine_dialect
+
+    url = DATABASE_URL.lower()
+    if url.startswith("postgresql"):
+        _engine_dialect = "postgresql"
+    elif url.startswith("sqlite"):
+        _engine_dialect = "sqlite"
+    else:
+        _engine_dialect = "sqlite"
+    return _engine_dialect
+
+
+def table_exists(table_name: str) -> bool:
+    """
+    Check if a table exists in the database, engine-agnostic.
+    Uses information_schema for PostgreSQL and sqlite_master for SQLite.
+    """
+    engine_type = detect_database_engine()
+    try:
+        db = SessionLocal()
+        try:
+            if engine_type == "postgresql":
+                from sqlalchemy import text
+                result = db.execute(
+                    text("SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = :name)"),
+                    {"name": table_name}
+                )
+                return result.scalar() or False
+            else:
+                from sqlalchemy import text
+                result = db.execute(
+                    text("SELECT name FROM sqlite_master WHERE type='table' AND name=:name"),
+                    {"name": table_name}
+                )
+                return result.fetchone() is not None
+        finally:
+            db.close()
+    except Exception:
+        return False
+
+
+def reset_engine_cache() -> None:
+    """Reset cached engine detection (useful for testing)."""
+    global _engine_dialect
+    _engine_dialect = None

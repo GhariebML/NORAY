@@ -2,7 +2,7 @@
 NORAY — Telemetry Module
 """
 
-from .cost import CostTracker, CostEntry
+from .cost import CostEntry, CostTracker
 from .explainability import ExplainabilityTrace, ReasoningStep
 
 __all__ = [

@@ -2,7 +2,7 @@
 NORAY — Tools Module
 """
 
-from .registry import ToolRegistry, ToolMetadata
+from .registry import ToolMetadata, ToolRegistry
 
 __all__ = [
     "ToolRegistry",

@@ -3,14 +3,17 @@ NORAY — Ollama Local Provider Adapter
 """
 
 from __future__ import annotations
-import os
-import time
-import httpx
+
 import json
 import logging
-from typing import AsyncGenerator, List, Dict, Any, Optional
+import os
+import time
+from collections.abc import AsyncGenerator
+from typing import Any
 
-from noray.llm.providers.base_provider import BaseLLMProvider, LLMMessage, LLMConfig, LLMResponse
+import httpx
+
+from noray.llm.providers.base_provider import BaseLLMProvider, LLMConfig, LLMMessage, LLMResponse
 
 logger = logging.getLogger("noray.llm.ollama")
 
@@ -18,7 +21,7 @@ logger = logging.getLogger("noray.llm.ollama")
 class OllamaProvider(BaseLLMProvider):
     """Adapter targeting local Ollama runtime endpoints."""
 
-    def __init__(self, base_url: Optional[str] = None):
+    def __init__(self, base_url: str | None = None):
         self.base_url = base_url or os.getenv("OLLAMA_BASE_URL") or "http://localhost:11434/v1"
 
     def health(self) -> bool:
@@ -29,7 +32,7 @@ class OllamaProvider(BaseLLMProvider):
         except Exception:
             return False
 
-    def _convert_messages(self, messages: List[LLMMessage]) -> List[Dict[str, Any]]:
+    def _convert_messages(self, messages: list[LLMMessage]) -> list[dict[str, Any]]:
         converted = []
         for m in messages:
             msg = {"role": m.role, "content": m.content}
@@ -41,7 +44,7 @@ class OllamaProvider(BaseLLMProvider):
     def estimate_cost(self, input_tokens: int, output_tokens: int) -> float:
         return 0.0  # Local execution cost is free
 
-    def generate(self, messages: List[LLMMessage], config: LLMConfig) -> LLMResponse:
+    def generate(self, messages: list[LLMMessage], config: LLMConfig) -> LLMResponse:
         start_time = time.time()
         url = f"{self.base_url}/chat/completions"
         headers = {"Content-Type": "application/json"}
@@ -82,11 +85,11 @@ class OllamaProvider(BaseLLMProvider):
             )
         except Exception as e:
             logger.error(f"Ollama API error: {e}")
-            raise RuntimeError(f"Ollama API execution failed: {e}")
+            raise RuntimeError(f"Ollama API execution failed: {e}") from e
 
-    async def stream(self, messages: List[LLMMessage], config: LLMConfig) -> AsyncGenerator[LLMResponse, None]:
+    async def stream(self, messages: list[LLMMessage], config: LLMConfig) -> AsyncGenerator[LLMResponse, None]:
         start_time = time.time()
-        
+
         if not self.health() and os.getenv("ALLOW_OFFLINE", "true").lower() == "true":
             yield LLMResponse(
                 content=f"[LOCAL OFFLINE MOCK - {config.model}] Answer to: {messages[-1].content}",
@@ -121,14 +124,14 @@ class OllamaProvider(BaseLLMProvider):
                         line_content = line[6:].strip()
                         if line_content == "[DONE]":
                             break
-                        
+
                         try:
                             chunk = json.loads(line_content)
                             choice = chunk["choices"][0]
                             delta = choice.get("delta", {})
                             content_piece = delta.get("content", "")
                             tool_calls = delta.get("tool_calls")
-                            
+
                             yield LLMResponse(
                                 content=content_piece,
                                 model=config.model,
@@ -140,9 +143,9 @@ class OllamaProvider(BaseLLMProvider):
                             continue
         except Exception as e:
             logger.error(f"Ollama streaming error: {e}")
-            raise RuntimeError(f"Ollama stream failed: {e}")
+            raise RuntimeError(f"Ollama stream failed: {e}") from e
 
-    def embeddings(self, text: str) -> List[float]:
+    def embeddings(self, text: str) -> list[float]:
         # Connect to Ollama's embeddings endpoint
         url = f"{self.base_url}/embeddings"
         headers = {"Content-Type": "application/json"}

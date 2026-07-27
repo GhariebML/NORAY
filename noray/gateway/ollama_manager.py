@@ -1,8 +1,7 @@
 import os
-import sys
 import subprocess
-import httpx
-from typing import Optional
+import sys
+
 from noray.gateway.hardware_detector import get_hardware_info, recommend_local_model
 
 OLLAMA_API_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
@@ -18,7 +17,7 @@ def install_ollama():
     """Attempts to install Ollama automatically if missing."""
     import platform
     os_name = platform.system()
-    
+
     print("Ollama is not installed. Attempting automatic installation...")
     try:
         if os_name == "Windows":
@@ -49,15 +48,15 @@ def pull_model(model_name: str):
 def verify_and_setup_local_ai():
     if not is_ollama_installed():
         install_ollama()
-        
+
     hw = get_hardware_info()
     recommended_model = recommend_local_model(hw)
-    
+
     print(f"Hardware Detected: {hw['ram_gb']}GB RAM, OS: {hw['os']}")
     print(f"Selected Local LLM: {recommended_model}")
-    
+
     pull_model(recommended_model)
-    
+
     # Check embeddings model (e.g. nomic-embed-text)
     embed_model = "nomic-embed-text"
     print(f"Ensuring local embedding model ({embed_model}) is available via Ollama...")

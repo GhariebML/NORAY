@@ -7,13 +7,13 @@ Rate limit: 60 requests/hour for unauthenticated requests.
 """
 
 from __future__ import annotations
+
 import json
-import urllib.request
 import urllib.error
+import urllib.request
 from typing import Any
 
 from noray.shared.models import CareerProfile, GitHubProfile, Project
-
 
 # ─── Public API ───────────────────────────────────────────────
 

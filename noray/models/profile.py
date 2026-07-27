@@ -1,5 +1,7 @@
-from sqlalchemy import Column, String, JSON, DateTime, func
+from sqlalchemy import JSON, Column, DateTime, String, func
+
 from noray.database import Base
+
 
 class ProfileModel(Base):
     __tablename__ = "profiles"

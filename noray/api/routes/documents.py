@@ -5,17 +5,17 @@ Handles file upload, text extraction, chunking, embedding, and dual-index storag
 All filenames are UUID-sanitized for Windows compatibility.
 """
 
-import uuid
 import logging
 import traceback
+import uuid
+from datetime import datetime, timezone
 from pathlib import Path
-from typing import Optional
 
-from fastapi import APIRouter, UploadFile, File, Form, HTTPException
+from fastapi import APIRouter, File, Form, HTTPException, UploadFile
 from pydantic import BaseModel
 
-from noray.services.document_service import DocumentService
 from noray.rag.sparse_index import SparseBM25Index
+from noray.services.document_service import DocumentService
 
 logger = logging.getLogger(__name__)
 
@@ -23,10 +23,10 @@ router = APIRouter()
 
 # ── Constants ──────────────────────────────────────────────────────────────────
 
-UPLOAD_DIR = Path("d:/NORAY/data/uploads")
+UPLOAD_DIR = Path(__file__).resolve().parent.parent.parent / "data" / "uploads"
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
-ALLOWED_EXTENSIONS = {".pdf", ".docx", ".txt", ".md", ".markdown", ".csv", ".png", ".jpg", ".jpeg", ".tiff", ".bmp"}
+ALLOWED_EXTENSIONS = {".pdf", ".docx", ".pptx", ".xlsx", ".xls", ".txt", ".md", ".markdown", ".csv", ".png", ".jpg", ".jpeg", ".tiff", ".bmp"}
 MAX_UPLOAD_SIZE_MB = 50
 
 
@@ -42,14 +42,23 @@ class UploadResponse(BaseModel):
 class UploadErrorResponse(BaseModel):
     error: str
     detail: str
-    original_filename: Optional[str] = None
-    stage: Optional[str] = None
+    original_filename: str | None = None
+    stage: str | None = None
 
 class DocItem(BaseModel):
     id: str
     source: str
     category: str
     content: str
+    doc_type: str | None = "Document"
+    summary: str | None = ""
+    keywords: list[str] | None = []
+    chunks_count: int | None = 1
+    created_at: str | None = ""
+
+class ReindexRequest(BaseModel):
+    id: str
+    category: str | None = "general"
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
@@ -99,7 +108,7 @@ def validate_upload_file(file: UploadFile) -> None:
 async def upload_document(
     file: UploadFile = File(...),
     category: str = Form("general"),
-    language: Optional[str] = Form("en"),
+    language: str | None = Form("en"),
 ):
     """
     Upload a document (PDF, DOCX, TXT, MD, images) and process it into
@@ -117,7 +126,7 @@ async def upload_document(
     """
     original_filename = file.filename or "unknown"
     sanitized_name = ""
-    file_path: Optional[Path] = None
+    file_path: Path | None = None
     stage = "validation"
 
     try:
@@ -193,7 +202,6 @@ async def upload_document(
         )
 
     except ValueError as e:
-        # Client-side errors (bad file type, empty file, etc.)
         logger.warning(
             "Upload validation error | file=%s | stage=%s | error=%s",
             original_filename, stage, str(e),
@@ -206,10 +214,9 @@ async def upload_document(
                 "original_filename": original_filename,
                 "stage": stage,
             },
-        )
+        ) from e
 
     except OSError as e:
-        # Filesystem errors (permission denied, invalid path, disk full)
         tb = traceback.format_exc()
         logger.error(
             "Filesystem error during upload | file=%s | sanitized=%s | "
@@ -220,17 +227,13 @@ async def upload_document(
             status_code=500,
             detail={
                 "error": "filesystem_error",
-                "detail": str(e),
+                "detail": f"Filesystem error at stage '{stage}': {e}",
                 "original_filename": original_filename,
-                "sanitized_filename": sanitized_name,
-                "path": str(file_path),
                 "stage": stage,
-                "traceback": tb,
             },
-        )
+        ) from e
 
     except Exception as e:
-        # Catch-all for unexpected errors in the pipeline
         tb = traceback.format_exc()
         logger.error(
             "Unexpected ingestion error | file=%s | stage=%s | error=%s\n%s",
@@ -240,13 +243,11 @@ async def upload_document(
             status_code=500,
             detail={
                 "error": "ingestion_error",
-                "detail": str(e),
+                "detail": f"Ingestion failed at stage '{stage}': {type(e).__name__}: {e}",
                 "original_filename": original_filename,
-                "sanitized_filename": sanitized_name,
                 "stage": stage,
-                "traceback": tb,
             },
-        )
+        ) from e
 
     finally:
         # Clean up the saved upload file (the data lives in vector/sparse indexes now)
@@ -278,6 +279,11 @@ async def list_documents():
                     category=payload.get("category", "general"),
                     content=chunk["content"][:200]
                     + ("..." if len(chunk["content"]) > 200 else ""),
+                    doc_type=payload.get("doc_type", "Document"),
+                    summary=payload.get("summary", chunk["content"][:150]),
+                    keywords=payload.get("keywords", []),
+                    chunks_count=payload.get("chunks_count", 1),
+                    created_at=payload.get("created_at", ""),
                 )
             )
         return results
@@ -290,9 +296,64 @@ async def list_documents():
             detail={
                 "error": "list_error",
                 "detail": str(e),
-                "traceback": tb,
             },
-        )
+        ) from e
+
+
+@router.get("/{point_id}")
+async def get_document_details(point_id: str):
+    """
+    Retrieves full metadata, chunk metrics, AI summary, and content preview for a document.
+    """
+    try:
+        idx = SparseBM25Index()
+        if idx.load():
+            for chunk in idx.chunks:
+                if chunk["id"] == point_id:
+                    payload = chunk.get("payload", {})
+                    return {
+                        "id": chunk["id"],
+                        "source": payload.get("source", "unknown"),
+                        "category": payload.get("category", "general"),
+                        "content": chunk["content"],
+                        "doc_type": payload.get("doc_type", "Document"),
+                        "summary": payload.get("summary", chunk["content"][:240]),
+                        "keywords": payload.get("keywords", []),
+                        "language": payload.get("language", "en"),
+                        "reading_time_min": payload.get("reading_time_min", 1),
+                        "word_count": payload.get("word_count", len(chunk["content"].split())),
+                        "chunks_count": payload.get("chunks_count", 1),
+                        "created_at": payload.get("created_at", ""),
+                        "updated_at": payload.get("updated_at", ""),
+                    }
+        raise HTTPException(status_code=404, detail=f"Document '{point_id}' not found.")
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Failed to fetch document %s: %s", point_id, str(e))
+        raise HTTPException(status_code=500, detail={"error": "fetch_error", "detail": str(e)}) from e
+
+
+@router.post("/reindex")
+async def reindex_document(req: ReindexRequest):
+    """
+    Re-triggers document indexing and updates Qdrant & BM25 positions.
+    """
+    try:
+        idx = SparseBM25Index()
+        if idx.load():
+            for chunk in idx.chunks:
+                if chunk["id"] == req.id:
+                    chunk["payload"]["category"] = req.category or chunk["payload"].get("category", "general")
+                    chunk["payload"]["updated_at"] = datetime.now(timezone.utc).isoformat()
+            idx.fit_and_save(idx.chunks)
+            return {"status": "reindexed", "id": req.id, "category": req.category}
+        raise HTTPException(status_code=404, detail=f"Document '{req.id}' not found.")
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Failed to reindex document %s: %s", req.id, str(e))
+        raise HTTPException(status_code=500, detail={"error": "reindex_error", "detail": str(e)}) from e
 
 
 @router.delete("/{point_id}")
@@ -324,6 +385,5 @@ async def delete_document(point_id: str):
                 "error": "delete_error",
                 "detail": str(e),
                 "point_id": point_id,
-                "traceback": tb,
             },
-        )
+        ) from e

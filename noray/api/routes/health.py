@@ -5,14 +5,14 @@ Provides fine-grained checks of PostgreSQL database, Qdrant vector store,
 Graph Store, LLM credentials, and MCP adapter servers.
 """
 
-from fastapi import APIRouter
-from sqlalchemy import text
 import os
 
-from noray.database import SessionLocal
-from noray.graph.postgres_store import PostgresGraphStore
-from noray.rag.vector_store import VectorStoreFactory
+from fastapi import APIRouter
+from sqlalchemy import text
+
 from noray.agents.tools.mcp_adapter import McpClientAdapter
+from noray.database import SessionLocal
+from noray.rag.vector_store import VectorStoreFactory
 
 router = APIRouter()
 
@@ -100,14 +100,20 @@ async def get_mcp_health():
 # --- Check Helpers ---
 
 def check_database() -> bool:
-    session = SessionLocal()
+    from noray.database import detect_database_engine
     try:
-        session.execute(text("SELECT 1"))
-        return True
+        engine_type = detect_database_engine()
+        session = SessionLocal()
+        try:
+            if engine_type == "postgresql":
+                session.execute(text("SELECT 1"))
+            else:
+                session.execute(text("SELECT 1"))
+            return True
+        finally:
+            session.close()
     except Exception:
         return False
-    finally:
-        session.close()
 
 def check_vector() -> bool:
     try:
@@ -125,15 +131,11 @@ def check_vector() -> bool:
         return False
 
 def check_graph() -> bool:
-    session = SessionLocal()
+    from noray.database import table_exists
     try:
-        # Check node model exists and is queryable
-        session.execute(text("SELECT count(*) FROM graph_nodes"))
-        return True
+        return table_exists("graph_nodes") and table_exists("graph_edges")
     except Exception:
         return False
-    finally:
-        session.close()
 
 def check_llm() -> bool:
     # Check if either API key is configured
@@ -163,11 +165,16 @@ async def get_hardware_setup_recommendation():
 @router.post("/setup/install")
 async def trigger_local_model_installation():
     """Triggers the automated Ollama installation, pulls the recommended model, and runs verification."""
-    from noray.gateway.installer import detect_hardware, recommend_model, install_ollama_if_missing, pull_and_verify_model
-    
+    from noray.gateway.installer import (
+        detect_hardware,
+        install_ollama_if_missing,
+        pull_and_verify_model,
+        recommend_model,
+    )
+
     hw = detect_hardware()
     rec_model = recommend_model(hw)
-    
+
     # 1. Install Ollama if missing
     ollama_ok = install_ollama_if_missing()
     if not ollama_ok:
@@ -176,10 +183,10 @@ async def trigger_local_model_installation():
             "error": "Failed to install Ollama executable.",
             "details": "Check admin permissions or download manually from https://ollama.com"
         }
-        
+
     # 2. Pull and verify the recommended model
     pulled_ok, verify_msg = pull_and_verify_model(rec_model)
-    
+
     return {
         "success": pulled_ok,
         "model": rec_model,

@@ -1,12 +1,12 @@
 import asyncio
-from typing import Callable, List, Dict
+
 from noray.observability.events import BaseEvent
-import json
+
 
 class EventBus:
     def __init__(self):
-        self._subscribers: List[asyncio.Queue] = []
-        self.history: List[Dict] = []  # Keep a small buffer for replay
+        self._subscribers: list[asyncio.Queue] = []
+        self.history: list[dict] = []  # Keep a small buffer for replay
 
     async def subscribe(self) -> asyncio.Queue:
         queue = asyncio.Queue()

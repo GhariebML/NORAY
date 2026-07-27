@@ -6,17 +6,19 @@ Recommends and pulls the best matching model via Ollama.
 """
 
 from __future__ import annotations
+
+import json
 import os
-import sys
 import shutil
 import subprocess
+import sys
 import urllib.request
-import json
+from typing import Any
+
 import httpx
-from typing import Dict, Any, Tuple
 
 
-def detect_hardware() -> Dict[str, Any]:
+def detect_hardware() -> dict[str, Any]:
     """Detect local system hardware parameters using OS commands."""
     hw = {
         "os": sys.platform,
@@ -84,11 +86,11 @@ def detect_hardware() -> Dict[str, Any]:
                         break
         except Exception:
             pass
-            
+
     return hw
 
 
-def recommend_model(hw: Dict[str, Any]) -> str:
+def recommend_model(hw: dict[str, Any]) -> str:
     """Recommend the optimal model based on hardware specifications, preferring already installed ones."""
     installed = []
     try:
@@ -148,7 +150,7 @@ def install_ollama_if_missing() -> bool:
     print("Ollama not detected. Fetching official silent installer...")
     setup_file = "OllamaSetup.exe"
     url = "https://ollama.com/download/OllamaSetup.exe"
-    
+
     try:
         urllib.request.urlretrieve(url, setup_file)
         print("Running installer silently. Please wait...")
@@ -163,12 +165,12 @@ def install_ollama_if_missing() -> bool:
         return False
 
 
-def pull_and_verify_model(model_name: str) -> Tuple[bool, str]:
+def pull_and_verify_model(model_name: str) -> tuple[bool, str]:
     """Pulls the recommended model via Ollama CLI and runs a test verification prompt."""
     try:
         print(f"Pulling model: {model_name}... (this can take a few minutes)")
         subprocess.run(["ollama", "pull", model_name], check=True)
-        
+
         # Verify execution
         print("Running verification test prompt...")
         test_payload = {

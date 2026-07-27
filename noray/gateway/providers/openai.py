@@ -3,10 +3,13 @@ NORAY — OpenAI Cloud Provider Adapter
 """
 
 from __future__ import annotations
+
 import os
 import time
+from collections.abc import Iterator
+from typing import Optional
+
 import httpx
-from typing import Iterator
 
 from noray.gateway.base import BaseLLMProvider, LLMConfig, LLMResponse
 
@@ -74,7 +77,7 @@ class OpenAIProvider(BaseLLMProvider):
                 latency_ms=latency_ms
             )
         except Exception as e:
-            raise RuntimeError(f"OpenAI API call failed: {e}")
+            raise RuntimeError(f"OpenAI API call failed: {e}") from e
 
     def generate_stream(self, prompt: str, config: LLMConfig) -> Iterator[LLMResponse]:
         # Simple non-stream wrapper for testing compatibility

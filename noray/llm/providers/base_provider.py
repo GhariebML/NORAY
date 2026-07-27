@@ -3,10 +3,11 @@ NORAY — Base LLM Provider Interface
 """
 
 from __future__ import annotations
+
 from abc import ABC, abstractmethod
-from dataclasses import dataclass, field
-from typing import Dict, Any, List, Optional, AsyncGenerator, Iterator
-from pydantic import BaseModel, Field
+from collections.abc import AsyncGenerator
+from dataclasses import dataclass
+from typing import Any
 
 
 @dataclass
@@ -14,9 +15,9 @@ class LLMMessage:
     """Standardized representation of a chat message."""
     role: str  # "system", "user", "assistant", "tool"
     content: str
-    name: Optional[str] = None
-    tool_calls: Optional[List[Dict[str, Any]]] = None
-    tool_call_id: Optional[str] = None
+    name: str | None = None
+    tool_calls: list[dict[str, Any]] | None = None
+    tool_call_id: str | None = None
 
 
 @dataclass
@@ -27,7 +28,7 @@ class LLMConfig:
     max_tokens: int = 1500
     system_prompt: str = ""
     json_mode: bool = False
-    tools: Optional[List[Dict[str, Any]]] = None
+    tools: list[dict[str, Any]] | None = None
 
 
 @dataclass
@@ -40,25 +41,25 @@ class LLMResponse:
     output_tokens: int = 0
     estimated_cost: float = 0.0
     latency_ms: float = 0.0
-    tool_calls: Optional[List[Dict[str, Any]]] = None
+    tool_calls: list[dict[str, Any]] | None = None
     finish_reason: str = "stop"
 
 
 class BaseLLMProvider(ABC):
     """Abstract interface that all NORAY LLM providers must implement."""
-    
+
     @abstractmethod
-    def generate(self, messages: List[LLMMessage], config: LLMConfig) -> LLMResponse:
+    def generate(self, messages: list[LLMMessage], config: LLMConfig) -> LLMResponse:
         """Synchronously execute a generation request."""
         pass
 
     @abstractmethod
-    async def stream(self, messages: List[LLMMessage], config: LLMConfig) -> AsyncGenerator[LLMResponse, None]:
+    async def stream(self, messages: list[LLMMessage], config: LLMConfig) -> AsyncGenerator[LLMResponse, None]:
         """Asynchronously stream generation tokens."""
         pass
 
     @abstractmethod
-    def embeddings(self, text: str) -> List[float]:
+    def embeddings(self, text: str) -> list[float]:
         """Generate vector embedding representation for the text."""
         pass
 

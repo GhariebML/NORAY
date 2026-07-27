@@ -6,10 +6,10 @@ All agents read from and write to this structure.
 """
 
 from __future__ import annotations
-from datetime import datetime
-from typing import Optional
-from pydantic import BaseModel, Field
 
+from datetime import datetime, timezone
+
+from pydantic import BaseModel, Field
 
 # ─── Identity ─────────────────────────────────────────────────
 
@@ -155,8 +155,8 @@ class GitHubProfile(BaseModel):
 
 class ProfileMeta(BaseModel):
     version: str = "1.0.0"
-    created_at: str = Field(default_factory=lambda: datetime.utcnow().isoformat())
-    updated_at: str = Field(default_factory=lambda: datetime.utcnow().isoformat())
+    created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    updated_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
     sources: list[str] = Field(default_factory=list)
 
 

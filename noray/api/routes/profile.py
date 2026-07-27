@@ -4,13 +4,13 @@ NORAY — Profile API Routes
 Endpoints for managing the career profile.
 """
 
-from fastapi import APIRouter, HTTPException, UploadFile, File
-import tempfile
 import os
+import tempfile
 
+from fastapi import APIRouter, File, HTTPException, UploadFile
+
+from noray.api.schemas import ImportGithubRequest, ProfileResponse, ProfileUpdateRequest
 from noray.shared.profile_store import load_profile, save_profile
-from noray.shared.models import CareerProfile
-from noray.api.schemas import ProfileResponse, ProfileUpdateRequest, ImportGithubRequest
 
 router = APIRouter()
 
@@ -53,15 +53,16 @@ async def import_github(request: ImportGithubRequest):
             "repos_found": repo_count,
         }
     except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e)) from e
 
 
 @router.post("/import/cv")
 async def import_cv(file: UploadFile = File(...)):
     """Import profile data from an uploaded CV file."""
-    from noray.profile_engine.cv_importer import parse_cv
-    from pathlib import Path
     import logging
+    from pathlib import Path
+
+    from noray.profile_engine.cv_importer import parse_cv
 
     logger = logging.getLogger(__name__)
 
@@ -85,7 +86,7 @@ async def import_cv(file: UploadFile = File(...)):
         }
     except Exception as e:
         logger.error("CV import failed for %s: %s", original_filename, str(e))
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e)) from e
     finally:
         if tmp_path and os.path.exists(tmp_path):
             os.unlink(tmp_path)

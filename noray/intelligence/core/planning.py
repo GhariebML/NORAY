@@ -6,7 +6,9 @@ Modes control retrieval depth, reflection iterations, and reasoning budgets.
 """
 
 from enum import Enum
+
 from pydantic import BaseModel
+
 
 class PlanModeType(str, Enum):
     FAST = "fast"

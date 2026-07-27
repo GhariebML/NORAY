@@ -6,8 +6,8 @@ More personal than an SOP — focuses on motivation, personal story, and program
 """
 
 from __future__ import annotations
+
 from dataclasses import dataclass, field
-from typing import Any
 
 from noray.shared.models import CareerProfile
 

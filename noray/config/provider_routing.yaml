@@ -1,0 +1,160 @@
+# NORAY — Provider Routing Configuration
+# Controls all aspects of the SmartRouter's behavior.
+# No hardcoded values — everything is configurable here.
+
+# ─── Provider Priority ────────────────────────────────────
+# Ordered list: first = highest priority
+# Free providers are tried first, then local, then premium
+provider_priority:
+  free:
+    - gemini
+    - openrouter
+    - together
+    - groq
+    - deepseek
+    - huggingface
+  local:
+    - ollama
+  premium:
+    - openai
+    - anthropic
+    - mistral
+
+# ─── Provider Weights (for load balancing) ────────────────
+# Higher weight = more traffic (when multiple healthy providers available)
+provider_weights:
+  gemini: 30
+  openrouter: 25
+  together: 15
+  deepseek: 15
+  ollama: 10
+  openai: 3
+  anthropic: 2
+  mistral: 0
+
+# ─── Timeouts (seconds) ───────────────────────────────────
+timeouts:
+  connection: 10.0
+  read: 30.0
+  write: 60.0
+  health_check: 5.0
+  warm_up: 30.0
+
+# ─── Retry Configuration ──────────────────────────────────
+retry:
+  max_retries: 3
+  base_delay: 1.0
+  max_delay: 8.0
+  jitter: 0.5
+  retryable_statuses:
+    - 429
+    - 500
+    - 502
+    - 503
+    - 504
+
+# ─── Circuit Breaker ──────────────────────────────────────
+circuit_breaker:
+  failure_threshold: 3
+  cooldown_seconds: 300
+  half_open_max_requests: 1
+  success_threshold_to_close: 2
+
+# ─── Health Monitoring ────────────────────────────────────
+health:
+  check_interval_seconds: 60
+  ping_timeout_seconds: 5.0
+  unhealthy_threshold: 3
+  recovery_check_count: 2
+  sliding_window_size: 10
+
+# ─── Fallback Chain ──────────────────────────────────────
+fallback:
+  chain:
+    - gemini
+    - openrouter
+    - together
+    - deepseek
+    - ollama
+    - openai
+    - anthropic
+    - mistral
+  ultimate_fallback: "ollama"
+  ultimate_fallback_model: "gemma4:12b"
+  enable_offline_mode: true
+
+# ─── Preferred Models ────────────────────────────────────
+preferred_models:
+  gemini: "gemini-flash-latest"
+  openrouter: "openrouter/auto"
+  together: "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo"
+  deepseek: "deepseek-chat"
+  openai: "gpt-4o-mini"
+  anthropic: "claude-3-5-sonnet-20241022"
+  mistral: "mistral-large-latest"
+  ollama_primary: "gemma4:12b"
+  ollama_secondary: "qwen2.5-coder:7b"
+  groq: "llama-3.1-8b-instant"
+  huggingface: "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo"
+
+# ─── Warm-Up Settings ────────────────────────────────────
+warm_up:
+  enabled: true
+  delay_seconds: 2.0
+  prompts:
+    - "Hello"
+    - "System Ready"
+  preferred_models:
+    - "gemma4:12b"
+    - "qwen2.5-coder:7b"
+
+# ─── Confidence-Based Routing ────────────────────────────
+confidence_routing:
+  enabled: true
+  min_confidence: 0.3
+  task_model_map:
+    programming: "qwen2.5-coder"
+    code_explanation: "qwen2.5-coder"
+    bug_fixing: "qwen2.5-coder"
+    sql: "qwen2.5-coder"
+    large_doc_generation: "gemma"
+    research: "gemma"
+    math: "gemma"
+    complex_reasoning: "gemma"
+    long_context: "gemma"
+    career_writing: "gemma"
+    cv: "gemma"
+    scholarships: "gemma"
+    rag_reasoning: "gemma"
+    image_understanding: "gemma"
+    summarization: "gemma"
+    creative_writing: "gemma"
+    general: "gemma"
+
+# ─── Provider Mappings ───────────────────────────────────
+provider_models:
+  gemini:
+    - "gemini-flash-latest"
+    - "gemini-2.0-flash"
+    - "gemini-2.0-flash-001"
+  openrouter:
+    - "openrouter/auto"
+  together:
+    - "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo"
+  deepseek:
+    - "deepseek-chat"
+    - "deepseek-coder"
+  openai:
+    - "gpt-4o-mini"
+    - "gpt-4o"
+  anthropic:
+    - "claude-3-5-sonnet-20241022"
+  mistral:
+    - "mistral-large-latest"
+  ollama:
+    - "gemma4:12b"
+    - "qwen2.5-coder:7b"
+    - "llama3.1"
+    - "deepseek-r1"
+    - "mistral"
+    - "phi4"

@@ -25,14 +25,13 @@ from __future__ import annotations
 import json
 from collections import deque
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional, Set, Tuple
+from typing import Any
 
-from sqlalchemy import Column, String, Float, Text, DateTime, func, Index, and_, or_
+from sqlalchemy import Column, DateTime, Float, Index, String, Text, func, or_
 from sqlalchemy.orm import Session
 
 from noray.database import Base, SessionLocal
-from noray.graph.base import BaseGraphStore, GraphNode, GraphEdge
-
+from noray.graph.base import BaseGraphStore, GraphEdge, GraphNode
 
 # ---------------------------------------------------------------------------
 # SQLAlchemy ORM Models for Graph Tables
@@ -165,7 +164,7 @@ class PostgresGraphStore(BaseGraphStore):
         finally:
             session.close()
 
-    def get_node(self, node_id: str) -> Optional[GraphNode]:
+    def get_node(self, node_id: str) -> GraphNode | None:
         session = self._get_session()
         try:
             model = session.query(GraphNodeModel).filter_by(id=node_id).first()
@@ -176,11 +175,11 @@ class PostgresGraphStore(BaseGraphStore):
     def find_nodes(
         self,
         *,
-        name: Optional[str] = None,
-        node_type: Optional[str] = None,
-        properties_filter: Optional[Dict[str, Any]] = None,
+        name: str | None = None,
+        node_type: str | None = None,
+        properties_filter: dict[str, Any] | None = None,
         limit: int = 50,
-    ) -> List[GraphNode]:
+    ) -> list[GraphNode]:
         session = self._get_session()
         try:
             query = session.query(GraphNodeModel)
@@ -274,7 +273,7 @@ class PostgresGraphStore(BaseGraphStore):
         finally:
             session.close()
 
-    def get_edge(self, edge_id: str) -> Optional[GraphEdge]:
+    def get_edge(self, edge_id: str) -> GraphEdge | None:
         session = self._get_session()
         try:
             model = session.query(GraphEdgeModel).filter_by(id=edge_id).first()
@@ -285,12 +284,12 @@ class PostgresGraphStore(BaseGraphStore):
     def find_edges(
         self,
         *,
-        source_id: Optional[str] = None,
-        target_id: Optional[str] = None,
-        edge_type: Optional[str] = None,
+        source_id: str | None = None,
+        target_id: str | None = None,
+        edge_type: str | None = None,
         min_weight: float = 0.0,
         limit: int = 100,
-    ) -> List[GraphEdge]:
+    ) -> list[GraphEdge]:
         session = self._get_session()
         try:
             query = session.query(GraphEdgeModel)
@@ -326,20 +325,20 @@ class PostgresGraphStore(BaseGraphStore):
         self,
         node_id: str,
         *,
-        edge_type: Optional[str] = None,
+        edge_type: str | None = None,
         direction: str = "both",
         max_hops: int = 1,
-    ) -> List[Tuple[GraphNode, GraphEdge]]:
+    ) -> list[tuple[GraphNode, GraphEdge]]:
         """BFS traversal up to max_hops from the starting node."""
         session = self._get_session()
         try:
-            visited_nodes: Set[str] = {node_id}
-            result: List[Tuple[GraphNode, GraphEdge]] = []
+            visited_nodes: set[str] = {node_id}
+            result: list[tuple[GraphNode, GraphEdge]] = []
             frontier: deque = deque([node_id])
             current_hop = 0
 
             while frontier and current_hop < max_hops:
-                next_frontier: List[str] = []
+                next_frontier: list[str] = []
                 batch_size = len(frontier)
 
                 for _ in range(batch_size):
@@ -401,13 +400,13 @@ class PostgresGraphStore(BaseGraphStore):
 
     def get_subgraph(
         self,
-        node_ids: List[str],
+        node_ids: list[str],
         *,
         max_hops: int = 1,
-    ) -> Tuple[List[GraphNode], List[GraphEdge]]:
+    ) -> tuple[list[GraphNode], list[GraphEdge]]:
         """Extract a subgraph around a set of seed node IDs."""
-        all_nodes: Dict[str, GraphNode] = {}
-        all_edges: Dict[str, GraphEdge] = {}
+        all_nodes: dict[str, GraphNode] = {}
+        all_edges: dict[str, GraphEdge] = {}
 
         for seed_id in node_ids:
             # Include the seed node itself
@@ -425,7 +424,7 @@ class PostgresGraphStore(BaseGraphStore):
 
     # --- Bulk Operations ---
 
-    def add_nodes_bulk(self, nodes: List[GraphNode]) -> int:
+    def add_nodes_bulk(self, nodes: list[GraphNode]) -> int:
         session = self._get_session()
         try:
             models = [
@@ -443,7 +442,7 @@ class PostgresGraphStore(BaseGraphStore):
         finally:
             session.close()
 
-    def add_edges_bulk(self, edges: List[GraphEdge]) -> int:
+    def add_edges_bulk(self, edges: list[GraphEdge]) -> int:
         session = self._get_session()
         try:
             models = [
@@ -465,7 +464,7 @@ class PostgresGraphStore(BaseGraphStore):
 
     # --- Statistics ---
 
-    def count_nodes(self, node_type: Optional[str] = None) -> int:
+    def count_nodes(self, node_type: str | None = None) -> int:
         session = self._get_session()
         try:
             query = session.query(GraphNodeModel)
@@ -475,7 +474,7 @@ class PostgresGraphStore(BaseGraphStore):
         finally:
             session.close()
 
-    def count_edges(self, edge_type: Optional[str] = None) -> int:
+    def count_edges(self, edge_type: str | None = None) -> int:
         session = self._get_session()
         try:
             query = session.query(GraphEdgeModel)

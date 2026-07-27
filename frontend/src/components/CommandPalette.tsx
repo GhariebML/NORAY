@@ -3,11 +3,8 @@
 import { useState, useEffect, useRef } from "react";
 import {
   Search,
-  Globe,
-  Terminal,
   FileText,
   Sparkles,
-  Activity,
   Briefcase,
   GraduationCap,
   Brain,
@@ -15,7 +12,6 @@ import {
   Settings,
   Layers,
   User,
-  Plus,
   CornerDownLeft,
 } from "lucide-react";
 import { useRouter } from "next/navigation";

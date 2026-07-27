@@ -6,16 +6,14 @@ Motivation Letters, and Research Proposals using python-docx.
 """
 
 from __future__ import annotations
-import os
+
 from pathlib import Path
-from typing import Any, Optional
 
 import docx
-from docx.shared import Inches, Pt, RGBColor
 from docx.enum.text import WD_ALIGN_PARAGRAPH
-from docx.enum.table import WD_TABLE_ALIGNMENT
-from docx.oxml import OxmlElement, parse_xml
-from docx.oxml.ns import nsdecls, qn
+from docx.oxml import parse_xml
+from docx.oxml.ns import nsdecls
+from docx.shared import Inches, Pt, RGBColor
 
 from noray.shared.models import CareerProfile
 
@@ -66,11 +64,11 @@ def generate_cv_docx(
     # 1. Header (Candidate Name & Contact Info)
     name = profile.identity.name or "Gharieb Mohamed"
     role_title = role or "Machine Learning & AI Engineer"
-    
+
     p_header = doc.add_paragraph()
     p_header.alignment = WD_ALIGN_PARAGRAPH.LEFT
     p_header.paragraph_format.space_after = Pt(2)
-    
+
     r_name = p_header.add_run(name)
     r_name.font.name = 'Calibri'
     r_name.font.size = Pt(24)
@@ -127,7 +125,7 @@ def generate_cv_docx(
 
     # 3. Technical Skills
     add_heading_styled(doc, "TECHNICAL SKILLS & COMPETENCIES")
-    
+
     skills_list = []
     if profile.skills.primary:
         skills_list.append(f"Core Languages & Frameworks: {', '.join(profile.skills.primary)}")
@@ -156,11 +154,11 @@ def generate_cv_docx(
             p_exp = doc.add_paragraph()
             p_exp.paragraph_format.space_before = Pt(6)
             p_exp.paragraph_format.space_after = Pt(2)
-            
+
             r_t = p_exp.add_run(f"{exp.title} — {exp.company}")
             r_t.font.bold = True
             r_t.font.size = Pt(11)
-            
+
             dates = f" ({exp.start_date} – {exp.end_date or 'Present'})"
             r_d = p_exp.add_run(dates)
             r_d.font.italic = True
@@ -178,7 +176,7 @@ def generate_cv_docx(
         p_exp = doc.add_paragraph()
         p_exp.paragraph_format.space_before = Pt(6)
         p_exp.paragraph_format.space_after = Pt(2)
-        r_t = p_exp.add_run(f"AI Systems & Software Engineer — NORAY Platform")
+        r_t = p_exp.add_run("AI Systems & Software Engineer — NORAY Platform")
         r_t.font.bold = True
         r_t.font.size = Pt(11)
         r_d = p_exp.add_run(" (2024 – Present)")

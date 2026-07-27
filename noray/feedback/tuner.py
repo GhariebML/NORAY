@@ -11,12 +11,11 @@ Implements the optimization loop:
 from __future__ import annotations
 
 import uuid
-from typing import Any, Dict, List, Optional
-from datetime import datetime, timezone
+from typing import Any
 
-from sqlalchemy import text
 from noray.database import SessionLocal
 from noray.models.feedback import FeedbackModel, RetrievalParamsModel
+
 
 class RetrievalTuner:
     """Manages recording feedback and tuning RAG retrieval hyperparameters dynamically."""
@@ -49,10 +48,10 @@ class RetrievalTuner:
         session_id: str,
         query: str,
         response: str,
-        rating: Optional[int] = None,
-        clicks: Optional[List[str]] = None,
-        ignored_sources: Optional[List[str]] = None,
-        corrections: Optional[str] = None
+        rating: int | None = None,
+        clicks: list[str] | None = None,
+        ignored_sources: list[str] | None = None,
+        corrections: str | None = None
     ) -> str:
         """Log a user interaction event to the database."""
         session = SessionLocal()
@@ -74,7 +73,7 @@ class RetrievalTuner:
         finally:
             session.close()
 
-    def get_retrieval_params(self) -> Dict[str, Any]:
+    def get_retrieval_params(self) -> dict[str, Any]:
         """Fetch current active weights and chunk configurations."""
         session = SessionLocal()
         try:
@@ -90,7 +89,7 @@ class RetrievalTuner:
             pass
         finally:
             session.close()
-        
+
         # Fallback defaults
         return {
             "dense_weight": 0.5,
@@ -99,7 +98,7 @@ class RetrievalTuner:
             "chunk_overlap": 100
         }
 
-    def auto_tune_parameters(self) -> Dict[str, Any]:
+    def auto_tune_parameters(self) -> dict[str, Any]:
         """
         Analyzes recent feedback ratings and adjusts retrieval parameters:
         - If ratings are low (<3) and user clicks mostly sparse sources, shift weight to sparse.

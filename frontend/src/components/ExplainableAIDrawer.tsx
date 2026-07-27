@@ -6,12 +6,8 @@ import {
   Brain,
   Database,
   Terminal,
-  Cpu,
-  Layers,
   Sparkles,
-  BarChart2,
   FileText,
-  CheckCircle2,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 

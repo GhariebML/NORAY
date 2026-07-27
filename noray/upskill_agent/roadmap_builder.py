@@ -7,9 +7,9 @@ and application timeline.
 """
 
 from __future__ import annotations
-from typing import Any
+
 from dataclasses import dataclass, field
-from datetime import datetime
+from typing import Any
 
 
 @dataclass
@@ -139,13 +139,13 @@ def format_roadmap(roadmap: CareerRoadmap) -> str:
     """Format roadmap as readable markdown."""
     lines = [
         f"# Career Roadmap: {roadmap.career_path.title()}",
-        f"",
+        "",
         f"**Timeline**: {roadmap.timeline_months} months",
         f"**Total estimated time**: {roadmap.total_time_estimate}",
         f"**Milestones**: {len(roadmap.milestones)}",
-        f"",
-        f"---",
-        f"",
+        "",
+        "---",
+        "",
     ]
 
     # Summary

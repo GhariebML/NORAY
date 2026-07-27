@@ -10,8 +10,9 @@ the known Starlette deadlock issue with BaseHTTPMiddleware.
 
 from __future__ import annotations
 
-import uuid
 import contextvars
+import uuid
+
 from starlette.types import ASGIApp, Receive, Scope, Send
 
 # Context variable to hold the trace ID for the current request context

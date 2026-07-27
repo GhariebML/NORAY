@@ -1,19 +1,21 @@
-from pydantic import BaseModel, Field
-from typing import Dict, Any, Optional
-from datetime import datetime
 import uuid
+from datetime import datetime, timezone
+from typing import Any
+
+from pydantic import BaseModel, Field
+
 
 class BaseEvent(BaseModel):
     event_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    timestamp: str = Field(default_factory=lambda: datetime.utcnow().isoformat())
+    timestamp: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
     event_type: str
-    execution_id: Optional[str] = None
-    agent_id: Optional[str] = None
-    task_id: Optional[str] = None
-    session_id: Optional[str] = None
+    execution_id: str | None = None
+    agent_id: str | None = None
+    task_id: str | None = None
+    session_id: str | None = None
     severity: str = "info"  # info, warning, error, debug
-    latency: Optional[float] = None
-    metadata: Dict[str, Any] = Field(default_factory=dict)
+    latency: float | None = None
+    metadata: dict[str, Any] = Field(default_factory=dict)
 
 # Agent Lifecycle
 class AgentStarted(BaseEvent): event_type: str = "AgentStarted"

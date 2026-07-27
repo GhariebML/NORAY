@@ -1,12 +1,12 @@
-import os
-import re
-import sys
-import httpx
-import logging
 import asyncio
-import subprocess
+import logging
+import re
 import shutil
-from typing import Dict, Any, List
+import subprocess
+import sys
+from typing import Any
+
+import httpx
 
 logger = logging.getLogger("noray.llm.local_manager")
 
@@ -16,7 +16,7 @@ class LocalRuntimeManager:
     def __init__(self):
         self.ollama_url = "http://localhost:11434"
 
-    def get_hardware_info(self) -> Dict[str, Any]:
+    def get_hardware_info(self) -> dict[str, Any]:
         """Detect system CPU, RAM, and GPU/VRAM capacity."""
         info = {
             "cpu": "Unknown",
@@ -105,7 +105,7 @@ class LocalRuntimeManager:
 
         return info
 
-    def get_model_recommendations(self) -> List[str]:
+    def get_model_recommendations(self) -> list[str]:
         """Suggest appropriate Ollama models depending on available hardware capacity."""
         hardware = self.get_hardware_info()
         vram = hardware["vram_gb"]
@@ -147,7 +147,7 @@ class LocalRuntimeManager:
                 subprocess.Popen(["ollama", "serve"], creationflags=subprocess.CREATE_NO_WINDOW)
             else:
                 subprocess.Popen(["ollama", "serve"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-            
+
             # Wait up to 5 seconds for Ollama to spin up
             for _ in range(10):
                 await asyncio.sleep(0.5)
@@ -158,7 +158,7 @@ class LocalRuntimeManager:
             logger.error(f"Failed to start Ollama subprocess: {e}")
         return False
 
-    async def get_downloaded_models(self) -> List[Dict[str, Any]]:
+    async def get_downloaded_models(self) -> list[dict[str, Any]]:
         """Retrieve list of locally pulled models from Ollama."""
         if not await self.is_ollama_running():
             return []
@@ -187,7 +187,7 @@ class LocalRuntimeManager:
 
         logger.info(f"Starting programmatic pull for model: {model_name}")
         url = f"{self.ollama_url}/api/pull"
-        
+
         try:
             async with httpx.AsyncClient(timeout=None) as client:
                 async with client.stream("POST", url, json={"name": model_name}) as response:

@@ -1,6 +1,8 @@
-from sqlalchemy import Column, String, DateTime, ForeignKey, func, Text, JSON
+from sqlalchemy import JSON, Column, DateTime, ForeignKey, String, Text, func
 from sqlalchemy.orm import relationship
+
 from noray.database import Base
+
 
 class ChatSessionModel(Base):
     __tablename__ = "chat_sessions"

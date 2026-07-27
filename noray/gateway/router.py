@@ -6,20 +6,20 @@ and graceful provider fallback hierarchies.
 """
 
 from __future__ import annotations
+
 import os
-from typing import Dict, List, Optional, Tuple
 
 from noray.gateway.base import RouteRequirements
-from noray.gateway.registry import ModelRegistry, ModelMetadata
+from noray.gateway.registry import ModelMetadata, ModelRegistry
 
 
 class ModelRouter:
     """Intelligently routes requests to the optimal LLM based on task constraints."""
 
-    def __init__(self, registry: Optional[ModelRegistry] = None) -> None:
+    def __init__(self, registry: ModelRegistry | None = None) -> None:
         self.registry = registry or ModelRegistry()
 
-    def route(self, req: RouteRequirements, active_states: Dict[str, bool]) -> Tuple[str, str]:
+    def route(self, req: RouteRequirements, active_states: dict[str, bool]) -> tuple[str, str]:
         """Determine the best model name and provider for a given set of requirements.
         
         Args:
@@ -37,14 +37,14 @@ class ModelRouter:
 
         # Check offline requirement
         allow_offline_only = os.getenv("ALLOW_OFFLINE", "true").lower() == "true"
-        
+
         # Candidate scoring & filtering
-        candidates: List[ModelMetadata] = []
+        candidates: list[ModelMetadata] = []
         for name, meta in self.registry.list_models().items():
             # Check availability
             if not meta.is_available:
                 continue
-            
+
             # Check provider status
             prov = meta.provider
             if not active_states.get(prov, False):

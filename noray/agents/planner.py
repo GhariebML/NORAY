@@ -35,7 +35,7 @@ import re
 import uuid
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 
 class TaskStatus(str, Enum):
@@ -72,13 +72,13 @@ class TaskNode:
     description: str = ""
     agent: str = "general"
     action: str = "query"
-    parameters: Dict[str, Any] = field(default_factory=dict)
-    dependencies: List[str] = field(default_factory=list)
+    parameters: dict[str, Any] = field(default_factory=dict)
+    dependencies: list[str] = field(default_factory=list)
     status: TaskStatus = TaskStatus.PENDING
-    result: Optional[Any] = None
-    error: Optional[str] = None
+    result: Any | None = None
+    error: str | None = None
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "id": self.id,
             "description": self.description,
@@ -92,7 +92,7 @@ class TaskNode:
         }
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "TaskNode":
+    def from_dict(cls, data: dict[str, Any]) -> TaskNode:
         return cls(
             id=data.get("id", str(uuid.uuid4())[:8]),
             description=data.get("description", ""),
@@ -119,11 +119,11 @@ class TaskPlan:
     """
     id: str = field(default_factory=lambda: str(uuid.uuid4())[:12])
     goal: str = ""
-    tasks: List[TaskNode] = field(default_factory=list)
+    tasks: list[TaskNode] = field(default_factory=list)
     execution_mode: ExecutionMode = ExecutionMode.SEQUENTIAL
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "id": self.id,
             "goal": self.goal,
@@ -133,7 +133,7 @@ class TaskPlan:
         }
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "TaskPlan":
+    def from_dict(cls, data: dict[str, Any]) -> TaskPlan:
         return cls(
             id=data.get("id", str(uuid.uuid4())[:12]),
             goal=data.get("goal", ""),
@@ -142,7 +142,7 @@ class TaskPlan:
             metadata=data.get("metadata", {}),
         )
 
-    def get_ready_tasks(self) -> List[TaskNode]:
+    def get_ready_tasks(self) -> list[TaskNode]:
         """Return tasks whose dependencies are all completed."""
         completed_ids = {
             t.id for t in self.tasks if t.status == TaskStatus.COMPLETED
@@ -222,7 +222,7 @@ class PlannerAgent:
     def _plan_rules(self, goal: str) -> TaskPlan:
         """Rule-based task decomposition."""
         goal_lower = goal.lower()
-        tasks: List[TaskNode] = []
+        tasks: list[TaskNode] = []
 
         # --- Scholarship-related goals ---
         if any(kw in goal_lower for kw in ["scholarship", "funding", "grant", "fellowship"]):
@@ -321,10 +321,10 @@ class PlannerAgent:
 
         return TaskPlan(goal=goal, tasks=tasks, execution_mode=mode)
 
-    def _plan_with_llm(self, goal: str) -> Optional[TaskPlan]:
+    def _plan_with_llm(self, goal: str) -> TaskPlan | None:
         """LLM-assisted plan generation."""
         try:
-            from noray.shared.llm_utils import call_llm, LLMConfig
+            from noray.shared.llm_utils import LLMConfig, call_llm
 
             prompt = (
                 "You are a task planning agent. Decompose the following user goal into "
@@ -349,7 +349,7 @@ class PlannerAgent:
         except Exception:
             return None
 
-    def _parse_llm_plan(self, goal: str, response_text: str) -> Optional[TaskPlan]:
+    def _parse_llm_plan(self, goal: str, response_text: str) -> TaskPlan | None:
         """Parse LLM JSON response into a TaskPlan."""
         try:
             json_text = response_text.strip()

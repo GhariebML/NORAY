@@ -7,21 +7,25 @@ skill file generation.
 """
 
 from __future__ import annotations
-import json
-from pathlib import Path
+
 from datetime import datetime
+from pathlib import Path
 from typing import Any
 
+from noray.config import (
+    CAREER_PROFILE_PATH,
+    DOCUMENTS_DIR,
+)
 from noray.shared.models import CareerProfile, ProfileMeta
 from noray.shared.profile_store import (
-    load_profile, save_profile, merge_profile, get_profile_diff,
-    export_to_skill_files, sync_to_skill_files, backup_profile,
+    backup_profile,
+    get_profile_diff,
+    load_profile,
+    merge_profile,
     profile_exists,
+    save_profile,
+    sync_to_skill_files,
 )
-from noray.config import (
-    CAREER_PROFILE_PATH, DOCUMENTS_DIR, SKILL_FILES_DIR,
-)
-
 
 # ─── Public API ───────────────────────────────────────────────
 
@@ -61,8 +65,7 @@ def build_profile(
 
     # ── Import from CV ──
     if cv_path and cv_path.exists():
-        from noray.profile_engine.cv_importer import parse_cv, import_cv_to_profile
-        parsed = parse_cv(cv_path)
+        from noray.profile_engine.cv_importer import import_cv_to_profile
         import_cv_to_profile(cv_path, incoming)
 
     # ── Import from documents/cv/ ──

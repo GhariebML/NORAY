@@ -8,18 +8,20 @@ Provides diff/merge for incremental updates from importers.
 
 import json
 import re
+from datetime import datetime, timezone
 from pathlib import Path
-from datetime import datetime
-from typing import Any
 
 from noray.config import CAREER_PROFILE_PATH, LEGACY_SKILL_FILES, SKILL_FILES_DIR
 from noray.shared.models import (
-    CareerProfile, ProfileMeta, Identity, Location, Language,
-    Education, Experience, Project, Skills, Certification,
-    Award, Publication, Behavioral, CareerGoals, ScholarshipGoals,
-    GitHubProfile,
+    Award,
+    CareerProfile,
+    Certification,
+    Education,
+    Experience,
+    Language,
+    ProfileMeta,
+    Publication,
 )
-
 
 # ─── Core CRUD ────────────────────────────────────────────────
 
@@ -28,10 +30,10 @@ def load_profile(path: Path = CAREER_PROFILE_PATH) -> CareerProfile:
     if not path.exists():
         return CareerProfile(meta=ProfileMeta(
             version="1.0.0",
-            created_at=datetime.utcnow().isoformat(),
-            updated_at=datetime.utcnow().isoformat(),
+            created_at=datetime.now(timezone.utc).isoformat(),
+            updated_at=datetime.now(timezone.utc).isoformat(),
         ))
-    with open(path, "r", encoding="utf-8") as f:
+    with open(path, encoding="utf-8") as f:
         data = json.load(f)
     return CareerProfile.model_validate(data)
 
@@ -42,7 +44,7 @@ def save_profile(
     source: str = "",
 ) -> None:
     """Save career profile to JSON file with updated timestamp."""
-    profile.meta.updated_at = datetime.utcnow().isoformat()
+    profile.meta.updated_at = datetime.now(timezone.utc).isoformat()
     if source and source not in profile.meta.sources:
         profile.meta.sources.append(source)
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -65,7 +67,7 @@ def backup_profile(path: Path = CAREER_PROFILE_PATH) -> Path | None:
     """Create a timestamped backup of the profile. Returns backup path."""
     if not path.exists():
         return None
-    timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
+    timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
     backup_path = path.parent / f"career_profile_backup_{timestamp}.json"
     backup_path.write_text(path.read_text(encoding="utf-8"), encoding="utf-8")
     return backup_path
@@ -675,8 +677,8 @@ def export_to_skill_files(profile: CareerProfile) -> dict[str, str]:
     intv_lines.append("## STAR Candidates (Auto-generated from profile)\n")
     for exp in profile.experience[:5]:  # Top 5 experiences
         intv_lines.append(f"### {exp.title} at {exp.company}")
-        intv_lines.append(f"**What happened:** Key responsibilities and achievements in this role")
-        intv_lines.append(f"**Why it matters:** Demonstrates relevant experience for target roles")
+        intv_lines.append("**What happened:** Key responsibilities and achievements in this role")
+        intv_lines.append("**Why it matters:** Demonstrates relevant experience for target roles")
         intv_lines.append("**S/T/A/R stub:**")
         intv_lines.append(f"- Situation: Working as {exp.title} at {exp.company}")
         intv_lines.append("- Task: [Describe the specific challenge or project]")

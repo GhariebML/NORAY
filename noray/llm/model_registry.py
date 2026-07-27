@@ -1,6 +1,6 @@
 import logging
-from typing import Dict, List, Optional
-from pydantic import BaseModel, Field
+
+from pydantic import BaseModel
 
 logger = logging.getLogger("noray.llm.model_registry")
 
@@ -26,9 +26,9 @@ class ModelMetadata(BaseModel):
 
 class ModelRegistry:
     """Central registry maintaining capabilities of all supported models in NORAY."""
-    
+
     def __init__(self):
-        self._models: Dict[str, ModelMetadata] = {}
+        self._models: dict[str, ModelMetadata] = {}
         self._populate_defaults()
 
     def register(self, metadata: ModelMetadata) -> None:
@@ -38,24 +38,24 @@ class ModelRegistry:
         # Also map standard model name direct lookups
         self._models[metadata.model.lower()] = metadata
 
-    def get_model(self, model_name: str, provider_name: Optional[str] = None) -> Optional[ModelMetadata]:
+    def get_model(self, model_name: str, provider_name: str | None = None) -> ModelMetadata | None:
         """Lookup model metadata by model name or provider:model key."""
         if provider_name:
             key = f"{provider_name}:{model_name}".lower()
             return self._models.get(key)
-        
+
         # Try direct key lookup
         direct_key = model_name.lower()
         if direct_key in self._models:
             return self._models[direct_key]
-            
+
         # Linear search by model name if key wasn't formatted as provider:model
         for key, meta in self._models.items():
             if meta.model.lower() == model_name.lower():
                 return meta
         return None
 
-    def list_models(self) -> List[ModelMetadata]:
+    def list_models(self) -> list[ModelMetadata]:
         """Return all unique registered model metadatas."""
         seen = set()
         unique_models = []
@@ -66,7 +66,7 @@ class ModelRegistry:
                 unique_models.append(meta)
         return unique_models
 
-    def get_models_by_provider(self, provider_name: str) -> List[ModelMetadata]:
+    def get_models_by_provider(self, provider_name: str) -> list[ModelMetadata]:
         """List all models registered under a specific provider."""
         return [m for m in self.list_models() if m.provider.lower() == provider_name.lower()]
 

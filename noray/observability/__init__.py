@@ -1,8 +1,8 @@
-from .event_bus import event_bus, EventBus
+from .event_bus import EventBus, event_bus
 from .events import *
-from .websocket import router as stream_router
-from .telemetry import telemetry_store
 from .logger import Logger
+from .telemetry import telemetry_store
+from .websocket import router as stream_router
 
 __all__ = [
     "event_bus", "EventBus", "stream_router", "telemetry_store", "Logger"

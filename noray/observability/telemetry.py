@@ -1,7 +1,8 @@
 """
 NORAY — Telemetry & Metrics Aggregator
 """
-from typing import Dict, Any
+from typing import Any
+
 
 class TelemetryStore:
     def __init__(self):
@@ -13,7 +14,7 @@ class TelemetryStore:
             "cache_hit_rate": 0.85
         }
 
-    def get_metrics(self) -> Dict[str, Any]:
+    def get_metrics(self) -> dict[str, Any]:
         return self.metrics
 
 telemetry_store = TelemetryStore()

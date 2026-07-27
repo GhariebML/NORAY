@@ -1,4 +1,4 @@
-version: '3.8'
+
 
 services:
   postgres:
@@ -44,7 +44,43 @@ services:
       retries: 5
     restart: unless-stopped
 
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: noray_backend
+    ports:
+      - "8001:8001"
+    environment:
+      - ENVIRONMENT=production
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-noray}:${POSTGRES_PASSWORD:-noray_dev}@postgres:5432/${POSTGRES_DB:-noray_db}
+      - QDRANT_URL=http://qdrant:6333
+      - REDIS_URL=redis://redis:6379/0
+      - ALLOWED_ORIGINS=http://localhost:3000,http://127.0.0.1:3000
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - backend_data:/app/data
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: noray_frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8001
+    depends_on:
+      - backend
+    restart: unless-stopped
+
 volumes:
   postgres_data:
   qdrant_data:
   redis_data:
+  backend_data:

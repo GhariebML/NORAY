@@ -4,8 +4,9 @@ Prevents cost overrun and monitors token transactions.
 """
 
 from __future__ import annotations
+
 import logging
-from typing import Dict, Any, List, Optional
+from typing import Any
 
 from noray.cache.redis_cache import RedisCache
 
@@ -14,16 +15,16 @@ logger = logging.getLogger("noray.llm.budget")
 
 class TokenCostBudgetManager:
     """Estimates LLM request costs and tracks transaction budgets across sessions."""
-    
-    def __init__(self, cache: Optional[RedisCache] = None, max_session_cost_usd: float = 0.50):
+
+    def __init__(self, cache: RedisCache | None = None, max_session_cost_usd: float = 0.50):
         self.cache = cache or RedisCache(namespace="noray_budget")
         self.max_session_cost_usd = max_session_cost_usd
 
-    def estimate_prompt_cost(self, prompt: str, system_prompt: str, model_name: str) -> Dict[str, Any]:
+    def estimate_prompt_cost(self, prompt: str, system_prompt: str, model_name: str) -> dict[str, Any]:
         """Provides raw token count and USD cost estimation for the target model."""
         prompt_words = len(prompt.split()) + len(system_prompt.split())
         est_tokens = int(prompt_words * 1.3) + 100  # Token multiplier buffer
-        
+
         # Cost index matching
         cost_per_1k = 0.003  # default claude rate
         if "mini" in model_name:
@@ -32,7 +33,7 @@ class TokenCostBudgetManager:
             cost_per_1k = 0.000075
         elif "qwen" in model_name or "llama" in model_name:
             cost_per_1k = 0.0  # Local models are free
-            
+
         est_cost = (est_tokens / 1000.0) * cost_per_1k
         return {"estimated_tokens": est_tokens, "estimated_cost_usd": est_cost}
 
@@ -40,7 +41,7 @@ class TokenCostBudgetManager:
         """Validates if the session budget limit is violated."""
         cache_key = f"cost:{session_id}"
         current = self.cache.get(cache_key) or 0.0
-        
+
         total = current + estimated_cost
         if total > self.max_session_cost_usd:
             logger.warning(
@@ -55,10 +56,10 @@ class TokenCostBudgetManager:
         cache_key = f"cost:{session_id}"
         current = self.cache.get(cache_key) or 0.0
         self.cache.set(cache_key, current + actual_cost, ttl=86400)  # TTL of 1 day
-        
+
         # Accumulate global telemetry cost statistics
         global_cost = self.cache.get("global_cost") or 0.0
         self.cache.set("global_cost", global_cost + actual_cost)
-        
+
         global_tokens = self.cache.get("global_tokens") or 0
         self.cache.set("global_tokens", global_tokens + input_tokens + output_tokens)

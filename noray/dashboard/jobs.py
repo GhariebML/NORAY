@@ -7,15 +7,15 @@ Supports migration from CSV format.
 """
 
 from __future__ import annotations
+
 import csv
 import json
-from pathlib import Path
-from datetime import datetime
-from typing import Any
 from dataclasses import dataclass, field
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any
 
 from noray.config import DATA_DIR, JOB_TRACKER_PATH
-
 
 TRACKER_PATH = DATA_DIR / "job_applications.json"
 
@@ -61,7 +61,7 @@ def save_applications(applications: list[JobApplication]) -> None:
     """Save job applications to disk."""
     DATA_DIR.mkdir(parents=True, exist_ok=True)
     data = {
-        "updated_at": datetime.utcnow().isoformat(),
+        "updated_at": datetime.now(timezone.utc).isoformat(),
         "count": len(applications),
         "applications": [_serialize(app) for app in applications],
     }
@@ -72,9 +72,9 @@ def add_application(application: JobApplication) -> JobApplication:
     """Add a new job application to the tracker."""
     applications = load_applications()
     application.id = f"job_{len(applications) + 1:04d}"
-    application.last_updated = datetime.utcnow().isoformat()
+    application.last_updated = datetime.now(timezone.utc).isoformat()
     if not application.applied_date:
-        application.applied_date = datetime.utcnow().strftime("%Y-%m-%d")
+        application.applied_date = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     applications.append(application)
     save_applications(applications)
     return application
@@ -88,7 +88,7 @@ def update_application(app_id: str, updates: dict[str, Any]) -> JobApplication |
             for key, value in updates.items():
                 if hasattr(app, key):
                     setattr(app, key, value)
-            app.last_updated = datetime.utcnow().isoformat()
+            app.last_updated = datetime.now(timezone.utc).isoformat()
             save_applications(applications)
             return app
     return None
@@ -140,14 +140,13 @@ def get_applications_by_status(status: str) -> list[JobApplication]:
 
 def get_recent_applications(days: int = 30) -> list[JobApplication]:
     """Get applications from the last N days."""
-    cutoff = datetime.utcnow().strftime("%Y-%m-%d")
     applications = load_applications()
     recent = []
     for app in applications:
         if app.applied_date:
             try:
-                app_date = datetime.strptime(app.applied_date, "%Y-%m-%d")
-                if (datetime.utcnow() - app_date).days <= days:
+                app_date = datetime.strptime(app.applied_date, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+                if (datetime.now(timezone.utc) - app_date).days <= days:
                     recent.append(app)
             except ValueError:
                 pass
@@ -174,7 +173,7 @@ def migrate_from_csv(csv_path: Path = JOB_TRACKER_PATH) -> int:
     migrated = 0
 
     try:
-        with open(csv_path, "r", encoding="utf-8") as f:
+        with open(csv_path, encoding="utf-8") as f:
             reader = csv.DictReader(f)
             for row in reader:
                 company = (row.get("company") or "").strip()
@@ -201,7 +200,7 @@ def migrate_from_csv(csv_path: Path = JOB_TRACKER_PATH) -> int:
                     source=(row.get("source") or "").strip(),
                     role_type=(row.get("role_type") or "").strip(),
                     channel=(row.get("channel") or "").strip(),
-                    last_updated=datetime.utcnow().isoformat(),
+                    last_updated=datetime.now(timezone.utc).isoformat(),
                 )
                 applications.append(app)
                 existing_keys.add(key)

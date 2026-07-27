@@ -1,14 +1,15 @@
-from typing import List, Dict, Any, Optional
-from sqlalchemy.orm import Session
-from noray.models.chat import ChatMessageModel
+from typing import Any
+
 from noray.database import SessionLocal
+from noray.models.chat import ChatMessageModel
+
 
 class ChatMemoryManager:
     """Manages short-term conversation context fetched from database."""
     def __init__(self, session_id: str):
         self.session_id = session_id
 
-    def get_recent_messages(self, limit: int = 10) -> List[Dict[str, str]]:
+    def get_recent_messages(self, limit: int = 10) -> list[dict[str, str]]:
         """Fetch latest N messages formatted for LLM system context."""
         db = SessionLocal()
         try:
@@ -18,10 +19,10 @@ class ChatMemoryManager:
                 .order_by(ChatMessageModel.created_at.asc())
                 .all()
             )
-            
+
             # Keep only the last N messages
             recent = messages[-limit:] if len(messages) > limit else messages
-            
+
             formatted = []
             for msg in recent:
                 formatted.append({
@@ -32,7 +33,7 @@ class ChatMemoryManager:
         finally:
             db.close()
 
-    def add_message(self, role: str, content: str, citations: Optional[List[Dict[str, Any]]] = None) -> None:
+    def add_message(self, role: str, content: str, citations: list[dict[str, Any]] | None = None) -> None:
         """Saves a new chat message to database."""
         import uuid
         db = SessionLocal()
@@ -52,7 +53,7 @@ class ChatMemoryManager:
 
 class ProfileMemoryManager:
     """Manages user-profile context injection."""
-    def __init__(self, profile_data: Dict[str, Any]):
+    def __init__(self, profile_data: dict[str, Any]):
         self.profile_data = profile_data
 
     def get_profile_summary_prompt(self) -> str:
@@ -63,12 +64,12 @@ class ProfileMemoryManager:
         loc = identity.get("location", {})
         city = loc.get("city", "")
         country = loc.get("country", "")
-        
+
         # Pull skills list
         skills = self.profile_data.get("skills", {})
         prim_skills = ", ".join(skills.get("primary", []))
         sec_skills = ", ".join(skills.get("secondary", []))
-        
+
         summary = (
             f"You are helping the candidate: {name} (Email: {email}, Location: {city}, {country}).\n"
             f"Candidate Primary Skills: {prim_skills}\n"

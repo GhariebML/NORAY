@@ -6,8 +6,8 @@ Structured format: title, introduction, literature review, methodology, timeline
 """
 
 from __future__ import annotations
+
 from dataclasses import dataclass, field
-from typing import Any
 
 from noray.shared.models import CareerProfile
 
@@ -224,9 +224,9 @@ def _build_literature_review(research_interests: list[str], outline_only: bool =
             f"between {', '.join(research_interests[:2])} and their practical implications."
         )
         parts.append(
-            f"This research addresses these gaps by proposing a novel approach that "
-            f"combines established methodologies with innovative techniques, "
-            f"building on the strengths of existing work while addressing its limitations."
+            "This research addresses these gaps by proposing a novel approach that "
+            "combines established methodologies with innovative techniques, "
+            "building on the strengths of existing work while addressing its limitations."
         )
 
     return "\n\n".join(parts) if parts else (

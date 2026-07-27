@@ -21,8 +21,7 @@ import uuid
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional, Set, Tuple
-
+from typing import Any
 
 # ---------------------------------------------------------------------------
 # Domain Value Objects
@@ -45,11 +44,11 @@ class GraphNode:
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
     name: str = ""
     type: str = ""
-    properties: Dict[str, Any] = field(default_factory=dict)
+    properties: dict[str, Any] = field(default_factory=dict)
     created_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
     updated_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "id": self.id,
             "name": self.name,
@@ -60,7 +59,7 @@ class GraphNode:
         }
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "GraphNode":
+    def from_dict(cls, data: dict[str, Any]) -> GraphNode:
         return cls(
             id=data.get("id", str(uuid.uuid4())),
             name=data.get("name", ""),
@@ -89,10 +88,10 @@ class GraphEdge:
     target_id: str = ""
     type: str = ""
     weight: float = 1.0
-    properties: Dict[str, Any] = field(default_factory=dict)
+    properties: dict[str, Any] = field(default_factory=dict)
     created_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "id": self.id,
             "source_id": self.source_id,
@@ -104,7 +103,7 @@ class GraphEdge:
         }
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "GraphEdge":
+    def from_dict(cls, data: dict[str, Any]) -> GraphEdge:
         return cls(
             id=data.get("id", str(uuid.uuid4())),
             source_id=data.get("source_id", ""),
@@ -120,7 +119,7 @@ class GraphEdge:
 # Supported Entity and Relationship Types (constants for validation)
 # ---------------------------------------------------------------------------
 
-ENTITY_TYPES: Set[str] = {
+ENTITY_TYPES: set[str] = {
     "Skill",
     "University",
     "Scholarship",
@@ -136,7 +135,7 @@ ENTITY_TYPES: Set[str] = {
     "Document",
 }
 
-RELATIONSHIP_TYPES: Set[str] = {
+RELATIONSHIP_TYPES: set[str] = {
     "REQUIRED_FOR",       # Skill -> Role / JobRequirement
     "LOCATED_IN",         # University / Company / Scholarship -> Country
     "OFFERED_BY",         # Scholarship / Role -> University / Company
@@ -174,7 +173,7 @@ class BaseGraphStore(ABC):
         ...
 
     @abstractmethod
-    def get_node(self, node_id: str) -> Optional[GraphNode]:
+    def get_node(self, node_id: str) -> GraphNode | None:
         """Retrieve a single node by its ID, or None if not found."""
         ...
 
@@ -182,11 +181,11 @@ class BaseGraphStore(ABC):
     def find_nodes(
         self,
         *,
-        name: Optional[str] = None,
-        node_type: Optional[str] = None,
-        properties_filter: Optional[Dict[str, Any]] = None,
+        name: str | None = None,
+        node_type: str | None = None,
+        properties_filter: dict[str, Any] | None = None,
         limit: int = 50,
-    ) -> List[GraphNode]:
+    ) -> list[GraphNode]:
         """Search for nodes matching given criteria."""
         ...
 
@@ -208,7 +207,7 @@ class BaseGraphStore(ABC):
         ...
 
     @abstractmethod
-    def get_edge(self, edge_id: str) -> Optional[GraphEdge]:
+    def get_edge(self, edge_id: str) -> GraphEdge | None:
         """Retrieve a single edge by its ID."""
         ...
 
@@ -216,12 +215,12 @@ class BaseGraphStore(ABC):
     def find_edges(
         self,
         *,
-        source_id: Optional[str] = None,
-        target_id: Optional[str] = None,
-        edge_type: Optional[str] = None,
+        source_id: str | None = None,
+        target_id: str | None = None,
+        edge_type: str | None = None,
         min_weight: float = 0.0,
         limit: int = 100,
-    ) -> List[GraphEdge]:
+    ) -> list[GraphEdge]:
         """Search for edges matching given criteria."""
         ...
 
@@ -237,10 +236,10 @@ class BaseGraphStore(ABC):
         self,
         node_id: str,
         *,
-        edge_type: Optional[str] = None,
+        edge_type: str | None = None,
         direction: str = "both",  # "outgoing", "incoming", "both"
         max_hops: int = 1,
-    ) -> List[Tuple[GraphNode, GraphEdge]]:
+    ) -> list[tuple[GraphNode, GraphEdge]]:
         """Return neighboring nodes and their connecting edges.
 
         Args:
@@ -254,10 +253,10 @@ class BaseGraphStore(ABC):
     @abstractmethod
     def get_subgraph(
         self,
-        node_ids: List[str],
+        node_ids: list[str],
         *,
         max_hops: int = 1,
-    ) -> Tuple[List[GraphNode], List[GraphEdge]]:
+    ) -> tuple[list[GraphNode], list[GraphEdge]]:
         """Extract a subgraph around a set of seed nodes.
 
         Returns all nodes and edges reachable within max_hops.
@@ -267,23 +266,23 @@ class BaseGraphStore(ABC):
     # --- Bulk Operations ---
 
     @abstractmethod
-    def add_nodes_bulk(self, nodes: List[GraphNode]) -> int:
+    def add_nodes_bulk(self, nodes: list[GraphNode]) -> int:
         """Bulk insert nodes.  Returns count of inserted nodes."""
         ...
 
     @abstractmethod
-    def add_edges_bulk(self, edges: List[GraphEdge]) -> int:
+    def add_edges_bulk(self, edges: list[GraphEdge]) -> int:
         """Bulk insert edges.  Returns count of inserted edges."""
         ...
 
     # --- Statistics ---
 
     @abstractmethod
-    def count_nodes(self, node_type: Optional[str] = None) -> int:
+    def count_nodes(self, node_type: str | None = None) -> int:
         """Count nodes, optionally filtered by type."""
         ...
 
     @abstractmethod
-    def count_edges(self, edge_type: Optional[str] = None) -> int:
+    def count_edges(self, edge_type: str | None = None) -> int:
         """Count edges, optionally filtered by type."""
         ...

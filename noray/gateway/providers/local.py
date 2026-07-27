@@ -6,10 +6,13 @@ exposing standard OpenAI-compatible API schemas.
 """
 
 from __future__ import annotations
+
 import os
 import time
+from collections.abc import Iterator
+from typing import Optional
+
 import httpx
-from typing import Iterator
 
 from noray.gateway.base import BaseLLMProvider, LLMConfig, LLMResponse
 
@@ -97,7 +100,7 @@ class LocalProvider(BaseLLMProvider):
                     estimated_cost=0.0,
                     latency_ms=latency_ms
                 )
-            raise RuntimeError(f"Local LLM execution failed: {e}")
+            raise RuntimeError(f"Local LLM execution failed: {e}") from e
 
     def generate_stream(self, prompt: str, config: LLMConfig) -> Iterator[LLMResponse]:
         yield self.generate(prompt, config)

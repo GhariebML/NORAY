@@ -2,11 +2,11 @@
 NORAY — Feedback Module
 """
 
-from .evaluation import OnlineEvaluator, OfflineEvaluator
+from .evaluation import OfflineEvaluator, OnlineEvaluator
 from .optimizer import FeedbackOptimizer
 
 __all__ = [
     "OnlineEvaluator",
-    "OfflineEvaluator", 
+    "OfflineEvaluator",
     "FeedbackOptimizer"
 ]

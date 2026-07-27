@@ -7,15 +7,14 @@ Preserves the drafter-reviewer pattern from the original /apply workflow.
 """
 
 from __future__ import annotations
-import re
-from pathlib import Path
-from dataclasses import dataclass, field
-from typing import Any
 
-from noray.shared.models import CareerProfile
-from noray.shared.latex_utils import compile_cv, validate_cv_layout, cleanup_build_artifacts
+from dataclasses import dataclass, field
+from pathlib import Path
+
 from noray.career_agent.ats_analyzer import extract_keywords_from_posting
 from noray.config import CV_DIR
+from noray.shared.latex_utils import cleanup_build_artifacts, compile_cv, validate_cv_layout
+from noray.shared.models import CareerProfile
 
 
 @dataclass
@@ -145,7 +144,6 @@ def _score_content(
     (c) cover_letter_dependency — would the cover letter reference this?
     """
     scored = []
-    job_lower = job_posting.lower()
 
     # Score experience entries
     for i, exp in enumerate(profile.experience):
@@ -278,6 +276,10 @@ def _generate_latex(
     pubs_section = _build_publications_section(profile)
     awards_section = _build_awards_section(profile)
 
+    _phone = '\\phone[mobile]{' + profile.identity.phone + '}' if profile.identity.phone else "% phone not set"
+    _linkedin = '\\href{' + profile.identity.linkedin_url + '}{LinkedIn}' if profile.identity.linkedin_url else ""
+    _github = '\\href{' + profile.identity.github_url + '}{GitHub}' if profile.identity.github_url else ""
+
     # Assemble LaTeX
     latex = f"""\\documentclass[11pt,a4paper,sans]{{moderncv}}
 \\moderncvstyle{{banking}}
@@ -303,12 +305,12 @@ def _generate_latex(
 % personal data
 \\name{{{first_name}}}{{{last_name}}}
 \\address{{}}}}{{}}{{ }}
-{f"\\phone[mobile]{{{profile.identity.phone}}}" if profile.identity.phone else "% phone not set"}
+_phone
 \\email{{{profile.identity.email}}}
 \\extrainfo{{
-{f"\\href{{{profile.identity.linkedin_url}}}{{LinkedIn}}" if profile.identity.linkedin_url else ""}
+{_linkedin}
 {", " if profile.identity.linkedin_url and profile.identity.github_url else ""}
-{f"\\href{{{profile.identity.github_url}}}{{GitHub}}" if profile.identity.github_url else ""}
+{_github}
 }}
 
 \\begin{{document}}
@@ -489,10 +491,9 @@ def _build_experience_section(
 ) -> str:
     """Build experience section with relevance-ordered bullets."""
     lines = []
-    job_lower = job_posting.lower()
 
     for exp in profile.experience:
-        lines.append(f"\\needspace{{5\\baselineskip}}")
+        lines.append("\\needspace{5\\baselineskip}")
         lines.append(f"\\item{{\\cventry{{{exp.start_date}--{exp.end_date or 'present'}}}{{{exp.title}}}{{{exp.company}}}{{{exp.location}}}{{}}{{\\vspace{{1pt}}")
 
         # Collect all bullets
@@ -512,7 +513,7 @@ def _build_experience_section(
             lines.append(f"\\item{{{{}}{bullet}}}")
 
         if not all_bullets:
-            lines.append(f"\\item{{{{}}Key responsibilities and achievements}}")
+            lines.append("\\item{{}Key responsibilities and achievements}")
 
         lines.append("}}")
 
@@ -556,7 +557,6 @@ def _build_certifications_section(profile: CareerProfile) -> str:
     """Build certifications section."""
     lines = []
     for cert in profile.certifications:
-        date_str = f" ({cert.date})" if cert.date else ""
         lines.append(f"\\item{{\\cventry{{}}{{{cert.name}}}{{{cert.issuer}}}{{}}{{}}{{}}}}")
     return "\n".join(lines)
 

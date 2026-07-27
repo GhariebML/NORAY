@@ -1,9 +1,9 @@
 from noray.database import Base
-from noray.models.profile import ProfileModel
+from noray.graph.postgres_store import GraphEdgeModel, GraphNodeModel
 from noray.models.application import ApplicationModel
-from noray.models.chat import ChatSessionModel, ChatMessageModel
-from noray.graph.postgres_store import GraphNodeModel, GraphEdgeModel
+from noray.models.chat import ChatMessageModel, ChatSessionModel
 from noray.models.feedback import FeedbackModel, RetrievalParamsModel
+from noray.models.profile import ProfileModel
 
 __all__ = [
     "Base",

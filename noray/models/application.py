@@ -1,5 +1,7 @@
-from sqlalchemy import Column, String, Date, DateTime, ForeignKey, func, Text
+from sqlalchemy import Column, Date, DateTime, ForeignKey, String, Text, func
+
 from noray.database import Base
+
 
 class ApplicationModel(Base):
     __tablename__ = "applications"

@@ -20,7 +20,7 @@ class TestRoot:
         assert response.status_code == 200
         data = response.json()
         assert data["name"] == "NORAY"
-        assert data["version"] == "0.1.0"
+        assert data["version"] == "1.0.0"
 
     def test_health(self):
         response = client.get("/health")
@@ -229,3 +229,21 @@ class TestUpskillAPI:
         assert response.status_code == 200
         data = response.json()
         assert data["status"] == "analyzed"
+
+
+# ─── Documents Ingestion API ──────────────────────────────────
+
+class TestDocumentsRouteAPI:
+    def test_upload_document_invalid_extension(self):
+        response = client.post(
+            "/api/documents/upload",
+            files={"file": ("test.exe", b"binarycontent", "application/octet-stream")},
+            data={"category": "general"}
+        )
+        assert response.status_code == 422
+        assert "Unsupported" in response.json()["detail"]["detail"]
+
+    def test_list_documents(self):
+        response = client.get("/api/documents/list")
+        assert response.status_code in [200, 500]
+

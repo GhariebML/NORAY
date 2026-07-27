@@ -1,12 +1,10 @@
 from logging.config import fileConfig
 
-from sqlalchemy import engine_from_config
-from sqlalchemy import pool
-
 from alembic import context
+from sqlalchemy import engine_from_config, pool
 
 # Import settings and Base from the application
-from noray.database import Base, DATABASE_URL
+from noray.database import DATABASE_URL, Base
 from noray.models import *  # Ensure all models are imported so metadata is populated
 
 # this is the Alembic Config object, which provides

@@ -5,8 +5,9 @@ Manages dynamic registration and discovery of tools (Native, MCP, REST, Python).
 Each tool declares its capabilities, permissions, latency, and cost metadata.
 """
 
-from typing import Dict, List, Optional
+
 from noray.intelligence.core import ITool
+
 
 class ToolMetadata:
     """Metadata for tools to support safe execution and orchestration."""
@@ -14,8 +15,8 @@ class ToolMetadata:
         self,
         name: str,
         description: str,
-        capabilities: List[str],
-        permissions: List[str],
+        capabilities: list[str],
+        permissions: list[str],
         is_active: bool = True,
         cost_per_use: float = 0.0,
         average_latency_ms: float = 0.0,
@@ -32,23 +33,23 @@ class ToolMetadata:
 
 class ToolRegistry:
     def __init__(self):
-        self._tools: Dict[str, ITool] = {}
-        self._metadata: Dict[str, ToolMetadata] = {}
+        self._tools: dict[str, ITool] = {}
+        self._metadata: dict[str, ToolMetadata] = {}
 
     def register(self, tool: ITool, metadata: ToolMetadata) -> None:
         self._tools[tool.name] = tool
         self._metadata[tool.name] = metadata
 
-    def get_tool(self, name: str) -> Optional[ITool]:
+    def get_tool(self, name: str) -> ITool | None:
         return self._tools.get(name)
 
-    def get_metadata(self, name: str) -> Optional[ToolMetadata]:
+    def get_metadata(self, name: str) -> ToolMetadata | None:
         return self._metadata.get(name)
 
-    def list_tools(self) -> List[ToolMetadata]:
+    def list_tools(self) -> list[ToolMetadata]:
         return list(self._metadata.values())
 
-    def get_tools_for_capability(self, capability: str) -> List[ITool]:
+    def get_tools_for_capability(self, capability: str) -> list[ITool]:
         return [
             self._tools[name]
             for name, meta in self._metadata.items()

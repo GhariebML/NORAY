@@ -6,15 +6,15 @@ Wraps existing Bun CLI tools and adds web search fallback for non-Danish markets
 """
 
 from __future__ import annotations
+
 import json
 import re
-from pathlib import Path
-from datetime import datetime, timedelta
-from typing import Any
 from dataclasses import dataclass, field
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any
 
-from noray.config import JOB_SCRAPER_DIR, SEARCH_LOOKBACK_DAYS, MAX_SEARCH_RESULTS, JOB_TRACKER_PATH
-
+from noray.config import JOB_SCRAPER_DIR, JOB_TRACKER_PATH, MAX_SEARCH_RESULTS
 
 # ─── Data Models ──────────────────────────────────────────────
 
@@ -44,7 +44,7 @@ class SearchResult:
     new_count: int = 0
     query_used: str = ""
     sources_searched: list[str] = field(default_factory=list)
-    search_date: str = field(default_factory=lambda: datetime.utcnow().strftime("%Y-%m-%d"))
+    search_date: str = field(default_factory=lambda: datetime.now(timezone.utc).strftime("%Y-%m-%d"))
 
 
 # ─── Public API ───────────────────────────────────────────────
@@ -72,6 +72,7 @@ async def search_jobs(
     import asyncio
     import logging
     import time
+
     from noray.career_agent.providers import provider_registry
 
     logger = logging.getLogger("noray.career_agent.job_search")
@@ -79,7 +80,6 @@ async def search_jobs(
 
     # Extract profile data for queries
     target_roles = profile.get("goals", {}).get("target_roles", [])
-    primary_skills = profile.get("skills", {}).get("primary", [])
     location = profile.get("identity", {}).get("location", {})
     city = location.get("city", "")
     country = location.get("country", "")
@@ -93,7 +93,6 @@ async def search_jobs(
         search_term = "Software Engineer"
 
     # Build queries
-    queries = _build_queries(target_roles, primary_skills, [], location, focus_area, broad)
     query_used = search_term
 
     # Load state for deduplication
@@ -186,7 +185,7 @@ def record_seen_job(job: JobPosting, status: str = "new") -> None:
         "title": job.title,
         "company": job.company,
         "url": job.url,
-        "first_seen": datetime.utcnow().strftime("%Y-%m-%d"),
+        "first_seen": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
         "fit": job.fit_level,
         "status": status,
     }
@@ -436,7 +435,7 @@ def _append_tracker_row(job: JobPosting) -> None:
     with open(JOB_TRACKER_PATH, "a", encoding="utf-8") as f:
         if header_needed:
             f.write("date,company,sector,role,role_type,channel,status,contact_person,fit_rating,notes,cv_file,cover_letter_file,source\n")
-        date = datetime.utcnow().strftime("%Y-%m-%d")
+        date = datetime.now(timezone.utc).strftime("%Y-%m-%d")
         f.write(f"{date},{job.company},,{job.title},,web,discovered,,{job.fit_score},,{job.source}\n")
 
 

@@ -7,15 +7,15 @@ Handles language matching (Danish/English) and company-specific tailoring.
 """
 
 from __future__ import annotations
-import re
-from pathlib import Path
-from dataclasses import dataclass, field
-from typing import Any
 
-from noray.shared.models import CareerProfile
-from noray.shared.latex_utils import compile_cover_letter, validate_cover_letter_layout, cleanup_build_artifacts
+import re
+from dataclasses import dataclass, field
+from pathlib import Path
+
 from noray.career_agent.ats_analyzer import extract_keywords_from_posting
 from noray.config import COVER_LETTERS_DIR
+from noray.shared.latex_utils import cleanup_build_artifacts, compile_cover_letter, validate_cover_letter_layout
+from noray.shared.models import CareerProfile
 
 
 @dataclass
@@ -135,7 +135,6 @@ def _build_letter_sections(
 ) -> LetterSection:
     """Build the four sections of the cover letter."""
     sections = LetterSection()
-    job_lower = job_posting.lower()
 
     # ── Opening (Hook + Connection) ──
     sections.opening = _build_opening(profile, company, role, job_posting)
@@ -268,12 +267,6 @@ def _generate_latex(
     """Generate LaTeX cover letter using cover.cls template."""
     today = _get_date_string(language)
 
-    # Salutation
-    if contact_person:
-        salutation = f"Dear {contact_person}," if language == "en" else f"Kære {contact_person},"
-    else:
-        salutation = "Dear Hiring Manager," if language == "en" else "Kære Ansættelsesudvalg,"
-
     # Build the letter body using \lettercontent{} for each section
     # Note: \lettercontent{} appends \\, so we must NOT end with \end{itemize} inside it
     body_parts = []
@@ -287,7 +280,7 @@ def _generate_latex(
     # Evidence — may need bullet points
     if len(sections.evidence) > 200:
         # Long evidence — use \lettercontent for the intro, then itemize for bullets
-        body_parts.append(f"\\lettercontent{{My recent experience demonstrates this:}}")
+        body_parts.append("\\lettercontent{My recent experience demonstrates this:}")
         body_parts.append("""{\\raggedright\\fontspec[Path = OpenFonts/fonts/raleway/]{Raleway-Medium}\\fontsize{11pt}{13pt}\\selectfont \\begin{itemize}""")
         for sentence in _split_into_bullets(sections.evidence):
             body_parts.append(f"    \\item {_escape_latex(sentence)}")
@@ -300,14 +293,17 @@ def _generate_latex(
 
     body = "\n\n".join(body_parts)
 
+    _mobile = '\\mobile{' + profile.identity.phone + '}' if profile.identity.phone else '% phone not set'
+    _homepage = '\\homepage{' + profile.identity.website_url + '}' if profile.identity.website_url else ''
+
     latex = f"""\\documentclass[11pt, a4paper]{{cover}}
 
 % ── Sender ────────────────────────────────────────────────
 \\name{{{profile.identity.name.split()[0] if profile.identity.name else 'First'}}}{{{ ' '.join(profile.identity.name.split()[1:]) if profile.identity.name and len(profile.identity.name.split()) > 1 else 'Last'}}}
 \\address{{{{}}}}{{ }}{{ }}
-{f'\\mobile{{{profile.identity.phone}}}' if profile.identity.phone else '% phone not set'}
+{_mobile}
 \\email{{{profile.identity.email}}}
-{f'\\homepage{{{profile.identity.website_url}}}' if profile.identity.website_url else ''}
+{_homepage}
 
 % ── Recipient ─────────────────────────────────────────────
 \\recipient{{{{Hiring Manager}}}}{{{company}}}{{{{}}}}{{{{}}}}
@@ -367,8 +363,8 @@ def _fix_layout(
 
 def _get_date_string(language: str) -> str:
     """Get formatted date string in the appropriate language."""
-    from datetime import datetime
-    now = datetime.utcnow()
+    from datetime import datetime, timezone
+    now = datetime.now(timezone.utc)
 
     if language == "da":
         months = ["januar", "februar", "marts", "april", "maj", "juni",

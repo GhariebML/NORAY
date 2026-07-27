@@ -5,10 +5,11 @@ Consumes learning signals from Evaluations and user UI actions (edits, thumbs up
 Generates Procedural Memory rules and adjusts retrieval weights.
 """
 
-from typing import Dict, Any
+from typing import Any
+
 
 class FeedbackOptimizer:
-    def process_signal(self, execution_id: str, signal_type: str, payload: Dict[str, Any]) -> None:
+    def process_signal(self, execution_id: str, signal_type: str, payload: dict[str, Any]) -> None:
         """
         signal_type: 'user_edit', 'thumbs_down', 'low_faithfulness'
         """

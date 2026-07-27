@@ -6,8 +6,8 @@ Endpoints for SOP, motivation letter, and research proposal generation.
 
 from fastapi import APIRouter
 
+from noray.api.schemas import MotivationGenerateRequest, ResearchProposalRequest, SOPGenerateRequest
 from noray.shared.profile_store import load_profile
-from noray.api.schemas import SOPGenerateRequest, MotivationGenerateRequest, ResearchProposalRequest
 
 router = APIRouter()
 

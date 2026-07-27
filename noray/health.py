@@ -1,9 +1,9 @@
-import os
-import sys
 import socket
 import subprocess
+import sys
+
 from noray.config import settings
-from pathlib import Path
+
 
 def is_port_open(host: str, port: str) -> bool:
     try:
@@ -52,7 +52,7 @@ class RecoveryManager:
             self.issues.append(f"{name} is unreachable on {host}:{port}.")
 
     def ensure_directories(self):
-        from noray.config import DATA_DIR, APPLICATIONS_DIR, UPSILL_REPORTS_DIR, SCHOLARSHIP_REPORTS_DIR
+        from noray.config import APPLICATIONS_DIR, DATA_DIR, SCHOLARSHIP_REPORTS_DIR, UPSILL_REPORTS_DIR
         dirs = [DATA_DIR, APPLICATIONS_DIR, UPSILL_REPORTS_DIR, SCHOLARSHIP_REPORTS_DIR]
         for d in dirs:
             if not d.exists():
@@ -61,8 +61,9 @@ class RecoveryManager:
                 self.recovered.append(f"Created missing directory {d.name}")
 
     def run_migrations(self):
-        from alembic.config import Config
         from alembic import command
+        from alembic.config import Config
+
         from noray.config import PROJECT_ROOT
         try:
             print("[RECOVERY] Running database migrations...")
@@ -74,14 +75,14 @@ class RecoveryManager:
 
     def run_checks(self):
         print("\n--- NORAY Health & Recovery Manager ---")
-        
+
         self.ensure_directories()
-        
+
         # Software checks
         self.check_command(["python", "--version"], "Python", "Install Python 3.10+ and ensure it is in PATH.")
         self.check_command(["node", "--version"], "Node.js", "Install Node.js 18+")
         self.check_command(["npm", "--version"], "npm", "npm is required to run the frontend.")
-        
+
         # Services checks
         self.check_service(settings.POSTGRES_HOST, settings.POSTGRES_PORT, "PostgreSQL", "postgres")
         self.check_service(settings.QDRANT_HOST, settings.QDRANT_PORT, "Qdrant", "qdrant")

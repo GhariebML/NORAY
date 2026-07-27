@@ -4,10 +4,9 @@ Enables dynamic session resume, execution states, costs, and traces persistence.
 """
 
 from __future__ import annotations
-import os
-import json
+
 import logging
-from typing import Dict, Any, List, Optional
+from typing import Any
 
 from noray.cache.redis_cache import RedisCache
 
@@ -16,21 +15,21 @@ logger = logging.getLogger("noray.services.session")
 
 class ConversationSession:
     """Represents the complete execution context and trace data for a persistent user goal."""
-    
+
     def __init__(self, session_id: str, goal: str = ""):
         self.session_id = session_id
         self.goal = goal
         self.status = "active"  # "active", "paused", "completed"
-        self.sub_goals: List[str] = []
-        self.dag: Dict[str, Any] = {}
-        self.reasoning_trace: List[str] = []
-        self.messages: List[Dict[str, Any]] = []
-        self.artifacts: List[Dict[str, Any]] = []
-        self.tools_executed: List[str] = []
+        self.sub_goals: list[str] = []
+        self.dag: dict[str, Any] = {}
+        self.reasoning_trace: list[str] = []
+        self.messages: list[dict[str, Any]] = []
+        self.artifacts: list[dict[str, Any]] = []
+        self.tools_executed: list[str] = []
         self.cost: float = 0.0
-        self.telemetry: Dict[str, Any] = {}
+        self.telemetry: dict[str, Any] = {}
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "session_id": self.session_id,
             "goal": self.goal,
@@ -46,7 +45,7 @@ class ConversationSession:
         }
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> ConversationSession:
+    def from_dict(cls, data: dict[str, Any]) -> ConversationSession:
         session = cls(data["session_id"], data.get("goal", ""))
         session.status = data.get("status", "active")
         session.sub_goals = data.get("sub_goals", [])
@@ -62,8 +61,8 @@ class ConversationSession:
 
 class ConversationManager:
     """Handles CRUD operations for persistent conversation sessions using Redis."""
-    
-    def __init__(self, cache: Optional[RedisCache] = None):
+
+    def __init__(self, cache: RedisCache | None = None):
         self.cache = cache or RedisCache(namespace="noray_sessions")
 
     def create_session(self, session_id: str, goal: str) -> ConversationSession:
@@ -72,7 +71,7 @@ class ConversationManager:
         self.save_session(session)
         return session
 
-    def get_session(self, session_id: str) -> Optional[ConversationSession]:
+    def get_session(self, session_id: str) -> ConversationSession | None:
         """Fetches session metadata context from Redis cache."""
         data = self.cache.get(session_id)
         if data:

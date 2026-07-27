@@ -1,15 +1,15 @@
-import os
-from typing import List, Dict, Any, Optional
+from typing import Any
 
-from noray.rag.query_processor import QueryProcessor
-from noray.rag.embeddings import EmbeddingsManager
-from noray.rag.vector_store import VectorStoreFactory
-from noray.rag.sparse_index import SparseBM25Index
-from noray.rag.fusion import reciprocal_rank_fusion
-from noray.rag.reranker import RerankerManager
 from noray.rag.compressor import ContextCompressor
+from noray.rag.embeddings import EmbeddingsManager
+from noray.rag.fusion import reciprocal_rank_fusion
 from noray.rag.memory import ChatMemoryManager, ProfileMemoryManager
+from noray.rag.query_processor import QueryProcessor
+from noray.rag.reranker import RerankerManager
+from noray.rag.sparse_index import SparseBM25Index
+from noray.rag.vector_store import VectorStoreFactory
 from noray.shared.profile_store import load_profile
+
 
 class AgentRouter:
     """Orchestrates query classification, hybrid retrieval, context compression, and routes execution to appropriate agents."""
@@ -23,7 +23,7 @@ class AgentRouter:
         self.compressor = ContextCompressor(min_score_threshold=0.0)
         self.memory = ChatMemoryManager(session_id)
 
-    def process_and_route(self, query: str) -> Dict[str, Any]:
+    def process_and_route(self, query: str) -> dict[str, Any]:
         """Runs RAG retrieval and routes to domain specific generators."""
         # 1. Intent Detection
         intent = self.query_processor.classify_intent(query)
@@ -33,7 +33,7 @@ class AgentRouter:
 
         # 3. Retrieve Context via Hybrid search
         context_chunks = self._retrieve_hybrid_context(query, filters)
-        
+
         # 4. Format context text block and citations list
         citations = []
         context_texts = []
@@ -46,7 +46,7 @@ class AgentRouter:
                 "score": chunk.get("rerank_score") or chunk.get("score") or 0.0
             })
             context_texts.append(f"[Source: {source} (Result {idx+1})]\n{content}")
-            
+
         context_block = "\n\n".join(context_texts)
 
         # 5. Inject Short term history & User facts
@@ -74,11 +74,11 @@ class AgentRouter:
             "citations": citations
         }
 
-    def _retrieve_hybrid_context(self, query: str, filters: Dict[str, Any]) -> List[Dict[str, Any]]:
+    def _retrieve_hybrid_context(self, query: str, filters: dict[str, Any]) -> list[dict[str, Any]]:
         """Retrieves passages using dense (Qdrant) + sparse (BM25) search fused with RRF and re-ranked."""
         # Query Expansion
         expanded_queries = self.query_processor.expand_query(query, num_queries=2)
-        
+
         dense_results = []
         sparse_results = []
 
@@ -117,15 +117,15 @@ class AgentRouter:
         compressed = self.compressor.clean_and_compress(reranked, query=query)
         return compressed
 
-    def _dispatch_to_agent(self, intent: str, query: str, context: str, persona: str, history: List[Dict[str, str]]) -> str:
+    def _dispatch_to_agent(self, intent: str, query: str, context: str, persona: str, history: list[dict[str, str]]) -> str:
         """Invokes LLM with customized system prompts based on target agent intent."""
-        from noray.shared.llm_utils import call_llm, LLMConfig
-        
+        from noray.shared.llm_utils import LLMConfig, call_llm
+
         # Build history text
         history_text = ""
         for h in history:
             history_text += f"{h['role'].upper()}: {h['content']}\n"
-            
+
         system_base = (
             f"You are the NORAY Platform AI. Use the supplied grounded Knowledge Context to answer the query.\n"
             f"Adhere strictly to the facts present in the Context. If the answer cannot be found in the context, "
@@ -153,7 +153,7 @@ class AgentRouter:
             )
 
         prompt = f"Recent History:\n{history_text}\nUser Query: {query}\nResponse:"
-        
+
         try:
             resp = call_llm(prompt, LLMConfig(temperature=0.3, max_tokens=1500, system_prompt=system_prompt))
             return resp.content

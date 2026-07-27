@@ -3,10 +3,13 @@ NORAY — Google Gemini Cloud Provider Adapter
 """
 
 from __future__ import annotations
+
 import os
 import time
+from collections.abc import Iterator
+from typing import Optional
+
 import httpx
-from typing import Iterator
 
 from noray.gateway.base import BaseLLMProvider, LLMConfig, LLMResponse
 
@@ -33,7 +36,7 @@ class GeminiProvider(BaseLLMProvider):
         # Standardize call structure via google developer api or simple fallback wrapper
         url = f"https://generativelanguage.googleapis.com/v1beta/models/{config.model}:generateContent?key={self.api_key}"
         headers = {"Content-Type": "application/json"}
-        
+
         payload = {
             "contents": [{"parts": [{"text": prompt}]}],
             "generationConfig": {
@@ -53,7 +56,7 @@ class GeminiProvider(BaseLLMProvider):
 
             latency_ms = (time.time() - start_time) * 1000
             content = data["candidates"][0]["content"]["parts"][0]["text"]
-            
+
             # Simple token estimation
             input_tokens = len(prompt) // 4
             output_tokens = len(content) // 4
@@ -70,7 +73,7 @@ class GeminiProvider(BaseLLMProvider):
             )
         except Exception as e:
             # Fallback to standard OpenAI client endpoint format if raw Google API fails
-            raise RuntimeError(f"Gemini API call failed: {e}")
+            raise RuntimeError(f"Gemini API call failed: {e}") from e
 
     def generate_stream(self, prompt: str, config: LLMConfig) -> Iterator[LLMResponse]:
         yield self.generate(prompt, config)

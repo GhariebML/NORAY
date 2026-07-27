@@ -29,7 +29,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from typing import Any, Callable, Dict, List, Optional, Protocol
+from typing import Any, Protocol
 
 from noray.agents.planner import (
     ExecutionMode,
@@ -53,7 +53,7 @@ class DomainAgent(Protocol):
         """Unique agent name (e.g. 'career', 'scholarship')."""
         ...
 
-    def execute(self, task: TaskNode, context: Dict[str, Any]) -> Any:
+    def execute(self, task: TaskNode, context: dict[str, Any]) -> Any:
         """Execute a task and return the result.
 
         Args:
@@ -78,18 +78,18 @@ class DomainAgentRegistry:
     """
 
     def __init__(self):
-        self._agents: Dict[str, DomainAgent] = {}
+        self._agents: dict[str, DomainAgent] = {}
 
     def register(self, agent: DomainAgent) -> None:
         """Register a domain agent by its name."""
         self._agents[agent.name] = agent
         logger.info(f"Registered domain agent: {agent.name}")
 
-    def get(self, name: str) -> Optional[DomainAgent]:
+    def get(self, name: str) -> DomainAgent | None:
         """Look up a domain agent by name."""
         return self._agents.get(name)
 
-    def list_agents(self) -> List[str]:
+    def list_agents(self) -> list[str]:
         """Return all registered agent names."""
         return list(self._agents.keys())
 
@@ -109,7 +109,7 @@ class GeneralAgent:
     def name(self) -> str:
         return "general"
 
-    def execute(self, task: TaskNode, context: Dict[str, Any]) -> Any:
+    def execute(self, task: TaskNode, context: dict[str, Any]) -> Any:
         query = task.parameters.get("query", task.description)
         # Delegate to the existing AgentRouter for backward compatibility
         try:
@@ -129,7 +129,7 @@ class CareerAgent:
     def name(self) -> str:
         return "career"
 
-    def execute(self, task: TaskNode, context: Dict[str, Any]) -> Any:
+    def execute(self, task: TaskNode, context: dict[str, Any]) -> Any:
         query = task.parameters.get("query", task.description)
         action = task.action
 
@@ -148,7 +148,7 @@ class ScholarshipAgent:
     def name(self) -> str:
         return "scholarship"
 
-    def execute(self, task: TaskNode, context: Dict[str, Any]) -> Any:
+    def execute(self, task: TaskNode, context: dict[str, Any]) -> Any:
         query = task.parameters.get("query", task.description)
         action = task.action
 
@@ -167,7 +167,7 @@ class ResumeAgent:
     def name(self) -> str:
         return "resume"
 
-    def execute(self, task: TaskNode, context: Dict[str, Any]) -> Any:
+    def execute(self, task: TaskNode, context: dict[str, Any]) -> Any:
         query = task.parameters.get("query", task.description)
         return {"agent": "resume", "action": task.action, "query": query, "status": "completed"}
 
@@ -179,7 +179,7 @@ class InterviewAgent:
     def name(self) -> str:
         return "interview"
 
-    def execute(self, task: TaskNode, context: Dict[str, Any]) -> Any:
+    def execute(self, task: TaskNode, context: dict[str, Any]) -> Any:
         query = task.parameters.get("query", task.description)
         return {"agent": "interview", "action": task.action, "query": query, "status": "completed"}
 
@@ -191,7 +191,7 @@ class ResearchAgent:
     def name(self) -> str:
         return "research"
 
-    def execute(self, task: TaskNode, context: Dict[str, Any]) -> Any:
+    def execute(self, task: TaskNode, context: dict[str, Any]) -> Any:
         query = task.parameters.get("query", task.description)
         return {"agent": "research", "action": task.action, "query": query, "status": "completed"}
 
@@ -203,7 +203,7 @@ class DocumentAgent:
     def name(self) -> str:
         return "document"
 
-    def execute(self, task: TaskNode, context: Dict[str, Any]) -> Any:
+    def execute(self, task: TaskNode, context: dict[str, Any]) -> Any:
         query = task.parameters.get("query", task.description)
         return {"agent": "document", "action": task.action, "query": query, "status": "completed"}
 
@@ -215,7 +215,7 @@ class AnalyticsAgent:
     def name(self) -> str:
         return "analytics"
 
-    def execute(self, task: TaskNode, context: Dict[str, Any]) -> Any:
+    def execute(self, task: TaskNode, context: dict[str, Any]) -> Any:
         query = task.parameters.get("query", task.description)
         return {"agent": "analytics", "action": task.action, "query": query, "status": "completed"}
 
@@ -227,7 +227,7 @@ class KnowledgeAgent:
     def name(self) -> str:
         return "knowledge"
 
-    def execute(self, task: TaskNode, context: Dict[str, Any]) -> Any:
+    def execute(self, task: TaskNode, context: dict[str, Any]) -> Any:
         query = task.parameters.get("query", task.description)
         return {"agent": "knowledge", "action": task.action, "query": query, "status": "completed"}
 
@@ -239,7 +239,7 @@ class WebAgent:
     def name(self) -> str:
         return "web"
 
-    def execute(self, task: TaskNode, context: Dict[str, Any]) -> Any:
+    def execute(self, task: TaskNode, context: dict[str, Any]) -> Any:
         query = task.parameters.get("query", task.description)
         return {"agent": "web", "action": task.action, "query": query, "status": "completed"}
 
@@ -281,8 +281,8 @@ class RouterAgent:
 
     def __init__(
         self,
-        registry: Optional[DomainAgentRegistry] = None,
-        context: Optional[Dict[str, Any]] = None,
+        registry: DomainAgentRegistry | None = None,
+        context: dict[str, Any] | None = None,
         max_retries: int = 1,
     ):
         self.registry = registry or create_default_registry()
@@ -382,7 +382,7 @@ class RouterAgent:
                 else:
                     logger.warning(f"Task {task.id} failed (attempt {retries}), retrying: {e}")
 
-    def _execute_parallel_sync(self, tasks: List[TaskNode]) -> None:
+    def _execute_parallel_sync(self, tasks: list[TaskNode]) -> None:
         """Execute multiple tasks in parallel using asyncio (from sync context)."""
         try:
             loop = asyncio.get_event_loop()
@@ -396,7 +396,7 @@ class RouterAgent:
             # No event loop, create one
             asyncio.run(self._execute_parallel_async(tasks))
 
-    async def _execute_parallel_async(self, tasks: List[TaskNode]) -> None:
+    async def _execute_parallel_async(self, tasks: list[TaskNode]) -> None:
         """Execute multiple tasks concurrently using asyncio.gather()."""
         async def _run_task(task: TaskNode):
             # Run in thread pool to avoid blocking the event loop

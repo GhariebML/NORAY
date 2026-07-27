@@ -3,14 +3,17 @@ NORAY — OpenAI Provider Adapter
 """
 
 from __future__ import annotations
-import os
-import time
-import httpx
+
 import json
 import logging
-from typing import AsyncGenerator, List, Dict, Any, Optional
+import os
+import time
+from collections.abc import AsyncGenerator
+from typing import Any
 
-from noray.llm.providers.base_provider import BaseLLMProvider, LLMMessage, LLMConfig, LLMResponse
+import httpx
+
+from noray.llm.providers.base_provider import BaseLLMProvider, LLMConfig, LLMMessage, LLMResponse
 
 logger = logging.getLogger("noray.llm.openai")
 
@@ -18,14 +21,14 @@ logger = logging.getLogger("noray.llm.openai")
 class OpenAIProvider(BaseLLMProvider):
     """Adapter targeting standard OpenAI chat completions and embeddings endpoints."""
 
-    def __init__(self, api_key: Optional[str] = None):
+    def __init__(self, api_key: str | None = None, base_url: str | None = None):
         self.api_key = api_key or os.getenv("OPENAI_API_KEY", "")
-        self.base_url = "https://api.openai.com/v1"
+        self.base_url = base_url or "https://api.openai.com/v1"
 
     def health(self) -> bool:
         return bool(self.api_key)
 
-    def _convert_messages(self, messages: List[LLMMessage]) -> List[Dict[str, Any]]:
+    def _convert_messages(self, messages: list[LLMMessage]) -> list[dict[str, Any]]:
         converted = []
         for m in messages:
             msg = {"role": m.role, "content": m.content}
@@ -43,9 +46,9 @@ class OpenAIProvider(BaseLLMProvider):
         # Large cost: $2.50/M input, $10.00/M output
         return (input_tokens * 0.00015 + output_tokens * 0.0006) / 1000
 
-    def generate(self, messages: List[LLMMessage], config: LLMConfig) -> LLMResponse:
+    def generate(self, messages: list[LLMMessage], config: LLMConfig) -> LLMResponse:
         start_time = time.time()
-        
+
         if not self.api_key:
             logger.warning("OpenAI API key missing. Returning mock response.")
             return LLMResponse(
@@ -99,11 +102,11 @@ class OpenAIProvider(BaseLLMProvider):
             )
         except Exception as e:
             logger.error(f"OpenAI API error: {e}")
-            raise RuntimeError(f"OpenAI API execution failed: {e}")
+            raise RuntimeError(f"OpenAI API execution failed: {e}") from e
 
-    async def stream(self, messages: List[LLMMessage], config: LLMConfig) -> AsyncGenerator[LLMResponse, None]:
+    async def stream(self, messages: list[LLMMessage], config: LLMConfig) -> AsyncGenerator[LLMResponse, None]:
         start_time = time.time()
-        
+
         if not self.api_key:
             yield LLMResponse(
                 content=f"[MOCK OPENAI STREAM] Answer to: {messages[-1].content}",
@@ -141,14 +144,14 @@ class OpenAIProvider(BaseLLMProvider):
                         line_content = line[6:].strip()
                         if line_content == "[DONE]":
                             break
-                        
+
                         try:
                             chunk = json.loads(line_content)
                             choice = chunk["choices"][0]
                             delta = choice.get("delta", {})
                             content_piece = delta.get("content", "")
                             tool_calls = delta.get("tool_calls")
-                            
+
                             yield LLMResponse(
                                 content=content_piece,
                                 model=config.model,
@@ -160,9 +163,9 @@ class OpenAIProvider(BaseLLMProvider):
                             continue
         except Exception as e:
             logger.error(f"OpenAI streaming error: {e}")
-            raise RuntimeError(f"OpenAI stream failed: {e}")
+            raise RuntimeError(f"OpenAI stream failed: {e}") from e
 
-    def embeddings(self, text: str) -> List[float]:
+    def embeddings(self, text: str) -> list[float]:
         if not self.api_key:
             # return 1536 size dummy vector
             return [0.0] * 1536
@@ -185,4 +188,4 @@ class OpenAIProvider(BaseLLMProvider):
             return data["data"][0]["embedding"]
         except Exception as e:
             logger.error(f"OpenAI Embeddings error: {e}")
-            raise RuntimeError(f"OpenAI embeddings extraction failed: {e}")
+            raise RuntimeError(f"OpenAI embeddings extraction failed: {e}") from e

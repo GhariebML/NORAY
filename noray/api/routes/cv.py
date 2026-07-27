@@ -1,114 +1,254 @@
 """
-NORAY — CV API Routes
+NORAY — AI Document Generation API Routes
 
-Endpoints for CV generation and ATS optimization.
+Endpoints for AI-powered document generation with quality checks, streaming,
+and multi-document type support. All generation through SmartRouter.
 """
 
+from __future__ import annotations
+
+import json
 import logging
-from pathlib import Path
+
 from fastapi import APIRouter
+from fastapi.responses import StreamingResponse
+from pydantic import BaseModel
 
 from noray.shared.profile_store import load_profile
-from noray.shared.docx_generator import generate_cv_docx
-from noray.career_agent.cv_optimizer import optimize_cv as run_cv_optimization
-from noray.api.schemas import CVGenerateRequest, CVOptimizeRequest
-from noray.config import CV_DIR
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("noray.api.routes.cv")
+
 router = APIRouter()
 
 
+class GenerateDocumentRequest(BaseModel):
+    doc_type: str = "ats_resume"
+    target: str = ""
+    context: str = ""
+    session_id: str = ""
+    run_quality_check: bool = True
+
+
+class GenerateSopRequest(BaseModel):
+    scholarship_name: str = ""
+    university: str = ""
+    program: str = ""
+    research_interests: str = ""
+    word_limit: int = 1000
+    context: str = ""
+    session_id: str = ""
+
+
+class GenerateMotivationRequest(BaseModel):
+    scholarship_name: str = ""
+    program: str = ""
+    word_limit: int = 800
+    context: str = ""
+    session_id: str = ""
+
+
+class GenerateResearchRequest(BaseModel):
+    scholarship_name: str = ""
+    university: str = ""
+    program: str = ""
+    research_topics: str = ""
+    word_limit: int = 2000
+    context: str = ""
+    session_id: str = ""
+
+
 @router.post("/generate")
-async def generate_cv(request: CVGenerateRequest):
-    """Generate a tailored CV for a specific job."""
-    company = request.company
-    role = request.role or "Machine Learning & AI Engineer"
+async def generate_document(request: GenerateDocumentRequest):
+    """Generate an AI document with optional quality check."""
+    from noray.document_generator.service import generate_with_quality, get_rag_context
 
     profile = load_profile()
+    profile_str = str(profile.model_dump(mode="json")) if hasattr(profile, "model_dump") else str(profile)
 
-    # 1. Build Word (.docx) document
-    company_slug = company.lower().replace(" ", "_").replace("/", "_")
-    docx_path = CV_DIR / f"CV_{company_slug}.docx"
-    CV_DIR.mkdir(parents=True, exist_ok=True)
+    rag_context = await get_rag_context(request.target)
+    full_context = f"{request.context}\n\nRetrieved Knowledge:\n{rag_context}".strip()
 
-    try:
-        generate_cv_docx(profile=profile, company=company, role=role, output_path=docx_path)
-    except Exception as e:
-        logger.warning(f"Docx generation warning: {e}")
-
-    # 2. Try LaTeX optimization if available
-    tex_content = ""
-    ats_score = 92
-    keywords_used = ["Python", "FastAPI", "Machine Learning", "RAG Systems", "Vector DB"]
-    
-    try:
-        job_posting = f"Company: {company}\nRole: {role}\nJob URL: {request.job_url or 'N/A'}"
-        output = run_cv_optimization(
-            profile=profile,
-            job_posting=job_posting,
-            company=company,
-            reviewer_pass=False
-        )
-        if output.tex_path and output.tex_path.exists():
-            tex_content = output.tex_path.read_text(encoding="utf-8")
-        if output.ats_score:
-            ats_score = output.ats_score
-        if output.keywords_used:
-            keywords_used = output.keywords_used
-    except Exception as e:
-        logger.info(f"LaTeX optimizer notice: {e}")
-        tex_content = f"% Tailored ModernCV LaTeX for {company}\n\\documentclass[11pt,a4paper]{{moderncv}}\n\\name{{Candidate}}{{Profile}}\n\\begin{{document}}\n\\makecvtitle\n\\end{{document}}"
-
-    # 3. Create rich formatted text preview for document view
-    name = profile.identity.name or "Gharieb Mohamed"
-    email = profile.identity.email or "contact@noray.ai"
-    phone = profile.identity.phone or "+20 100 000 0000"
-    loc = f"{profile.identity.location.city}, {profile.identity.location.country}".strip(", ") or "Cairo, Egypt"
-    skills = ", ".join(profile.skills.primary) if profile.skills.primary else "Python, PyTorch, FastAPI, TypeScript, RAG, Qdrant, Docker"
-
-    formatted_preview = (
-        f"# {name}\n"
-        f"**{role}** | Tailored for **{company}**\n"
-        f"📧 {email}  |  📱 {phone}  |  📍 {loc}\n\n"
-        f"---\n\n"
-        f"## PROFESSIONAL SUMMARY\n"
-        f"Results-driven {role} with expertise in Machine Learning, Agentic RAG Operating Systems, and full-stack software development. "
-        f"Tailored specifically for {company}, delivering high-accuracy LLM routers, hybrid vector search engines, and scalable API pipelines.\n\n"
-        f"## TECHNICAL SKILLS & COMPETENCIES\n"
-        f"- **Core Languages & Frameworks**: {skills}\n"
-        f"- **AI & RAG Engineering**: Qdrant Vector Store, BM25 Reciprocal Rank Fusion, ReAct Agent Loops, Ollama\n"
-        f"- **Databases & Infrastructure**: PostgreSQL, SQLite, Docker, REST APIs, System Architecture\n\n"
-        f"## PROFESSIONAL EXPERIENCE\n"
-        f"**Lead AI Engineer — NORAY Platform** (2024 – Present)\n"
-        f"- Engineered an enterprise-grade career operating system tailored for {company}.\n"
-        f"- Implemented Dual-Tier Model Router dynamically shifting traffic between Cloud APIs and local Ollama runtimes.\n"
-        f"- Developed automated ATS resume optimizer and document generation engines.\n\n"
-        f"## EDUCATION & CREDENTIALS\n"
-        f"- **Bachelor of Science in Computer Science & Artificial Intelligence** (GPA: 3.8/4.0)\n"
+    result = await generate_with_quality(
+        doc_type=request.doc_type,
+        target=request.target,
+        profile_str=profile_str,
+        context=full_context,
+        session_id=request.session_id,
     )
 
-    return {
-        "status": "generated",
-        "cv_path": str(docx_path),
-        "content": formatted_preview,
-        "tex_content": tex_content,
-        "ats_score": ats_score,
-        "keywords_used": keywords_used,
-    }
+    return result
+
+
+@router.post("/stream")
+async def stream_document(request: GenerateDocumentRequest):
+    """Stream an AI-generated document via SSE."""
+    from noray.document_generator.service import stream_document, get_rag_context
+
+    profile = load_profile()
+    profile_str = str(profile.model_dump(mode="json")) if hasattr(profile, "model_dump") else str(profile)
+
+    rag_context = await get_rag_context(request.target)
+    full_context = f"{request.context}\n\nRetrieved Knowledge:\n{rag_context}".strip()
+
+    async def event_stream():
+        doc_type_label = request.doc_type.replace("_", " ").title()
+        yield f"data: {json.dumps({'type': 'start', 'doc_type': request.doc_type, 'label': doc_type_label})}\n\n"
+
+        full = ""
+        async for chunk in stream_document(
+            doc_type=request.doc_type,
+            target=request.target,
+            profile_str=profile_str,
+            context=full_context,
+            session_id=request.session_id,
+        ):
+            if chunk:
+                full += chunk
+                yield f"data: {json.dumps({'type': 'chunk', 'content': chunk})}\n\n"
+
+        yield f"data: {json.dumps({'type': 'done', 'length': len(full)})}\n\n"
+
+    return StreamingResponse(
+        event_stream(),
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache", "Connection": "keep-alive"},
+    )
+
+
+@router.post("/quality")
+async def check_document_quality(request: GenerateDocumentRequest):
+    """Run AI quality check on existing document content."""
+    from noray.document_generator.service import check_quality
+
+    if not request.target:
+        return {"status": "error", "message": "Provide document content in 'target'"}
+
+    report = await check_quality(request.target, request.doc_type)
+    from dataclasses import asdict
+    return {"status": "checked", "report": asdict(report)}
+
+
+@router.post("/sop")
+async def generate_sop(request: GenerateSopRequest):
+    """Generate a Statement of Purpose."""
+    from noray.document_generator.service import generate_with_quality
+
+    profile = load_profile()
+    profile_str = str(profile.model_dump(mode="json")) if hasattr(profile, "model_dump") else str(profile)
+
+    target = f"{request.program} at {request.university}" if request.university else request.scholarship_name
+    context = f"Research Interests: {request.research_interests}\n{request.context}"
+
+    result = await generate_with_quality(
+        doc_type="statement_of_purpose",
+        target=target,
+        profile_str=profile_str,
+        context=context,
+        session_id=request.session_id,
+    )
+
+    return result
+
+
+@router.post("/motivation")
+async def generate_motivation(request: GenerateMotivationRequest):
+    """Generate a Motivation Letter."""
+    from noray.document_generator.service import generate_with_quality
+
+    profile = load_profile()
+    profile_str = str(profile.model_dump(mode="json")) if hasattr(profile, "model_dump") else str(profile)
+
+    target = f"{request.scholarship_name} - {request.program}"
+    context = request.context
+
+    result = await generate_with_quality(
+        doc_type="motivation_letter",
+        target=target,
+        profile_str=profile_str,
+        context=context,
+        session_id=request.session_id,
+    )
+
+    return result
+
+
+@router.post("/research")
+async def generate_research(request: GenerateResearchRequest):
+    """Generate a Research Proposal."""
+    from noray.document_generator.service import generate_with_quality
+
+    profile = load_profile()
+    profile_str = str(profile.model_dump(mode="json")) if hasattr(profile, "model_dump") else str(profile)
+
+    target = f"{request.scholarship_name} - {request.program} at {request.university}"
+    context = f"Research Topics: {request.research_topics}\n{request.context}"
+
+    result = await generate_with_quality(
+        doc_type="research_proposal",
+        target=target,
+        profile_str=profile_str,
+        context=context,
+        session_id=request.session_id,
+    )
+
+    return result
+
+
+@router.post("/email")
+async def generate_email(request: GenerateDocumentRequest):
+    """Generate a professional email."""
+    from noray.document_generator.service import generate_with_quality
+
+    profile = load_profile()
+    profile_str = str(profile.model_dump(mode="json")) if hasattr(profile, "model_dump") else str(profile)
+
+    result = await generate_with_quality(
+        doc_type="email",
+        target=request.target,
+        profile_str=profile_str,
+        context=request.context,
+        session_id=request.session_id,
+    )
+
+    return result
+
+
+@router.post("/linkedin")
+async def generate_linkedin(request: GenerateDocumentRequest):
+    """Generate a LinkedIn summary."""
+    from noray.document_generator.service import generate_with_quality
+
+    profile = load_profile()
+    profile_str = str(profile.model_dump(mode="json")) if hasattr(profile, "model_dump") else str(profile)
+
+    result = await generate_with_quality(
+        doc_type="linkedin_summary",
+        target=request.target,
+        profile_str=profile_str,
+        context=request.context,
+        session_id=request.session_id,
+    )
+
+    return result
 
 
 @router.post("/optimize")
-async def optimize_cv_endpoint(request: CVOptimizeRequest):
-    """Analyze and optimize a CV for ATS compatibility."""
-    from noray.career_agent.ats_analyzer import analyze_cv_ats
-    score = analyze_cv_ats(request.cv_text, request.job_keywords)
+async def optimize_cv(request: GenerateDocumentRequest):
+    """Analyze CV text for ATS compatibility (legacy)."""
+    from noray.career_agent.ats_analyzer import (
+        analyze_cv_ats,
+        extract_keywords_from_posting,
+    )
+
+    if not request.target:
+        return {"status": "error", "message": "Provide CV text in 'target'"}
+
+    posting_keywords = extract_keywords_from_posting(request.context)
+    result = analyze_cv_ats(request.target, posting_keywords)
+
     return {
-        "overall_score": score.overall_score,
-        "formatting_score": score.formatting_score,
-        "keyword_score": score.keyword_score,
-        "structure_score": score.structure_score,
-        "issues": score.issues,
-        "recommendations": score.recommendations,
-        "keywords_found": score.keywords_found,
-        "keywords_missing": score.keywords_missing,
+        "status": "analyzed",
+        "ats_score": result.overall_score,
+        "keywords_found": result.keywords_found,
+        "keywords_missing": result.keywords_missing,
     }

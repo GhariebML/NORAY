@@ -6,21 +6,21 @@ Manages provider health caches, execution, fallbacks, and cost tracking.
 """
 
 from __future__ import annotations
+
 import logging
-import uuid
 import time
-from typing import Dict, List, Optional
+import uuid
 
 from noray.gateway.base import BaseLLMProvider, LLMConfig, LLMResponse, RouteRequirements
-from noray.gateway.registry import ModelRegistry
-from noray.gateway.router import ModelRouter
+from noray.gateway.providers.anthropic import AnthropicProvider
+from noray.gateway.providers.gemini import GeminiProvider
 
 # Specific Provider imports
 from noray.gateway.providers.local import LocalProvider
 from noray.gateway.providers.openai import OpenAIProvider
-from noray.gateway.providers.anthropic import AnthropicProvider
-from noray.gateway.providers.gemini import GeminiProvider
 from noray.gateway.providers.openrouter import OpenRouterProvider
+from noray.gateway.registry import ModelRegistry
+from noray.gateway.router import ModelRouter
 
 logger = logging.getLogger("noray.gateway")
 
@@ -28,7 +28,7 @@ logger = logging.getLogger("noray.gateway")
 class AIGateway:
     """Enterprise AI Gateway providing unified model dispatching and tracking."""
 
-    _instance: Optional[AIGateway] = None
+    _instance: AIGateway | None = None
 
     def __new__(cls, *args, **kwargs):
         if cls._instance is None:
@@ -36,22 +36,22 @@ class AIGateway:
             cls._instance._initialized = False
         return cls._instance
 
-    def __init__(self, registry: Optional[ModelRegistry] = None) -> None:
+    def __init__(self, registry: ModelRegistry | None = None) -> None:
         if self._initialized:
             return
-        
+
         self.registry = registry or ModelRegistry()
         self.router = ModelRouter(self.registry)
-        
+
         # Instantiate provider clients
-        self.providers: Dict[str, BaseLLMProvider] = {
+        self.providers: dict[str, BaseLLMProvider] = {
             "local": LocalProvider(),
             "openai": OpenAIProvider(),
             "anthropic": AnthropicProvider(),
             "gemini": GeminiProvider(),
             "openrouter": OpenRouterProvider()
         }
-        
+
         # Diagnostics tracking metrics
         self.metrics = {
             "total_requests": 0,
@@ -60,10 +60,10 @@ class AIGateway:
             "total_estimated_cost": 0.0,
             "total_latency_ms": 0.0
         }
-        
+
         self._initialized = True
 
-    def get_provider_health_states(self) -> Dict[str, bool]:
+    def get_provider_health_states(self) -> dict[str, bool]:
         """Perform light status pings across providers to evaluate health."""
         states = {}
         for name, provider in self.providers.items():
@@ -80,7 +80,7 @@ class AIGateway:
         system_prompt: str = "",
         temperature: float = 0.3,
         max_tokens: int = 1500,
-        requirements: Optional[RouteRequirements] = None
+        requirements: RouteRequirements | None = None
     ) -> LLMResponse:
         """Central execution point for all LLM calls in NORAY."""
         req_id = str(uuid.uuid4())

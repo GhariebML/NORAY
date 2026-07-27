@@ -60,9 +60,9 @@ class EvidenceItem:
     source_type: str = "document"  # document, graph, web
     confidence: float = 0.5
     supporting: bool = True
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "id": self.id,
             "claim": self.claim,
@@ -93,7 +93,7 @@ class ConflictItem:
     source_b: str = ""
     resolution: str = ""
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "topic": self.topic,
             "claim_a": self.claim_a,
@@ -113,18 +113,18 @@ class ResearchSession:
     id: str = field(default_factory=lambda: str(uuid.uuid4())[:12])
     objective: str = ""
     status: ResearchStatus = ResearchStatus.PLANNING
-    expanded_queries: List[str] = field(default_factory=list)
-    retrieved_chunks: List[Dict[str, Any]] = field(default_factory=list)
-    graph_context: List[str] = field(default_factory=list)
-    evidence: List[EvidenceItem] = field(default_factory=list)
-    conflicts: List[ConflictItem] = field(default_factory=list)
+    expanded_queries: list[str] = field(default_factory=list)
+    retrieved_chunks: list[dict[str, Any]] = field(default_factory=list)
+    graph_context: list[str] = field(default_factory=list)
+    evidence: list[EvidenceItem] = field(default_factory=list)
+    conflicts: list[ConflictItem] = field(default_factory=list)
     report: str = ""
-    citations: List[Dict[str, str]] = field(default_factory=list)
+    citations: list[dict[str, str]] = field(default_factory=list)
     created_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
-    completed_at: Optional[str] = None
-    error: Optional[str] = None
+    completed_at: str | None = None
+    error: str | None = None
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "id": self.id,
             "objective": self.objective,
@@ -221,7 +221,7 @@ class DeepResearchEngine:
 
     # --- Stage 1: Query Expansion ---
 
-    def _expand_queries(self, objective: str) -> List[str]:
+    def _expand_queries(self, objective: str) -> list[str]:
         """Generate multiple search queries from the research objective."""
         queries = [objective]
 
@@ -238,7 +238,7 @@ class DeepResearchEngine:
         queries.extend(self._rule_based_expansion(objective))
         return list(set(queries))[:6]  # Cap at 6 queries
 
-    def _rule_based_expansion(self, objective: str) -> List[str]:
+    def _rule_based_expansion(self, objective: str) -> list[str]:
         """Generate additional queries using rule-based rewriting."""
         expansions = []
         obj_lower = objective.lower()
@@ -259,10 +259,10 @@ class DeepResearchEngine:
     # --- Stage 2: Multi-Source Retrieval ---
 
     def _retrieve_evidence(
-        self, queries: List[str], max_depth: int
-    ) -> List[Dict[str, Any]]:
+        self, queries: list[str], max_depth: int
+    ) -> list[dict[str, Any]]:
         """Retrieve passages from vector store for each expanded query."""
-        all_chunks: List[Dict[str, Any]] = []
+        all_chunks: list[dict[str, Any]] = []
         seen_ids: set = set()
 
         if not self.retriever:
@@ -281,7 +281,7 @@ class DeepResearchEngine:
 
         return all_chunks
 
-    def _retrieve_graph_context(self, objective: str) -> List[str]:
+    def _retrieve_graph_context(self, objective: str) -> list[str]:
         """Retrieve graph relationship triples relevant to the objective."""
         if not self.graph_searcher:
             return []
@@ -295,11 +295,11 @@ class DeepResearchEngine:
 
     def _extract_evidence(
         self,
-        chunks: List[Dict[str, Any]],
-        graph_triples: List[str],
-    ) -> List[EvidenceItem]:
+        chunks: list[dict[str, Any]],
+        graph_triples: list[str],
+    ) -> list[EvidenceItem]:
         """Extract evidence items from retrieved chunks and graph context."""
-        evidence: List[EvidenceItem] = []
+        evidence: list[EvidenceItem] = []
 
         # Extract from vector search chunks
         for chunk in chunks[:self.max_evidence_items]:
@@ -328,7 +328,7 @@ class DeepResearchEngine:
 
     # --- Stage 4: Conflict Detection ---
 
-    def _detect_conflicts(self, evidence: List[EvidenceItem]) -> List[ConflictItem]:
+    def _detect_conflicts(self, evidence: list[EvidenceItem]) -> list[ConflictItem]:
         """Detect contradictions between evidence items.
 
         Uses simple heuristics for rule-based detection:
@@ -337,7 +337,7 @@ class DeepResearchEngine:
 
         In LLM mode, asks the LLM to identify conflicts.
         """
-        conflicts: List[ConflictItem] = []
+        conflicts: list[ConflictItem] = []
 
         if self.use_llm and len(evidence) > 1:
             try:
@@ -346,7 +346,7 @@ class DeepResearchEngine:
                 pass
 
         # Rule-based: check for duplicate sources with differing claims
-        source_claims: Dict[str, List[EvidenceItem]] = {}
+        source_claims: dict[str, list[EvidenceItem]] = {}
         for e in evidence:
             key = e.source.lower()
             source_claims.setdefault(key, []).append(e)
@@ -354,10 +354,10 @@ class DeepResearchEngine:
         return conflicts
 
     def _llm_conflict_detection(
-        self, evidence: List[EvidenceItem]
-    ) -> List[ConflictItem]:
+        self, evidence: list[EvidenceItem]
+    ) -> list[ConflictItem]:
         """Use LLM to detect conflicts between evidence items."""
-        from noray.shared.llm_utils import call_llm, LLMConfig
+        from noray.shared.llm_utils import LLMConfig, call_llm
 
         evidence_text = "\n".join(
             f"[{e.id}] ({e.source}): {e.claim[:200]}"
@@ -400,7 +400,7 @@ class DeepResearchEngine:
 
     def _llm_synthesize(self, session: ResearchSession) -> str:
         """Use LLM to generate a research report."""
-        from noray.shared.llm_utils import call_llm, LLMConfig
+        from noray.shared.llm_utils import LLMConfig, call_llm
 
         evidence_text = "\n".join(
             f"- [{e.source}] {e.claim[:300]}"
@@ -498,11 +498,11 @@ class DeepResearchEngine:
         return "\n".join(lines)
 
     def _compile_citations(
-        self, evidence: List[EvidenceItem]
-    ) -> List[Dict[str, str]]:
+        self, evidence: list[EvidenceItem]
+    ) -> list[dict[str, str]]:
         """Compile a deduplicated citation list from evidence items."""
         seen: set = set()
-        citations: List[Dict[str, str]] = []
+        citations: list[dict[str, str]] = []
 
         for e in evidence:
             if e.source not in seen:

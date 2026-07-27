@@ -1,21 +1,35 @@
 """
-NORAY — Jobs API Routes
+NORAY — AI-Powered Jobs API Routes
 
-Endpoints for job search, evaluation, and application.
+Endpoints for AI-driven job search, intent parsing, scoring, and application.
+All generation routes through the SmartRouter.
 """
 
 from fastapi import APIRouter
+from pydantic import BaseModel
 
+from noray.api.schemas import JobApplyRequest, JobEvaluateRequest, JobSearchRequest, JobSearchResponse
+from noray.dashboard.jobs import JobApplication, add_application, get_application_stats, load_applications
 from noray.shared.profile_store import load_profile
-from noray.api.schemas import JobSearchRequest, JobSearchResponse, JobEvaluateRequest, JobApplyRequest
-from noray.dashboard.jobs import load_applications, get_application_stats, add_application, JobApplication
 
 router = APIRouter()
 
 
+class AIJobSearchRequest(BaseModel):
+    query: str
+    max_results: int = 30
+
+
+class AIJobScoreRequest(BaseModel):
+    company: str
+    role: str
+    country: str = ""
+    description: str = ""
+
+
 @router.post("/search", response_model=JobSearchResponse)
 async def search_jobs(request: JobSearchRequest):
-    """Search for jobs matching the profile."""
+    """Search for jobs matching the profile (legacy provider-based)."""
     from noray.career_agent.job_search import search_jobs
     profile = load_profile()
     result = await search_jobs(
@@ -30,10 +44,63 @@ async def search_jobs(request: JobSearchRequest):
     )
 
 
+@router.post("/ai-search")
+async def ai_job_search(request: AIJobSearchRequest):
+    """
+    AI-powered job search with intent parsing, query expansion,
+    multi-provider fetch, and AI scoring.
+    """
+    from noray.career_agent.ai_job_search import full_ai_job_search
+    profile = load_profile()
+    result = await full_ai_job_search(
+        query=request.query,
+        profile=profile.model_dump(mode="json") if hasattr(profile, "model_dump") else profile,
+        max_results=request.max_results,
+    )
+    return result
+
+
+@router.post("/parse-intent")
+async def parse_job_intent(request: AIJobSearchRequest):
+    """Parse a natural language job search query into structured intent."""
+    from noray.career_agent.ai_job_search import parse_job_intent
+    profile = load_profile()
+    intent = await parse_job_intent(
+        request.query,
+        profile.model_dump(mode="json") if hasattr(profile, "model_dump") else profile,
+    )
+    from dataclasses import asdict
+    return {"status": "parsed", "intent": asdict(intent)}
+
+
+@router.post("/ai-score")
+async def score_job_ai_endpoint(request: AIJobScoreRequest):
+    """AI-based job fit scoring against user profile."""
+    from noray.career_agent.ai_job_search import AIJobResult, score_job_ai
+
+    profile = load_profile()
+    profile_dict = profile.model_dump(mode="json") if hasattr(profile, "model_dump") else profile
+
+    job = AIJobResult(
+        company=request.company,
+        role=request.role,
+        country=request.country,
+        description=request.description,
+    )
+
+    score = await score_job_ai(job, profile_dict)
+    from dataclasses import asdict
+    return {"status": "scored", "score": asdict(score)}
+
+
 @router.post("/evaluate")
 async def evaluate_job(request: JobEvaluateRequest):
-    """Evaluate a job posting against the profile."""
-    from noray.career_agent.ats_analyzer import analyze_cv_ats, extract_keywords_from_posting, generate_optimization_report
+    """Evaluate a job posting against the profile (legacy ATS analyzer)."""
+    from noray.career_agent.ats_analyzer import (
+        analyze_cv_ats,
+        extract_keywords_from_posting,
+        generate_optimization_report,
+    )
 
     profile = load_profile()
     profile_dict = profile.model_dump(mode="json")
@@ -68,21 +135,39 @@ async def evaluate_job(request: JobEvaluateRequest):
 
 @router.post("/apply")
 async def apply_job(request: JobApplyRequest):
-    """Generate a job application (CV + cover letter)."""
-    from noray.career_agent.cv_optimizer import optimize_cv
+    """Generate job application materials."""
     from noray.career_agent.cover_letter_generator import generate_cover_letter
+    from noray.career_agent.cv_optimizer import optimize_cv
+    from noray.document_generator.service import generate_document
 
     profile = load_profile()
-
     results = {}
 
     if request.generate_cv:
-        cv_result = optimize_cv(profile, request.job_text or "", request.company)
-        results["cv"] = {"latex": cv_result.tex_path, "success": cv_result.success, "ats_score": cv_result.ats_score}
+        try:
+            ai_cv = await generate_document(
+                doc_type="ats_resume",
+                target=request.job_text or request.role,
+                profile_str=str(profile.model_dump(mode="json") if hasattr(profile, "model_dump") else profile),
+                context=f"Company: {request.company}, Role: {request.role}",
+            )
+            results["ai_cv"] = {"content_preview": ai_cv[:500], "length": len(ai_cv)}
+        except Exception:
+            cv_result = optimize_cv(profile, request.job_text or "", request.company)
+            results["cv"] = {"latex": cv_result.tex_path, "success": cv_result.success, "ats_score": cv_result.ats_score}
 
     if request.generate_cover_letter:
-        cl_result = generate_cover_letter(profile, request.job_text or "", request.company, request.role)
-        results["cover_letter"] = {"latex": cl_result.tex_path, "success": cl_result.success, "language": cl_result.language}
+        try:
+            ai_cl = await generate_document(
+                doc_type="cover_letter",
+                target=f"{request.company} - {request.role}",
+                profile_str=str(profile.model_dump(mode="json") if hasattr(profile, "model_dump") else profile),
+                context=request.job_text or "",
+            )
+            results["ai_cover_letter"] = {"content_preview": ai_cl[:500], "length": len(ai_cl)}
+        except Exception:
+            cl_result = generate_cover_letter(profile, request.job_text or "", request.company, request.role)
+            results["cover_letter"] = {"latex": cl_result.tex_path, "success": cl_result.success}
 
     app = add_application(JobApplication(
         company=request.company,

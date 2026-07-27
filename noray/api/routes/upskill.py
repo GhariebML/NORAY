@@ -6,8 +6,8 @@ Endpoints for skill gap analysis and career roadmapping.
 
 from fastapi import APIRouter, Query
 
+from noray.api.schemas import RoadmapRequest, UpskillRequest
 from noray.shared.profile_store import load_profile
-from noray.api.schemas import UpskillRequest, RoadmapRequest
 
 router = APIRouter()
 
@@ -15,8 +15,9 @@ router = APIRouter()
 @router.post("/analyze")
 async def analyze_skill_gaps(request: UpskillRequest):
     """Run skill gap analysis against tracked jobs or a specific posting."""
-    from noray.upskill_agent.skill_gap_analysis import analyze_skill_gaps as run_analysis, generate_optimization_report
     from noray.dashboard.jobs import load_applications
+    from noray.upskill_agent.skill_gap_analysis import analyze_skill_gaps as run_analysis
+    from noray.upskill_agent.skill_gap_analysis import generate_optimization_report
 
     profile = load_profile()
     profile_dict = profile.model_dump(mode="json")

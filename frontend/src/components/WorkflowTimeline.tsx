@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { CheckCircle2, Loader2, Circle, ArrowRight } from "lucide-react";
+import { CheckCircle2, Loader2, Circle } from "lucide-react";
 import { motion } from "framer-motion";
 
 export interface TimelineStep {

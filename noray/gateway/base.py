@@ -6,9 +6,11 @@ and request routing requirements.
 """
 
 from __future__ import annotations
-from dataclasses import dataclass, field
-from typing import Any, Iterator, Optional
-from pydantic import BaseModel, Field
+
+from collections.abc import Iterator
+from dataclasses import dataclass
+
+from pydantic import BaseModel
 
 
 @dataclass
@@ -40,8 +42,8 @@ class RouteRequirements(BaseModel):
     require_json: bool = False
     require_tools: bool = False
     require_reasoning: bool = False
-    max_cost_limit: Optional[float] = None
-    preferred_provider: Optional[str] = None  # "local", "openai", "anthropic", "gemini"
+    max_cost_limit: float | None = None
+    preferred_provider: str | None = None  # "local", "openai", "anthropic", "gemini"
 
 
 class BaseLLMProvider:

@@ -3,14 +3,17 @@ NORAY — Mistral Provider Adapter
 """
 
 from __future__ import annotations
-import os
-import time
-import httpx
+
 import json
 import logging
-from typing import AsyncGenerator, List, Dict, Any, Optional
+import os
+import time
+from collections.abc import AsyncGenerator
+from typing import Any
 
-from noray.llm.providers.base_provider import BaseLLMProvider, LLMMessage, LLMConfig, LLMResponse
+import httpx
+
+from noray.llm.providers.base_provider import BaseLLMProvider, LLMConfig, LLMMessage, LLMResponse
 
 logger = logging.getLogger("noray.llm.mistral")
 
@@ -18,14 +21,14 @@ logger = logging.getLogger("noray.llm.mistral")
 class MistralProvider(BaseLLMProvider):
     """Adapter targeting Mistral cloud API endpoints."""
 
-    def __init__(self, api_key: Optional[str] = None):
+    def __init__(self, api_key: str | None = None):
         self.api_key = api_key or os.getenv("MISTRAL_API_KEY", "")
         self.base_url = "https://api.mistral.ai/v1"
 
     def health(self) -> bool:
         return bool(self.api_key)
 
-    def _convert_messages(self, messages: List[LLMMessage]) -> List[Dict[str, Any]]:
+    def _convert_messages(self, messages: list[LLMMessage]) -> list[dict[str, Any]]:
         converted = []
         for m in messages:
             msg = {"role": m.role, "content": m.content}
@@ -36,9 +39,9 @@ class MistralProvider(BaseLLMProvider):
         # Mistral Large average: $2.50/M input, $7.50/M output
         return (input_tokens * 0.0025 + output_tokens * 0.0075) / 1000
 
-    def generate(self, messages: List[LLMMessage], config: LLMConfig) -> LLMResponse:
+    def generate(self, messages: list[LLMMessage], config: LLMConfig) -> LLMResponse:
         start_time = time.time()
-        
+
         if not self.api_key:
             logger.warning("Mistral API key missing. Returning mock response.")
             return LLMResponse(
@@ -84,11 +87,11 @@ class MistralProvider(BaseLLMProvider):
             )
         except Exception as e:
             logger.error(f"Mistral API error: {e}")
-            raise RuntimeError(f"Mistral API execution failed: {e}")
+            raise RuntimeError(f"Mistral API execution failed: {e}") from e
 
-    async def stream(self, messages: List[LLMMessage], config: LLMConfig) -> AsyncGenerator[LLMResponse, None]:
+    async def stream(self, messages: list[LLMMessage], config: LLMConfig) -> AsyncGenerator[LLMResponse, None]:
         start_time = time.time()
-        
+
         if not self.api_key:
             yield LLMResponse(
                 content=f"[MOCK MISTRAL STREAM] Answer to: {messages[-1].content}",
@@ -122,13 +125,13 @@ class MistralProvider(BaseLLMProvider):
                         line_content = line[6:].strip()
                         if line_content == "[DONE]":
                             break
-                        
+
                         try:
                             chunk = json.loads(line_content)
                             choice = chunk["choices"][0]
                             delta = choice.get("delta", {})
                             content_piece = delta.get("content", "")
-                            
+
                             yield LLMResponse(
                                 content=content_piece,
                                 model=config.model,
@@ -139,9 +142,9 @@ class MistralProvider(BaseLLMProvider):
                             continue
         except Exception as e:
             logger.error(f"Mistral streaming error: {e}")
-            raise RuntimeError(f"Mistral stream failed: {e}")
+            raise RuntimeError(f"Mistral stream failed: {e}") from e
 
-    def embeddings(self, text: str) -> List[float]:
+    def embeddings(self, text: str) -> list[float]:
         # Mistral embeddings endpoint
         if not self.api_key:
             return [0.0] * 1024
@@ -164,4 +167,4 @@ class MistralProvider(BaseLLMProvider):
             return data["data"][0]["embedding"]
         except Exception as e:
             logger.error(f"Mistral Embeddings error: {e}")
-            raise RuntimeError(f"Mistral embeddings extraction failed: {e}")
+            raise RuntimeError(f"Mistral embeddings extraction failed: {e}") from e

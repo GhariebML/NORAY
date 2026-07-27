@@ -6,8 +6,6 @@ import {
   GitBranch,
   FileUp,
   Save,
-  Plus,
-  Trash2,
   ChevronDown,
   ChevronRight,
 } from "lucide-react";
@@ -40,7 +38,7 @@ export default function ProfilePage() {
       setLoading(true);
       const data = await profileApi.get();
       setProfile(data.profile);
-    } catch (err) {
+    } catch {
       setMessage({ type: "error", text: "Failed to load profile. Is the API running?" });
     } finally {
       setLoading(false);
@@ -83,6 +81,9 @@ export default function ProfilePage() {
     setExpandedSections((prev) => ({ ...prev, [key]: !prev[key] }));
   }
 
+  const identity = (profile?.identity as Record<string, unknown>) || {};
+  const S = (v: unknown): string => (v == null ? "" : String(v));
+
   function startEditing() {
     const data: Record<string, string> = {};
     data["identity.name"] = S(identity.name);
@@ -118,7 +119,7 @@ export default function ProfilePage() {
       setMessage({ type: "success", text: "Profile updated successfully" });
       setEditMode(false);
       await loadProfile();
-    } catch (err) {
+    } catch {
       setMessage({ type: "error", text: "Failed to save profile" });
     } finally {
       setSaving(false);
@@ -131,14 +132,12 @@ export default function ProfilePage() {
 
   if (loading) return <LoadingSpinner />;
 
-  const identity = (profile?.identity as Record<string, unknown>) || {};
   const education = (profile?.education as Record<string, unknown>[]) || [];
   const experience = (profile?.experience as Record<string, unknown>[]) || [];
   const skills = (profile?.skills as Record<string, unknown>) || {};
   const certifications = (profile?.certifications as Record<string, unknown>[]) || [];
   const projects = (profile?.projects as Record<string, unknown>[]) || [];
 
-  const S = (v: unknown): string => (v == null ? "" : String(v));
   const hasVal = (v: unknown): boolean => v != null && String(v).length > 0;
 
   return (

@@ -4,9 +4,10 @@ NORAY — Explainability Module
 Generates transparent explanations for why models, agents, tools, and documents were selected.
 """
 
-from pydantic import BaseModel, Field
-from typing import List, Dict, Any
 from datetime import datetime
+
+from pydantic import BaseModel, Field
+
 
 class ReasoningStep(BaseModel):
     step_type: str  # "model_selection", "agent_selection", "retrieval", "tool_execution"
@@ -18,7 +19,7 @@ class ReasoningStep(BaseModel):
 class ExplainabilityTrace(BaseModel):
     execution_id: str
     goal: str
-    steps: List[ReasoningStep] = Field(default_factory=list)
+    steps: list[ReasoningStep] = Field(default_factory=list)
     final_confidence: float = 0.0
     summary: str = ""
 

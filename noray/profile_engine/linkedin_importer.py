@@ -6,15 +6,19 @@ LinkedIn PDF exports have a predictable structure that we can reliably parse.
 """
 
 from __future__ import annotations
+
 import re
 from pathlib import Path
 from typing import Any
 
-from noray.shared.models import (
-    CareerProfile, Education, Experience, Certification, Language,
-)
 from noray.profile_engine.cv_importer import _extract_from_pdf
-
+from noray.shared.models import (
+    CareerProfile,
+    Certification,
+    Education,
+    Experience,
+    Language,
+)
 
 # ─── Public API ───────────────────────────────────────────────
 

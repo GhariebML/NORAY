@@ -5,9 +5,8 @@ Pydantic models for API endpoints.
 """
 
 from __future__ import annotations
-from typing import Optional
-from pydantic import BaseModel, Field
 
+from pydantic import BaseModel, Field
 
 # ─── Profile ──────────────────────────────────────────────────
 
@@ -72,9 +71,14 @@ class ScholarshipSearchResponse(BaseModel):
 class ScholarshipApplyRequest(BaseModel):
     scholarship_info: str
     scholarship_name: str
+    provider: str = ""
+    country: str = ""
+    degree_level: str = ""
+    research_area: str = ""
     generate_sop: bool = True
     generate_motivation: bool = False
-    generate_research_proposal: bool = False
+    generate_research: bool = False
+    generate_email: bool = False
 
 
 # ─── CV & Documents ───────────────────────────────────────────

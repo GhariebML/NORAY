@@ -55,8 +55,8 @@ def test_model_router_fallback(monkeypatch):
     req = RouteRequirements(preferred_provider="local")
     model, provider = router.route(req, states)
     
-    # Must fallback to cloud OpenAI since local is offline
-    assert provider == "openai"
+    # Must fallback to cloud Gemini (priority 1 cloud provider) since local is offline
+    assert provider == "gemini"
 
 
 def test_gateway_facade_and_metrics_accumulation():

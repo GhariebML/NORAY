@@ -450,5 +450,22 @@ class TestBM25SparseIndex:
             assert len(idx2.tokenized_corpus) == 2
 
 
+class TestExcelAndPowerPointParsing:
+    """Test Excel and PowerPoint parsing methods in DocumentService."""
+    
+    def test_pptx_parsing_fallback(self):
+        from noray.services.document_service import DocumentService
+        service = DocumentService.__new__(DocumentService)
+        # Even if file doesn't exist or is invalid, PPTX parser should fail gracefully
+        result = service._parse_pptx(Path("non_existent_file.pptx"))
+        assert "[PPTX parsing fallback]" in result
+
+    def test_excel_parsing_fallback(self):
+        from noray.services.document_service import DocumentService
+        service = DocumentService.__new__(DocumentService)
+        result = service._parse_excel(Path("non_existent_file.xlsx"))
+        assert "[Excel parsing fallback]" in result
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v", "--tb=short"])

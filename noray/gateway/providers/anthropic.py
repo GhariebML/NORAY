@@ -3,10 +3,13 @@ NORAY — Anthropic Cloud Provider Adapter
 """
 
 from __future__ import annotations
+
 import os
 import time
+from collections.abc import Iterator
+from typing import Optional
+
 import httpx
-from typing import Iterator
 
 from noray.gateway.base import BaseLLMProvider, LLMConfig, LLMResponse
 
@@ -52,7 +55,7 @@ class AnthropicProvider(BaseLLMProvider):
                 data = res.json()
 
             latency_ms = (time.time() - start_time) * 1000
-            
+
             content_text = ""
             for block in data.get("content", []):
                 if block.get("type") == "text":
@@ -75,7 +78,7 @@ class AnthropicProvider(BaseLLMProvider):
                 latency_ms=latency_ms
             )
         except Exception as e:
-            raise RuntimeError(f"Anthropic API call failed: {e}")
+            raise RuntimeError(f"Anthropic API call failed: {e}") from e
 
     def generate_stream(self, prompt: str, config: LLMConfig) -> Iterator[LLMResponse]:
         yield self.generate(prompt, config)

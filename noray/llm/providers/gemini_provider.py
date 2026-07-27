@@ -3,14 +3,17 @@ NORAY — Gemini Provider Adapter
 """
 
 from __future__ import annotations
-import os
-import time
-import httpx
+
 import json
 import logging
-from typing import AsyncGenerator, List, Dict, Any, Optional
+import os
+import time
+from collections.abc import AsyncGenerator
+from typing import Any
 
-from noray.llm.providers.base_provider import BaseLLMProvider, LLMMessage, LLMConfig, LLMResponse
+import httpx
+
+from noray.llm.providers.base_provider import BaseLLMProvider, LLMConfig, LLMMessage, LLMResponse
 
 logger = logging.getLogger("noray.llm.gemini")
 
@@ -18,14 +21,14 @@ logger = logging.getLogger("noray.llm.gemini")
 class GeminiProvider(BaseLLMProvider):
     """Adapter targeting Google Gemini API endpoints."""
 
-    def __init__(self, api_key: Optional[str] = None):
+    def __init__(self, api_key: str | None = None):
         self.api_key = api_key or os.getenv("GEMINI_API_KEY", "")
         self.base_url = "https://generativelanguage.googleapis.com/v1beta/models"
 
     def health(self) -> bool:
         return bool(self.api_key)
 
-    def _convert_messages(self, messages: List[LLMMessage]) -> List[Dict[str, Any]]:
+    def _convert_messages(self, messages: list[LLMMessage]) -> list[dict[str, Any]]:
         converted = []
         for m in messages:
             # Gemini expects 'user' or 'model' role, and structure: {'role': 'user', 'parts': [{'text': '...'}]}
@@ -40,9 +43,9 @@ class GeminiProvider(BaseLLMProvider):
         # Gemini 1.5 Flash: $0.075/M input, $0.30/M output
         return (input_tokens * 0.000075 + output_tokens * 0.0003) / 1000
 
-    def generate(self, messages: List[LLMMessage], config: LLMConfig) -> LLMResponse:
+    def generate(self, messages: list[LLMMessage], config: LLMConfig) -> LLMResponse:
         start_time = time.time()
-        
+
         if not self.api_key:
             logger.warning("Gemini API key missing. Returning mock response.")
             return LLMResponse(
@@ -84,7 +87,7 @@ class GeminiProvider(BaseLLMProvider):
                 data = res.json()
 
             latency_ms = (time.time() - start_time) * 1000
-            
+
             candidates = data.get("candidates", [])
             content_text = ""
             if candidates:
@@ -109,11 +112,11 @@ class GeminiProvider(BaseLLMProvider):
             )
         except Exception as e:
             logger.error(f"Gemini API error: {e}")
-            raise RuntimeError(f"Gemini API execution failed: {e}")
+            raise RuntimeError(f"Gemini API execution failed: {e}") from e
 
-    async def stream(self, messages: List[LLMMessage], config: LLMConfig) -> AsyncGenerator[LLMResponse, None]:
+    async def stream(self, messages: list[LLMMessage], config: LLMConfig) -> AsyncGenerator[LLMResponse, None]:
         start_time = time.time()
-        
+
         if not self.api_key:
             yield LLMResponse(
                 content=f"[MOCK GEMINI STREAM] Answer to: {messages[-1].content}",
@@ -155,12 +158,12 @@ class GeminiProvider(BaseLLMProvider):
                         # Gemini returns SSE or raw JSON chunks in stream
                         if not line.strip():
                             continue
-                        
+
                         # Strip formatting wrappers if any
                         line_cleaned = line.strip().lstrip("[").rstrip(",").strip()
                         if line_cleaned == "]":
                             break
-                            
+
                         try:
                             chunk = json.loads(line_cleaned)
                             candidates = chunk.get("candidates", [])
@@ -178,9 +181,9 @@ class GeminiProvider(BaseLLMProvider):
                             continue
         except Exception as e:
             logger.error(f"Gemini streaming error: {e}")
-            raise RuntimeError(f"Gemini stream failed: {e}")
+            raise RuntimeError(f"Gemini stream failed: {e}") from e
 
-    def embeddings(self, text: str) -> List[float]:
+    def embeddings(self, text: str) -> list[float]:
         if not self.api_key:
             return [0.0] * 768
 
@@ -198,4 +201,4 @@ class GeminiProvider(BaseLLMProvider):
             return data["embedding"]["values"]
         except Exception as e:
             logger.error(f"Gemini Embeddings error: {e}")
-            raise RuntimeError(f"Gemini embeddings extraction failed: {e}")
+            raise RuntimeError(f"Gemini embeddings extraction failed: {e}") from e

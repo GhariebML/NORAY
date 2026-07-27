@@ -1,12 +1,12 @@
-import logging
 import asyncio
+import logging
 import re
 from abc import ABC, abstractmethod
-from typing import List, Dict, Any, Optional
+
 import httpx
 
-from noray.config import settings
 from noray.career_agent.job_search import JobPosting
+from noray.config import settings
 
 logger = logging.getLogger("noray.career_agent.providers")
 
@@ -20,7 +20,7 @@ class BaseJobProvider(ABC):
         pass
 
     @abstractmethod
-    async def search(self, query: str, location: str = "", limit: int = 20) -> List[JobPosting]:
+    async def search(self, query: str, location: str = "", limit: int = 20) -> list[JobPosting]:
         """Execute a search query on the provider and return normalized JobPostings."""
         pass
 
@@ -40,7 +40,7 @@ class RemoteOkProvider(BaseJobProvider):
     def is_configured(self) -> bool:
         return True
 
-    async def search(self, query: str, location: str = "", limit: int = 20) -> List[JobPosting]:
+    async def search(self, query: str, location: str = "", limit: int = 20) -> list[JobPosting]:
         url = "https://remoteok.com/api"
         # RemoteOK uses tags for search. We pass query as a tag parameter
         # and also filter positional descriptions locally if needed.
@@ -69,19 +69,19 @@ class RemoteOkProvider(BaseJobProvider):
 
                 # Skip the first element which is the RemoteOK legal warning / advertisement
                 job_items = data[1:]
-                jobs: List[JobPosting] = []
+                jobs: list[JobPosting] = []
 
                 for item in job_items:
                     if not isinstance(item, dict) or "position" not in item:
                         continue
-                    
+
                     title = item.get("position", "")
                     company = item.get("company", "")
                     job_url = item.get("url", "")
                     description = item.get("description", "")
                     loc = item.get("location", "") or "Remote"
                     posted_epoch = item.get("date")
-                    
+
                     posted_date = ""
                     if posted_epoch:
                         try:
@@ -127,7 +127,7 @@ class AdzunaProvider(BaseJobProvider):
     def is_configured(self) -> bool:
         return bool(settings.ADZUNA_APP_ID and settings.ADZUNA_APP_KEY)
 
-    async def search(self, query: str, location: str = "", limit: int = 20) -> List[JobPosting]:
+    async def search(self, query: str, location: str = "", limit: int = 20) -> list[JobPosting]:
         if not self.is_configured():
             logger.warning("[Adzuna] Provider is not configured. Missing credentials.")
             return []
@@ -167,7 +167,7 @@ class AdzunaProvider(BaseJobProvider):
 
                 data = response.json()
                 results = data.get("results", [])
-                jobs: List[JobPosting] = []
+                jobs: list[JobPosting] = []
 
                 for item in results:
                     title = re.sub(r"<[^>]*>", "", item.get("title", "")).strip()
@@ -176,7 +176,7 @@ class AdzunaProvider(BaseJobProvider):
                     job_url = item.get("redirect_url", "")
                     description = re.sub(r"<[^>]*>", "", item.get("description", "")).strip()
                     created = item.get("created", "")
-                    
+
                     posted_date = ""
                     if created:
                         posted_date = created.split("T")[0]
@@ -210,7 +210,7 @@ class SerpapiProvider(BaseJobProvider):
     def is_configured(self) -> bool:
         return bool(settings.SERPAPI_API_KEY)
 
-    async def search(self, query: str, location: str = "", limit: int = 20) -> List[JobPosting]:
+    async def search(self, query: str, location: str = "", limit: int = 20) -> list[JobPosting]:
         if not self.is_configured():
             logger.warning("[SerpAPI] Provider is not configured. Missing API Key.")
             return []
@@ -237,17 +237,17 @@ class SerpapiProvider(BaseJobProvider):
 
                 data = response.json()
                 results = data.get("jobs_results", [])
-                jobs: List[JobPosting] = []
+                jobs: list[JobPosting] = []
 
                 for item in results:
                     title = item.get("title", "")
                     company = item.get("company_name", "")
                     loc = item.get("location", "")
                     description = item.get("description", "")
-                    
+
                     # Google Jobs doesn't directly offer a single source URL, but has share_link
                     job_url = item.get("share_link", "") or item.get("related_links", [{}])[0].get("link", "")
-                    
+
                     # Estimate posted date from detected extensions
                     posted_date = ""
                     posted_at = item.get("detected_extensions", {}).get("posted_at", "")
@@ -284,7 +284,7 @@ class TavilyProvider(BaseJobProvider):
     def is_configured(self) -> bool:
         return bool(settings.TAVILY_API_KEY)
 
-    async def search(self, query: str, location: str = "", limit: int = 20) -> List[JobPosting]:
+    async def search(self, query: str, location: str = "", limit: int = 20) -> list[JobPosting]:
         if not self.is_configured():
             logger.warning("[Tavily] Provider is not configured. Missing API Key.")
             return []
@@ -311,7 +311,7 @@ class TavilyProvider(BaseJobProvider):
 
                 data = response.json()
                 results = data.get("results", [])
-                jobs: List[JobPosting] = []
+                jobs: list[JobPosting] = []
 
                 for item in results:
                     title_raw = item.get("title", "")
@@ -323,7 +323,7 @@ class TavilyProvider(BaseJobProvider):
                     greenhouse_match = re.search(r"greenhouse\.io/([^/]+)", job_url)
                     lever_match = re.search(r"lever\.co/([^/]+)", job_url)
                     ashby_match = re.search(r"ashbyhq\.com/([^/]+)", job_url)
-                    
+
                     if greenhouse_match:
                         company = greenhouse_match.group(1).capitalize()
                     elif lever_match:
@@ -372,7 +372,7 @@ class DanishPortalsProvider(BaseJobProvider):
                 return True
         return False
 
-    async def search(self, query: str, location: str = "", limit: int = 20) -> List[JobPosting]:
+    async def search(self, query: str, location: str = "", limit: int = 20) -> list[JobPosting]:
         from noray.career_agent.job_search import search_danish_portals
         # search_danish_portals is synchronous, run in threadpool
         loop = asyncio.get_running_loop()
@@ -393,7 +393,7 @@ class JobProviderRegistry:
     """Registry managing active job search providers."""
 
     def __init__(self):
-        self._providers: Dict[str, BaseJobProvider] = {}
+        self._providers: dict[str, BaseJobProvider] = {}
         # Pre-register initial providers in order
         self.register(RemoteOkProvider())
         self.register(AdzunaProvider())
@@ -406,11 +406,11 @@ class JobProviderRegistry:
         self._providers[provider.name] = provider
         logger.info(f"Registered job search provider: '{provider.name}'")
 
-    def get_provider(self, name: str) -> Optional[BaseJobProvider]:
+    def get_provider(self, name: str) -> BaseJobProvider | None:
         """Retrieve a specific provider by name."""
         return self._providers.get(name)
 
-    def get_active_providers(self) -> List[BaseJobProvider]:
+    def get_active_providers(self) -> list[BaseJobProvider]:
         """Return a list of all currently configured and active providers."""
         active = []
         for name, provider in self._providers.items():

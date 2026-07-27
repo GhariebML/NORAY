@@ -14,10 +14,10 @@ storage backend, allowing migration to Neo4j or Apache AGE without changing
 any calling code.
 """
 
-from noray.graph.base import BaseGraphStore, GraphNode, GraphEdge
-from noray.graph.postgres_store import PostgresGraphStore
+from noray.graph.base import BaseGraphStore, GraphEdge, GraphNode
 from noray.graph.extractor import EntityRelationExtractor
 from noray.graph.graph_rag import GraphRAGFuser
+from noray.graph.postgres_store import PostgresGraphStore
 
 __all__ = [
     "BaseGraphStore",

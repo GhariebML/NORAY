@@ -6,9 +6,11 @@ swapped for Celery/Temporal in future distributed phases.
 """
 
 import asyncio
-from typing import Dict, Any, Callable, Awaitable
-from datetime import datetime
 import uuid
+from collections.abc import Awaitable, Callable
+from datetime import datetime
+from typing import Any
+
 
 class TaskState:
     PENDING = "pending"
@@ -18,7 +20,7 @@ class TaskState:
     FAILED = "failed"
 
 class AsyncTaskRecord:
-    def __init__(self, name: str, payload: Dict[str, Any]):
+    def __init__(self, name: str, payload: dict[str, Any]):
         self.task_id = str(uuid.uuid4())
         self.name = name
         self.payload = payload
@@ -31,19 +33,19 @@ class AsyncTaskRecord:
 class TaskRunner:
     def __init__(self):
         self._queue: asyncio.Queue[AsyncTaskRecord] = asyncio.Queue()
-        self._tasks_db: Dict[str, AsyncTaskRecord] = {}
-        self._handlers: Dict[str, Callable[[Dict[str, Any]], Awaitable[Any]]] = {}
-        self._workers: List[asyncio.Task] = []
+        self._tasks_db: dict[str, AsyncTaskRecord] = {}
+        self._handlers: dict[str, Callable[[dict[str, Any]], Awaitable[Any]]] = {}
+        self._workers: list[asyncio.Task] = []
 
-    def register_handler(self, name: str, handler: Callable[[Dict[str, Any]], Awaitable[Any]]):
+    def register_handler(self, name: str, handler: Callable[[dict[str, Any]], Awaitable[Any]]):
         self._handlers[name] = handler
 
-    async def enqueue(self, name: str, payload: Dict[str, Any]) -> str:
+    async def enqueue(self, name: str, payload: dict[str, Any]) -> str:
         record = AsyncTaskRecord(name, payload)
         self._tasks_db[record.task_id] = record
         await self._queue.put(record)
         return record.task_id
-        
+
     def get_status(self, task_id: str) -> AsyncTaskRecord:
         return self._tasks_db.get(task_id)
 
@@ -53,7 +55,7 @@ class TaskRunner:
             try:
                 record.state = TaskState.RUNNING
                 record.updated_at = datetime.utcnow()
-                
+
                 handler = self._handlers.get(record.name)
                 if handler:
                     result = await handler(record.payload)
@@ -72,7 +74,7 @@ class TaskRunner:
         for _ in range(concurrency):
             task = asyncio.create_task(self._worker())
             self._workers.append(task)
-            
+
     async def stop_workers(self):
         await self._queue.join()
         for task in self._workers:

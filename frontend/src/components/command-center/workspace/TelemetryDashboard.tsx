@@ -1,5 +1,5 @@
-import { Activity, Cpu, Network } from 'lucide-react';
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
+import { Activity } from 'lucide-react';
+import { LineChart, Line, XAxis, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
 
 const dummyData = [
   { time: '10:00', latency: 450, tokens: 1200 },

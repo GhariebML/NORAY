@@ -9,7 +9,6 @@ import {
   ChevronDown,
   Database,
   Cpu,
-  Layers,
   Sparkles,
 } from "lucide-react";
 

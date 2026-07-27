@@ -5,14 +5,13 @@ Track scholarship applications, deadlines, statuses, and outcomes.
 """
 
 from __future__ import annotations
+
 import json
-from pathlib import Path
-from datetime import datetime, timedelta
-from typing import Any
 from dataclasses import dataclass, field
+from datetime import datetime, timezone
+from typing import Any
 
 from noray.config import DATA_DIR
-
 
 TRACKER_PATH = DATA_DIR / "scholarship_applications.json"
 
@@ -59,7 +58,7 @@ def save_applications(applications: list[ScholarshipApplication]) -> None:
     """Save scholarship applications to disk."""
     DATA_DIR.mkdir(parents=True, exist_ok=True)
     data = {
-        "updated_at": datetime.utcnow().isoformat(),
+        "updated_at": datetime.now(timezone.utc).isoformat(),
         "count": len(applications),
         "applications": [_serialize(app) for app in applications],
     }
@@ -70,9 +69,9 @@ def add_application(application: ScholarshipApplication) -> ScholarshipApplicati
     """Add a new scholarship application."""
     applications = load_applications()
     application.id = f"sch_{len(applications) + 1:04d}"
-    application.last_updated = datetime.utcnow().isoformat()
+    application.last_updated = datetime.now(timezone.utc).isoformat()
     if not application.applied_date:
-        application.applied_date = datetime.utcnow().strftime("%Y-%m-%d")
+        application.applied_date = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     applications.append(application)
     save_applications(applications)
     return application
@@ -86,7 +85,7 @@ def update_application(app_id: str, updates: dict[str, Any]) -> ScholarshipAppli
             for key, value in updates.items():
                 if hasattr(app, key):
                     setattr(app, key, value)
-            app.last_updated = datetime.utcnow().isoformat()
+            app.last_updated = datetime.now(timezone.utc).isoformat()
             save_applications(applications)
             return app
     return None
@@ -132,12 +131,12 @@ def get_upcoming_deadlines(days: int = 30) -> list[ScholarshipApplication]:
     """Get scholarships with deadlines in the next N days."""
     applications = load_applications()
     upcoming = []
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
 
     for app in applications:
         if app.deadline and app.status in ("discovered", "preparing"):
             try:
-                deadline = datetime.strptime(app.deadline, "%Y-%m-%d")
+                deadline = datetime.strptime(app.deadline, "%Y-%m-%d").replace(tzinfo=timezone.utc)
                 delta = (deadline - now).days
                 if 0 <= delta <= days:
                     upcoming.append(app)

@@ -5,8 +5,10 @@ Stores user interactions (ratings, clicks, corrected answers, ignored sources)
 to enable self-improving retrieval optimization loops.
 """
 
-from sqlalchemy import Column, String, Float, Text, Integer, DateTime, JSON, func
+from sqlalchemy import JSON, Column, DateTime, Float, Integer, String, Text, func
+
 from noray.database import Base
+
 
 class FeedbackModel(Base):
     """Stores user ratings, click-through actions, and correction notes for LLM answers."""

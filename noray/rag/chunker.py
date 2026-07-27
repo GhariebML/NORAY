@@ -1,8 +1,9 @@
 import re
-from typing import List, Dict, Any, Optional
+from typing import Any
+
 
 class BaseChunker:
-    def chunk(self, text: str) -> List[str]:
+    def chunk(self, text: str) -> list[str]:
         raise NotImplementedError
 
 class RecursiveCharacterChunker(BaseChunker):
@@ -12,18 +13,18 @@ class RecursiveCharacterChunker(BaseChunker):
         self.chunk_overlap = chunk_overlap
         self.delimiters = ["\n\n", "\n", ". ", " ", ""]
 
-    def chunk(self, text: str) -> List[str]:
+    def chunk(self, text: str) -> list[str]:
         return self._split_text(text, self.delimiters)
 
-    def _split_text(self, text: str, separators: List[str]) -> List[str]:
+    def _split_text(self, text: str, separators: list[str]) -> list[str]:
         final_chunks = []
         # Get the first separator to try
         if not separators:
             return [text]
-        
+
         separator = separators[0]
         next_separators = separators[1:]
-        
+
         # Split text by separator
         if separator:
             splits = text.split(separator)
@@ -32,7 +33,7 @@ class RecursiveCharacterChunker(BaseChunker):
 
         current_doc = []
         current_len = 0
-        
+
         for s in splits:
             s_len = len(s)
             if current_len + s_len > self.chunk_size:
@@ -43,7 +44,7 @@ class RecursiveCharacterChunker(BaseChunker):
                         final_chunks.extend(self._split_text(joined, next_separators))
                     else:
                         final_chunks.append(joined)
-                    
+
                     # Manage overlap: Keep last elements of current doc that fit within overlap limit
                     overlap_doc = []
                     overlap_len = 0
@@ -71,7 +72,7 @@ class MarkdownChunker(BaseChunker):
     def __init__(self, chunk_size: int = 1500):
         self.chunk_size = chunk_size
 
-    def chunk(self, text: str) -> List[str]:
+    def chunk(self, text: str) -> list[str]:
         # Split by markdown headers
         lines = text.split("\n")
         chunks = []
@@ -85,7 +86,7 @@ class MarkdownChunker(BaseChunker):
                     chunks.append("\n".join(current_chunk))
                     current_chunk = []
                     current_len = 0
-            
+
             line_len = len(line)
             if current_len + line_len > self.chunk_size and current_chunk:
                 chunks.append("\n".join(current_chunk))
@@ -106,7 +107,7 @@ class CodeChunker(BaseChunker):
     def __init__(self, chunk_size: int = 1200):
         self.chunk_size = chunk_size
 
-    def chunk(self, text: str) -> List[str]:
+    def chunk(self, text: str) -> list[str]:
         # Simple logical splitting for Python/JS by class/def block matching
         lines = text.split("\n")
         chunks = []
@@ -120,7 +121,7 @@ class CodeChunker(BaseChunker):
                     chunks.append("\n".join(current_chunk))
                     current_chunk = []
                     current_len = 0
-            
+
             line_len = len(line)
             if current_len + line_len > self.chunk_size and current_chunk:
                 chunks.append("\n".join(current_chunk))
@@ -143,11 +144,11 @@ class SemanticChunker(BaseChunker):
         self.threshold_percentile = threshold_percentile
         self.fallback_chunker = RecursiveCharacterChunker(chunk_size=800, chunk_overlap=150)
 
-    def chunk(self, text: str) -> List[str]:
+    def chunk(self, text: str) -> list[str]:
         # Split into sentences using a regex (handles punctuation and spacing)
         sentences = re.split(r"(?<=[.!?])\s+", text)
         sentences = [s.strip() for s in sentences if s.strip()]
-        
+
         if len(sentences) <= 1:
             return sentences
 
@@ -158,7 +159,7 @@ class SemanticChunker(BaseChunker):
         try:
             # Generate embeddings for each sentence
             embeddings = self.embedding_model.embed(sentences)
-            
+
             # Compute cosine similarities between consecutive sentences
             import numpy as np
             similarities = []
@@ -177,12 +178,12 @@ class SemanticChunker(BaseChunker):
             distances = [1.0 - s for s in similarities]
             if not distances:
                 return [text]
-                
+
             threshold = float(np.percentile(distances, self.threshold_percentile))
 
             chunks = []
             current_chunk = [sentences[0]]
-            
+
             for i, distance in enumerate(distances):
                 sentence = sentences[i + 1]
                 if distance > threshold:
@@ -201,10 +202,10 @@ class SemanticChunker(BaseChunker):
             return self.fallback_chunker.chunk(text)
 
 
-def select_and_chunk(text: str, filename: str, embedding_model=None) -> List[Dict[str, Any]]:
+def select_and_chunk(text: str, filename: str, embedding_model=None) -> list[dict[str, Any]]:
     """Automatically selects the best chunking strategy based on file type."""
     ext = filename.split(".")[-1].lower()
-    
+
     if ext in ["md", "markdown"]:
         chunker = MarkdownChunker()
         strategy = "markdown"
@@ -219,7 +220,7 @@ def select_and_chunk(text: str, filename: str, embedding_model=None) -> List[Dic
         strategy = "recursive"
 
     chunk_strings = chunker.chunk(text)
-    
+
     # Format chunks with indexing metadata
     result = []
     for idx, content in enumerate(chunk_strings):

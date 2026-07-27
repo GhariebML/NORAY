@@ -4,18 +4,19 @@ Provides high-performance compressed caching with fallback to in-memory storage 
 """
 
 from __future__ import annotations
-import os
+
 import json
-import zlib
 import logging
-from typing import Any, Optional
+import os
+import zlib
+from typing import Any
 
 logger = logging.getLogger("noray.cache")
 
 
 class RedisCache:
     """Redis-backed Cache with support for namespace, TTL, compression and offline fallback."""
-    
+
     def __init__(self, namespace: str = "noray", host: str = "localhost", port: int = 6379, db: int = 0):
         self.namespace = namespace
         self.host = host
@@ -42,7 +43,7 @@ class RedisCache:
     def _get_key(self, key: str) -> str:
         return f"{self.namespace}:{key}"
 
-    def get(self, key: str) -> Optional[Any]:
+    def get(self, key: str) -> Any | None:
         full_key = self._get_key(key)
         if self.client:
             try:
@@ -50,33 +51,33 @@ class RedisCache:
                 if data is None:
                     self.metrics["misses"] += 1
                     return None
-                
+
                 # Decompress
                 try:
                     decompressed = zlib.decompress(data).decode('utf-8')
                     value = json.loads(decompressed)
                 except Exception:
                     value = json.loads(data.decode('utf-8'))
-                
+
                 self.metrics["hits"] += 1
                 return value
             except Exception as e:
                 self.metrics["errors"] += 1
                 logger.error(f"Redis get error: {e}")
-        
+
         # Fallback
         if key in self._fallback_cache:
             self.metrics["hits"] += 1
             return self._fallback_cache[key]
-        
+
         self.metrics["misses"] += 1
         return None
 
-    def set(self, key: str, value: Any, ttl: Optional[int] = None) -> bool:
+    def set(self, key: str, value: Any, ttl: int | None = None) -> bool:
         full_key = self._get_key(key)
         serialized = json.dumps(value)
         compressed = zlib.compress(serialized.encode('utf-8'))
-        
+
         if self.client:
             try:
                 self.client.set(full_key, compressed, ex=ttl)
@@ -84,7 +85,7 @@ class RedisCache:
             except Exception as e:
                 self.metrics["errors"] += 1
                 logger.error(f"Redis set error: {e}")
-        
+
         self._fallback_cache[key] = value
         return True
 
@@ -97,7 +98,7 @@ class RedisCache:
             except Exception as e:
                 self.metrics["errors"] += 1
                 logger.error(f"Redis delete error: {e}")
-        
+
         if key in self._fallback_cache:
             del self._fallback_cache[key]
         return True

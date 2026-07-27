@@ -4,24 +4,25 @@ Formats raw text into structured envelopes containing markdown, citations, confi
 """
 
 from __future__ import annotations
+
 import logging
-from typing import Dict, Any, List, Optional
+from typing import Any
 
 logger = logging.getLogger("noray.llm.response")
 
 
 class ResponseBuilder:
     """Aggregates LLM outputs with traces, confidence, artifacts, and actions into structured JSON responses."""
-    
+
     @staticmethod
     def build_structured_response(
         raw_content: str,
-        citations: Optional[List[Dict[str, Any]]] = None,
+        citations: list[dict[str, Any]] | None = None,
         confidence_score: float = 0.95,
-        reasoning_steps: Optional[List[str]] = None,
-        suggested_actions: Optional[List[str]] = None,
-        generated_artifacts: Optional[List[Dict[str, Any]]] = None
-    ) -> Dict[str, Any]:
+        reasoning_steps: list[str] | None = None,
+        suggested_actions: list[str] | None = None,
+        generated_artifacts: list[dict[str, Any]] | None = None
+    ) -> dict[str, Any]:
         """
         Synthesizes markdown headings, metadata blocks, source lists and suggestions.
         """
@@ -39,7 +40,7 @@ class ResponseBuilder:
         citations_md = ""
         if citations:
             citations_md = "\n\n### Sources & Citations\n" + "\n".join(
-                [f"- [{i+1}] {c.get('source', 'Unknown')} (Relevance: {c.get('score', 0.0):.2f})" 
+                [f"- [{i+1}] {c.get('source', 'Unknown')} (Relevance: {c.get('score', 0.0):.2f})"
                  for i, c in enumerate(citations)]
             )
 
@@ -60,15 +61,15 @@ class ResponseBuilder:
             "suggested_actions": suggested_actions or [],
             "generated_artifacts": generated_artifacts or []
         }
-    
+
     @staticmethod
-    def format_job_match(score: int, title: str, company: str, missing_skills: List[str], generated_cv: bool = False, generated_cl: bool = False) -> str:
+    def format_job_match(score: int, title: str, company: str, missing_skills: list[str], generated_cv: bool = False, generated_cl: bool = False) -> str:
         """Helper to create a beautiful structured job match evaluation report in markdown."""
         cv_status = "✅ Generated (Ready for download)" if generated_cv else "❌ Missing"
         cl_status = "✅ Generated (Ready for download)" if generated_cl else "❌ Missing"
-        
+
         skills_md = ", ".join([f"`{s}`" for s in missing_skills]) if missing_skills else "*None! Perfect match.*"
-        
+
         return f"""
 # Job Match Evaluation
 ### **{title}** at **{company}**

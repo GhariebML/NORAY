@@ -9,10 +9,8 @@ import {
   FileText,
   Brain,
   BarChart3,
-  Settings,
   X,
   Plus,
-  Activity,
   Layers,
 } from "lucide-react";
 

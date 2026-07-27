@@ -1,6 +1,8 @@
 import re
-from typing import List, Dict, Any, Optional
-from noray.shared.llm_utils import call_llm, LLMConfig
+from typing import Any
+
+from noray.shared.llm_utils import LLMConfig, call_llm
+
 
 class QueryProcessor:
     """Handles query understanding: intent classification, query expansion, HyDE document generation, and filter extraction."""
@@ -10,7 +12,7 @@ class QueryProcessor:
     def classify_intent(self, query: str) -> str:
         """Classifies user query intent: career, scholarship, documents, or general."""
         query_lower = query.lower()
-        
+
         # Simple rule-based classification as primary/fallback
         if any(w in query_lower for w in ["job", "vacancy", "career", "salary", "interview", "hiring", "company", "cv", "resume", "ats"]):
             return "career"
@@ -18,7 +20,7 @@ class QueryProcessor:
             return "scholarship"
         elif any(w in query_lower for w in ["document", "upload", "ingest", "file", "pdf", "docx", "markdown", "index", "knowledge"]):
             return "documents"
-        
+
         if not self.use_llm:
             return "general"
 
@@ -35,10 +37,10 @@ class QueryProcessor:
                 return intent
         except Exception:
             pass
-        
+
         return "general"
 
-    def expand_query(self, query: str, num_queries: int = 3) -> List[str]:
+    def expand_query(self, query: str, num_queries: int = 3) -> list[str]:
         """Generates alternative phrasings of the input query to improve retrieval recall."""
         queries = [query]
         if not self.use_llm:
@@ -58,7 +60,7 @@ class QueryProcessor:
                     queries.append(cleaned)
         except Exception:
             pass
-            
+
         return list(set(queries))[:num_queries + 1]
 
     def generate_hyde_doc(self, query: str) -> str:
@@ -77,7 +79,7 @@ class QueryProcessor:
         except Exception:
             return query
 
-    def extract_metadata_filters(self, query: str) -> Dict[str, Any]:
+    def extract_metadata_filters(self, query: str) -> dict[str, Any]:
         """Extracts known filter fields from the query text (e.g. countries, degrees)."""
         filters = {}
         query_lower = query.lower()

@@ -25,17 +25,15 @@ from __future__ import annotations
 
 import json
 import re
-import uuid
-from typing import Any, Dict, List, Optional, Set, Tuple
+from typing import Any
 
-from noray.graph.base import GraphNode, GraphEdge, ENTITY_TYPES, RELATIONSHIP_TYPES
-
+from noray.graph.base import ENTITY_TYPES, RELATIONSHIP_TYPES, GraphEdge, GraphNode
 
 # ---------------------------------------------------------------------------
 # Entity Alias Normalization Map
 # ---------------------------------------------------------------------------
 
-_ENTITY_ALIASES: Dict[str, Tuple[str, str]] = {
+_ENTITY_ALIASES: dict[str, tuple[str, str]] = {
     # (normalized_name, entity_type)
     "ml": ("Machine Learning", "Skill"),
     "machine learning": ("Machine Learning", "Skill"),
@@ -111,7 +109,7 @@ class EntityRelationExtractor:
     def __init__(
         self,
         use_llm: bool = True,
-        alias_map: Optional[Dict[str, Tuple[str, str]]] = None,
+        alias_map: dict[str, tuple[str, str]] | None = None,
     ):
         self.use_llm = use_llm
         self.alias_map = alias_map or _ENTITY_ALIASES
@@ -120,9 +118,9 @@ class EntityRelationExtractor:
         self,
         text: str,
         *,
-        source_document_id: Optional[str] = None,
-        metadata: Optional[Dict[str, Any]] = None,
-    ) -> Tuple[List[GraphNode], List[GraphEdge]]:
+        source_document_id: str | None = None,
+        metadata: dict[str, Any] | None = None,
+    ) -> tuple[list[GraphNode], list[GraphEdge]]:
         """Extract entities and relationships from text.
 
         Args:
@@ -134,8 +132,8 @@ class EntityRelationExtractor:
         Returns:
             Tuple of (nodes, edges) ready for persistence.
         """
-        nodes: Dict[str, GraphNode] = {}  # keyed by normalized name
-        edges: List[GraphEdge] = []
+        nodes: dict[str, GraphNode] = {}  # keyed by normalized name
+        edges: list[GraphEdge] = []
 
         # --- Phase 1: Rule-based extraction ---
         rule_nodes = self._extract_rules(text)
@@ -166,9 +164,9 @@ class EntityRelationExtractor:
 
         return list(nodes.values()), edges
 
-    def _extract_rules(self, text: str) -> List[GraphNode]:
+    def _extract_rules(self, text: str) -> list[GraphNode]:
         """Fast rule-based entity extraction."""
-        found: Dict[str, GraphNode] = {}
+        found: dict[str, GraphNode] = {}
         text_lower = text.lower()
 
         # Alias map matching
@@ -196,10 +194,10 @@ class EntityRelationExtractor:
 
         return list(found.values())
 
-    def _extract_llm(self, text: str) -> Tuple[List[GraphNode], List[GraphEdge]]:
+    def _extract_llm(self, text: str) -> tuple[list[GraphNode], list[GraphEdge]]:
         """LLM-assisted entity and relation extraction."""
         try:
-            from noray.shared.llm_utils import call_llm, LLMConfig
+            from noray.shared.llm_utils import LLMConfig, call_llm
 
             prompt = (
                 "Extract structured entities and relationships from the following text.\n\n"
@@ -225,11 +223,11 @@ class EntityRelationExtractor:
 
     def _parse_llm_response(
         self, response_text: str
-    ) -> Tuple[List[GraphNode], List[GraphEdge]]:
+    ) -> tuple[list[GraphNode], list[GraphEdge]]:
         """Parse LLM JSON response into domain objects."""
-        nodes: List[GraphNode] = []
-        edges: List[GraphEdge] = []
-        name_to_id: Dict[str, str] = {}
+        nodes: list[GraphNode] = []
+        edges: list[GraphEdge] = []
+        name_to_id: dict[str, str] = {}
 
         try:
             # Extract JSON from response (handle markdown code blocks)

@@ -3,14 +3,17 @@ NORAY — Together AI Provider Adapter
 """
 
 from __future__ import annotations
-import os
-import time
-import httpx
+
 import json
 import logging
-from typing import AsyncGenerator, List, Dict, Any, Optional
+import os
+import time
+from collections.abc import AsyncGenerator
+from typing import Any
 
-from noray.llm.providers.base_provider import BaseLLMProvider, LLMMessage, LLMConfig, LLMResponse
+import httpx
+
+from noray.llm.providers.base_provider import BaseLLMProvider, LLMConfig, LLMMessage, LLMResponse
 
 logger = logging.getLogger("noray.llm.together")
 
@@ -18,14 +21,14 @@ logger = logging.getLogger("noray.llm.together")
 class TogetherProvider(BaseLLMProvider):
     """Adapter targeting Together AI endpoints."""
 
-    def __init__(self, api_key: Optional[str] = None):
+    def __init__(self, api_key: str | None = None):
         self.api_key = api_key or os.getenv("TOGETHER_API_KEY", "")
         self.base_url = "https://api.together.xyz/v1"
 
     def health(self) -> bool:
         return bool(self.api_key)
 
-    def _convert_messages(self, messages: List[LLMMessage]) -> List[Dict[str, Any]]:
+    def _convert_messages(self, messages: list[LLMMessage]) -> list[dict[str, Any]]:
         converted = []
         for m in messages:
             msg = {"role": m.role, "content": m.content}
@@ -36,9 +39,9 @@ class TogetherProvider(BaseLLMProvider):
         # Standard Together Llama-3-70B cost: $0.70/M input/output
         return (input_tokens + output_tokens) * 0.0000007
 
-    def generate(self, messages: List[LLMMessage], config: LLMConfig) -> LLMResponse:
+    def generate(self, messages: list[LLMMessage], config: LLMConfig) -> LLMResponse:
         start_time = time.time()
-        
+
         if not self.api_key:
             logger.warning("Together AI API key missing. Returning mock response.")
             return LLMResponse(
@@ -84,11 +87,11 @@ class TogetherProvider(BaseLLMProvider):
             )
         except Exception as e:
             logger.error(f"Together AI API error: {e}")
-            raise RuntimeError(f"Together AI API execution failed: {e}")
+            raise RuntimeError(f"Together AI API execution failed: {e}") from e
 
-    async def stream(self, messages: List[LLMMessage], config: LLMConfig) -> AsyncGenerator[LLMResponse, None]:
+    async def stream(self, messages: list[LLMMessage], config: LLMConfig) -> AsyncGenerator[LLMResponse, None]:
         start_time = time.time()
-        
+
         if not self.api_key:
             yield LLMResponse(
                 content=f"[MOCK TOGETHER STREAM] Answer to: {messages[-1].content}",
@@ -122,13 +125,13 @@ class TogetherProvider(BaseLLMProvider):
                         line_content = line[6:].strip()
                         if line_content == "[DONE]":
                             break
-                        
+
                         try:
                             chunk = json.loads(line_content)
                             choice = chunk["choices"][0]
                             delta = choice.get("delta", {})
                             content_piece = delta.get("content", "")
-                            
+
                             yield LLMResponse(
                                 content=content_piece,
                                 model=config.model,
@@ -139,7 +142,7 @@ class TogetherProvider(BaseLLMProvider):
                             continue
         except Exception as e:
             logger.error(f"Together AI streaming error: {e}")
-            raise RuntimeError(f"Together AI stream failed: {e}")
+            raise RuntimeError(f"Together AI stream failed: {e}") from e
 
-    def embeddings(self, text: str) -> List[float]:
+    def embeddings(self, text: str) -> list[float]:
         return [0.0] * 384

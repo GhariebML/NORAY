@@ -3,20 +3,13 @@
 import { useState, useEffect } from "react";
 import { 
   Activity, 
-  Database, 
   Cpu, 
-  Network, 
-  Key, 
   CheckCircle, 
   XCircle, 
   AlertTriangle,
   RefreshCw,
   Coins,
-  Clock,
-  Compass,
-  FileCode,
   Layers,
-  HardDrive,
   Download
 } from "lucide-react";
 import { PageHeader, Card, Button, Badge } from "@/components/ui";

@@ -5,9 +5,11 @@ Intercepts agent actions to enforce safety, permissions, and risk assessments.
 Routes sensitive actions to the HITL manager.
 """
 
-from typing import Dict, Any, List
-from noray.services.hitl import HITLManager
 import re
+from typing import Any
+
+from noray.services.hitl import HITLManager
+
 
 class PolicyViolation(Exception):
     pass
@@ -15,20 +17,20 @@ class PolicyViolation(Exception):
 class GovernanceEngine:
     def __init__(self, hitl_manager: HITLManager):
         self.hitl = hitl_manager
-        
-    async def intercept_action(self, task_id: str, agent_id: str, action: str, payload: Dict[str, Any]) -> bool:
+
+    async def intercept_action(self, task_id: str, agent_id: str, action: str, payload: dict[str, Any]) -> bool:
         """
         1. Permission Validation
         2. Risk Assessment
         3. PII Detection
         4. HITL Approval routing
         """
-        
+
         # PII Detection (Basic mock)
         if self._contains_pii(str(payload)):
             # Flagged as sensitive
             pass
-            
+
         # Risk Assessment
         sensitive_actions = ["send_email", "delete_file", "apply_job", "submit_application"]
         if action in sensitive_actions:
@@ -41,7 +43,7 @@ class GovernanceEngine:
             )
             if not approved:
                 raise PolicyViolation(f"Action '{action}' was rejected by the user.")
-        
+
         return True
 
     def _contains_pii(self, text: str) -> bool:

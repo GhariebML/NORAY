@@ -1,5 +1,7 @@
 from typing import Any
-from noray.intelligence.core import IAgent, AgentMetadata
+
+from noray.intelligence.core import AgentMetadata, IAgent
+
 
 class CareerAgent(IAgent):
     def get_metadata(self) -> AgentMetadata:

@@ -20,7 +20,7 @@ dev-db:
 
 dev-backend:
 	@echo "Starting FastAPI backend..."
-	@uvicorn api.main:app --reload --port 8000
+	@uvicorn noray.api.app:app --reload --port 8001
 
 dev-frontend:
 	@echo "Starting Next.js frontend..."

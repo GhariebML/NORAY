@@ -6,8 +6,8 @@ Provides structured templates based on the relationship type and tone.
 """
 
 from __future__ import annotations
+
 from dataclasses import dataclass, field
-from typing import Any
 
 from noray.shared.models import CareerProfile
 
@@ -238,20 +238,20 @@ def _build_character_traits(profile: CareerProfile, tone: str) -> str:
 
     if tone == "academic_supervisor":
         parts.append(
-            f"\n[FILL IN: Personal qualities observed in an academic setting. "
-            f"Intellectual curiosity, perseverance, ability to handle challenges, "
-            f"collaboration with peers, initiative in research.]"
+            "\n[FILL IN: Personal qualities observed in an academic setting. "
+            "Intellectual curiosity, perseverance, ability to handle challenges, "
+            "collaboration with peers, initiative in research.]"
         )
     elif tone == "employer":
         parts.append(
-            f"\n[FILL IN: Workplace qualities. Leadership potential, teamwork, "
-            f"communication skills, reliability, ability to work under pressure, "
-            f"adaptability to new challenges.]"
+            "\n[FILL IN: Workplace qualities. Leadership potential, teamwork, "
+            "communication skills, reliability, ability to work under pressure, "
+            "adaptability to new challenges.]"
         )
     else:
         parts.append(
-            f"\n[FILL IN: Personal qualities you've observed. Integrity, "
-            f"work ethic, interpersonal skills, contributions to team dynamics.]"
+            "\n[FILL IN: Personal qualities you've observed. Integrity, "
+            "work ethic, interpersonal skills, contributions to team dynamics.]"
         )
 
     return " ".join(parts)

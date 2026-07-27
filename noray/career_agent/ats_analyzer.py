@@ -7,8 +7,8 @@ Integrates with the career profile for personalized recommendations.
 """
 
 from __future__ import annotations
+
 import re
-from pathlib import Path
 from dataclasses import dataclass, field
 
 from noray.config import ATS_SECTION_HEADERS
@@ -126,8 +126,8 @@ def generate_optimization_report(score: ATSScore) -> str:
 
     # Score breakdown
     lines.append("## Score Breakdown")
-    lines.append(f"| Category | Score |")
-    lines.append(f"|----------|-------|")
+    lines.append("| Category | Score |")
+    lines.append("|----------|-------|")
     lines.append(f"| Formatting | {score.formatting_score}/100 |")
     lines.append(f"| Structure | {score.structure_score}/100 |")
     lines.append(f"| Keywords | {score.keyword_score}/100 |")

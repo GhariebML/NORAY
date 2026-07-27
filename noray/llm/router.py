@@ -1,6 +1,6 @@
-import os
 import logging
-from typing import List, Tuple, Optional, Dict
+import os
+
 from pydantic import BaseModel
 
 logger = logging.getLogger("noray.llm.router")
@@ -50,7 +50,7 @@ class ModelRouter:
             return bool(settings.TOGETHER_API_KEY)
         return False
 
-    def get_policy_weights(self, policy: str) -> Dict[str, float]:
+    def get_policy_weights(self, policy: str) -> dict[str, float]:
         """Get weights coefficient for model scoring according to routing policy."""
         # Defaults to balanced
         weights = {
@@ -115,14 +115,14 @@ class ModelRouter:
             }
         return weights
 
-    def route(self, req: ModelRouteRequest) -> Tuple[str, str, List[Tuple[str, str]], float]:
+    def route(self, req: ModelRouteRequest) -> tuple[str, str, list[tuple[str, str]], float]:
         """
         Dynamically route and prioritize cloud, local and premium providers.
         Returns:
             Tuple of (model_name, provider_name, fallback_chain, confidence_score)
         """
         from noray.llm.model_registry import model_registry
-        
+
         forced_provider = os.getenv("AI_PROVIDER", "auto").lower().strip()
         policy = os.getenv("AI_ROUTING_POLICY", "balanced").lower().strip()
 
@@ -140,11 +140,11 @@ class ModelRouter:
 
         for m in all_registered_models:
             provider = m.provider.lower()
-            
+
             # Skip if not configured
             if not self.is_provider_configured(provider):
                 continue
-                
+
             # Filter based on forced provider
             if forced_provider != "auto" and provider != forced_provider:
                 continue
@@ -152,7 +152,7 @@ class ModelRouter:
             # Context window compatibility
             if m.context_window < req.required_context_length:
                 continue
-                
+
             # Tools capability
             if req.requires_tools and not m.supports_tools:
                 continue

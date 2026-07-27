@@ -6,9 +6,10 @@ skill gap trends, and pipeline conversion rates.
 """
 
 from __future__ import annotations
-from typing import Any
-from datetime import datetime, timedelta
+
 from dataclasses import dataclass, field
+from datetime import datetime, timedelta
+from typing import Any
 
 from noray.dashboard.jobs import load_applications as load_jobs
 from noray.dashboard.scholarships import load_applications as load_scholarships

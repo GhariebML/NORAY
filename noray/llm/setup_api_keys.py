@@ -1,8 +1,7 @@
-import os
-import sys
-import webbrowser
 import logging
-from typing import Dict
+import os
+import webbrowser
+from typing import Any
 
 logger = logging.getLogger("noray.llm.setup_api_keys")
 
@@ -55,12 +54,12 @@ def update_env_file(var_name: str, value: str):
     """Write or update value in local .env file securely."""
     env_path = ".env"
     lines = []
-    
+
     # Read existing
     if os.path.exists(env_path):
-        with open(env_path, "r") as f:
+        with open(env_path) as f:
             lines = f.readlines()
-            
+
     updated = False
     new_lines = []
     for line in lines:
@@ -69,13 +68,13 @@ def update_env_file(var_name: str, value: str):
             updated = True
         else:
             new_lines.append(line)
-            
+
     if not updated:
         # Append newline if last line doesn't end with one
         if new_lines and not new_lines[-1].endswith("\n"):
             new_lines.append("\n")
         new_lines.append(f"{var_name}={value}\n")
-        
+
     with open(env_path, "w") as f:
         f.writelines(new_lines)
     os.environ[var_name] = value
@@ -88,17 +87,17 @@ def test_key_health(provider_name: str, key: str) -> bool:
         # For gemini, we instantiate it
         provider_name_lower = provider_name.lower().strip()
         provider = LLMProviderFactory.get_provider(provider_name_lower)
-        
+
         # Override key temporarily for checking
         original_key = getattr(provider, "api_key", None)
         provider.api_key = key
-        
+
         healthy = provider.health()
-        
+
         # Restore key
         if original_key is not None:
             provider.api_key = original_key
-            
+
         return healthy
     except Exception:
         return False
@@ -111,12 +110,12 @@ def run_setup_wizard():
     print("to create keys, paste them below to configure your hybrid workspace.")
     print("-" * 60)
 
-    results: Dict[str, Dict[str, Any]] = {}
+    results: dict[str, dict[str, Any]] = {}
 
     for name, info in PORTALS.items():
         print(f"\n[+] Provider: {info['name']}")
         current_val = os.getenv(info["env_var"], "")
-        
+
         if current_val:
             print(f"    Current key: {mask_key(current_val)}")
             change = input("    Key already exists. Do you want to update it? (y/N): ").strip().lower()
@@ -126,17 +125,17 @@ def run_setup_wizard():
 
         print(f"    Opening browser to: {info['url']}")
         webbrowser.open(info["url"])
-        
+
         key = input(f"    Please paste the generated {info['name']} API key here (press Enter to skip): ").strip()
-        
+
         if key:
             update_env_file(info["env_var"], key)
             print(f"    Key saved to .env: {mask_key(key)}")
-            
+
             # Verify immediately
             print("    Testing connection health...")
             is_healthy = test_key_health(name, key)
-            
+
             if is_healthy:
                 print("    [OK] Connection test succeeded!")
                 results[name] = {"configured": True, "healthy": True, "masked": mask_key(key)}

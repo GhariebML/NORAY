@@ -5,10 +5,11 @@ Provides online (lightweight) and offline (heavy LLM-as-a-judge) evaluations
 for RAG and agent responses.
 """
 
-from typing import Dict, Any
+from typing import Any
+
 
 class OnlineEvaluator:
-    def evaluate(self, query: str, context: str, response: str) -> Dict[str, float]:
+    def evaluate(self, query: str, context: str, response: str) -> dict[str, float]:
         """Fast heuristic checks (e.g., length, basic keyword grounding)."""
         # Mock online evaluation
         return {
@@ -18,7 +19,7 @@ class OnlineEvaluator:
         }
 
 class OfflineEvaluator:
-    async def evaluate_async(self, query: str, context: str, response: str) -> Dict[str, Any]:
+    async def evaluate_async(self, query: str, context: str, response: str) -> dict[str, Any]:
         """
         LLM-as-a-judge evaluation (RAGAS-like metrics).
         Requires expensive LLM calls so it runs in background tasks.

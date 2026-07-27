@@ -4,9 +4,10 @@ NORAY — Structured Workspace Logger
 Uses structlog for structured JSON logging. Injects trace IDs automatically.
 """
 
-import logging
 import structlog
+
 from noray.api.middleware.tracing import get_current_trace_id
+
 
 def add_trace_id(logger, method_name, event_dict):
     """Add the trace ID from the contextvar to the event dictionary."""

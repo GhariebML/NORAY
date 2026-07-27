@@ -6,12 +6,12 @@ Uses OCR for image-based certificates when pytesseract is available.
 """
 
 from __future__ import annotations
+
 import re
 from pathlib import Path
 from typing import Any
 
 from noray.shared.models import CareerProfile, Certification, Education
-
 
 # ─── Public API ───────────────────────────────────────────────
 

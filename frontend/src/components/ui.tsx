@@ -23,6 +23,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Sparkles,
+  Layers,
 } from "lucide-react";
 import { useState, useEffect, useCallback, createContext, useContext } from "react";
 import { motion, AnimatePresence, LayoutGroup } from "framer-motion";
@@ -32,6 +33,7 @@ import { Brain, BarChart3 } from "lucide-react";
 
 const NAV_ITEMS = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/command-center", label: "Command Center", icon: Layers },
   { href: "/workspace", label: "AI Workspace", icon: MessageSquareComponent },
   { href: "/profile", label: "Profile", icon: User },
   { href: "/jobs", label: "Job Search", icon: Briefcase },
@@ -44,7 +46,6 @@ const NAV_ITEMS = [
   { href: "/diagnostics", label: "Diagnostics", icon: Activity },
 ];
 
-// Helper to pass the message square icon without circular refs
 import { MessageSquare } from "lucide-react";
 function MessageSquareComponent(props: any) {
   return <MessageSquare {...props} />;
@@ -90,11 +91,11 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -10, scale: 0.95 }}
               transition={{ duration: 0.2 }}
-              className={`pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-lg border text-xs font-medium shadow-lg backdrop-blur-md ${
+              className={`pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-lg border text-xs font-semibold shadow-lg backdrop-blur-md ${
                 toast.type === "success"
-                  ? "bg-emerald-950/80 border-emerald-500/30 text-emerald-400"
+                  ? "bg-emerald-950/80 border-emerald-500/35 text-emerald-400"
                   : toast.type === "error"
-                  ? "bg-red-950/80 border-red-500/30 text-red-400"
+                  ? "bg-rose-950/80 border-rose-500/35 text-rose-400"
                   : "bg-zinc-900/80 border-zinc-700/30 text-zinc-300"
               }`}
             >
@@ -112,7 +113,6 @@ export function ThemeToggle() {
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
-  // Avoid hydration mismatch by waiting for mount
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -128,7 +128,7 @@ export function ThemeToggle() {
   ];
 
   return (
-    <div className="flex gap-0.5 rounded-lg bg-zinc-900 border border-zinc-800 p-0.5">
+    <div className="flex gap-0.5 rounded-lg bg-zinc-950 border border-zinc-900 p-0.5">
       {options.map(({ value, icon: Icon, label }) => (
         <button
           key={value}
@@ -136,11 +136,11 @@ export function ThemeToggle() {
           title={label}
           className={`p-1.5 rounded-md transition-colors ${
             theme === value
-              ? "bg-zinc-800 text-zinc-100 shadow-sm"
-              : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/50"
+              ? "bg-zinc-900 text-emerald-400 shadow-sm border border-zinc-800"
+              : "text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900/50"
           }`}
         >
-          <Icon className="w-4 h-4" />
+          <Icon className="w-3.5 h-3.5" />
         </button>
       ))}
     </div>
@@ -152,7 +152,6 @@ export function Sidebar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
 
-  // Handle collapsible state cache
   useEffect(() => {
     const saved = localStorage.getItem("noray-sidebar-collapsed");
     if (saved) setCollapsed(saved === "true");
@@ -169,7 +168,7 @@ export function Sidebar() {
       {/* Mobile hamburger */}
       <button
         onClick={() => setMobileOpen(!mobileOpen)}
-        className="fixed top-4 left-4 z-50 rounded-lg border border-zinc-800 bg-zinc-900/90 backdrop-blur-md p-2 text-white lg:hidden hover:border-zinc-700 transition"
+        className="fixed top-4 left-4 z-50 rounded-lg border border-zinc-800 bg-zinc-950/90 backdrop-blur-md p-2 text-white lg:hidden hover:border-zinc-700 transition"
         aria-label="Toggle menu"
       >
         {mobileOpen ? <X size={18} /> : <Menu size={18} />}
@@ -190,30 +189,30 @@ export function Sidebar() {
 
       {/* Sidebar Layout */}
       <aside
-        className={`fixed inset-y-0 left-0 z-40 flex flex-col border-r border-zinc-800 bg-zinc-950 text-white transition-all duration-300 lg:static lg:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-40 flex flex-col border-r border-zinc-900 bg-zinc-950 text-white transition-all duration-300 lg:static lg:translate-x-0 ${
           mobileOpen ? "translate-x-0" : "-translate-x-full"
         } ${collapsed ? "w-20" : "w-64"}`}
       >
         {/* Logo Section */}
-        <div className="flex h-16 items-center justify-between border-b border-zinc-800 px-4">
+        <div className="flex h-16 items-center justify-between border-b border-zinc-900 px-4">
           <div className="flex items-center gap-3 overflow-hidden">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-emerald-600/10 border border-emerald-500/20 text-emerald-400">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 glow-emerald">
               <Sparkles size={18} />
             </div>
             {!collapsed && (
               <motion.span
                 initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
-                className="text-sm font-bold tracking-wider uppercase text-zinc-100"
+                className="text-sm font-bold tracking-wider uppercase text-zinc-100 font-heading"
               >
-                NORAY
+                NORAY <span className="text-emerald-400 text-xs">OS</span>
               </motion.span>
             )}
           </div>
-          {/* Collapse toggle (Desktop only) */}
+          {/* Collapse toggle */}
           <button
             onClick={toggleCollapsed}
-            className="hidden lg:flex h-6 w-6 items-center justify-center rounded border border-zinc-800 bg-zinc-900 text-zinc-400 hover:text-white transition"
+            className="hidden lg:flex h-6 w-6 items-center justify-center rounded border border-zinc-900 bg-zinc-950 text-zinc-500 hover:text-white transition"
           >
             {collapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
           </button>
@@ -221,7 +220,7 @@ export function Sidebar() {
 
         {/* Navigation Items */}
         <LayoutGroup>
-          <nav className="flex-1 space-y-1.5 px-3 py-6">
+          <nav className="flex-1 space-y-1 px-3 py-6 overflow-y-auto">
             {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
               const active = pathname === href;
               return (
@@ -229,7 +228,7 @@ export function Sidebar() {
                   key={href}
                   href={href}
                   onClick={() => setMobileOpen(false)}
-                  className={`group relative flex items-center gap-3 rounded-lg py-2.5 transition-all text-xs font-semibold ${
+                  className={`group relative flex items-center gap-3 rounded-lg py-2 transition-all text-xs font-semibold ${
                     active
                       ? "text-emerald-400"
                       : "text-zinc-400 hover:text-zinc-100"
@@ -253,7 +252,7 @@ export function Sidebar() {
         </LayoutGroup>
 
         {/* Sidebar Footer */}
-        <div className="border-t border-zinc-800 px-4 py-4 space-y-4">
+        <div className="border-t border-zinc-900 px-4 py-4 space-y-4">
           <div className="flex items-center justify-between overflow-hidden">
             {!collapsed && <span className="text-[10px] text-zinc-500">Theme</span>}
             <div className={collapsed ? "mx-auto" : ""}>
@@ -261,9 +260,9 @@ export function Sidebar() {
             </div>
           </div>
           {!collapsed && (
-            <div className="flex items-center justify-between text-[10px] text-zinc-600">
-              <span>NORAY v0.2.0</span>
-              <span>AI Operating System</span>
+            <div className="flex items-center justify-between text-[10px] text-zinc-650 font-mono">
+              <span>NORAY OS v1.0.0</span>
+              <span>Enterprise</span>
             </div>
           )}
         </div>
@@ -286,10 +285,10 @@ export function PageHeader({
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-zinc-200/50 dark:border-zinc-800/60 pb-6"
+      className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-zinc-900 pb-6"
     >
       <div>
-        <h1 className="text-xl font-bold tracking-tight text-zinc-900 dark:text-white flex items-center gap-2">
+        <h1 className="text-xl font-bold tracking-tight text-zinc-100 flex items-center gap-2 font-heading">
           {title}
         </h1>
         {description && (
@@ -313,25 +312,25 @@ export function StatCard({
   color?: string;
 }) {
   const colorClasses: Record<string, string> = {
-    emerald: "text-emerald-500 bg-emerald-500/10 border-emerald-500/20",
-    blue: "text-blue-500 bg-blue-500/10 border-blue-500/20",
-    amber: "text-amber-500 bg-amber-500/10 border-amber-500/20",
-    purple: "text-purple-500 bg-purple-500/10 border-purple-500/20",
-    rose: "text-rose-500 bg-rose-500/10 border-rose-500/20",
+    emerald: "text-emerald-400 bg-emerald-500/10 border-emerald-500/20 glow-emerald",
+    blue: "text-emerald-400 bg-emerald-500/10 border-emerald-500/20",
+    amber: "text-amber-400 bg-amber-500/10 border-amber-500/20",
+    purple: "text-emerald-400 bg-emerald-500/10 border-emerald-500/20",
+    rose: "text-rose-450 bg-rose-500/10 border-rose-500/20",
   };
 
   return (
     <motion.div
       whileHover={{ y: -4 }}
-      className="relative rounded-xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900/60 backdrop-blur-md transition-shadow hover:shadow-[0_0_20px_-5px_rgba(16,185,129,0.1)] overflow-hidden"
+      className="relative rounded-xl border border-zinc-900 bg-zinc-950 p-5 transition-shadow hover:shadow-[0_0_20px_-5px_rgba(16,185,129,0.08)] overflow-hidden"
     >
       <div className="flex items-center gap-4">
         <div className={`rounded-lg p-2.5 border ${colorClasses[color] || colorClasses.emerald}`}>
           <Icon size={18} />
         </div>
         <div>
-          <p className="text-[10px] uppercase font-bold tracking-wider text-zinc-400">{label}</p>
-          <p className="text-xl font-extrabold text-zinc-900 dark:text-white tracking-tight mt-0.5">
+          <p className="text-[10px] uppercase font-bold tracking-wider text-zinc-500 font-mono">{label}</p>
+          <p className="text-xl font-extrabold text-zinc-100 tracking-tight mt-0.5 font-mono">
             {value}
           </p>
         </div>
@@ -349,7 +348,7 @@ export function Card({
 }) {
   return (
     <div
-      className={`rounded-xl border border-zinc-200 bg-white dark:border-zinc-800/80 dark:bg-zinc-900/35 backdrop-blur-md ${className}`}
+      className={`rounded-xl border border-zinc-900 bg-zinc-950/60 backdrop-blur-md ${className}`}
     >
       {children}
     </div>
@@ -359,7 +358,6 @@ export function Card({
 export function Button({
   children,
   variant = "primary",
-  size = "md",
   disabled = false,
   className = "",
   ...props
@@ -372,22 +370,22 @@ export function Button({
 } & React.ButtonHTMLAttributes<HTMLButtonElement>) {
   const variants: Record<string, string> = {
     primary:
-      "bg-emerald-600 text-white hover:bg-emerald-500 active:bg-emerald-700 border border-emerald-500/30",
+      "bg-emerald-600 text-zinc-950 hover:bg-emerald-500 active:bg-emerald-700 border border-emerald-500/30 font-bold",
     secondary:
-      "bg-zinc-100 text-zinc-700 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700 border border-zinc-700/30",
+      "bg-zinc-900 text-zinc-300 hover:bg-zinc-800 hover:text-white border border-zinc-800",
     ghost:
-      "bg-transparent text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-850",
+      "bg-transparent text-zinc-400 hover:bg-zinc-900 hover:text-white",
     danger:
-      "bg-red-600 text-white hover:bg-red-500 active:bg-red-750 border border-red-500/30",
+      "bg-rose-950/80 text-rose-450 hover:bg-rose-900/80 border border-rose-500/30",
     outline:
-      "bg-transparent border border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white",
+      "bg-transparent border border-zinc-800 text-zinc-300 hover:bg-zinc-900 hover:text-white",
   };
 
   const MotionButton = motion.button as any;
 
   return (
     <MotionButton
-      whileTap={{ scale: disabled ? 1 : 0.97 }}
+      whileTap={{ scale: disabled ? 1 : 0.98 }}
       disabled={disabled}
       className={`inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-xs font-semibold tracking-wide transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${variants[variant]} ${className}`}
       {...props}
@@ -407,17 +405,17 @@ export function Badge({
   className?: string;
 }) {
   const variants: Record<string, string> = {
-    default: "bg-zinc-100 text-zinc-700 dark:bg-zinc-800/80 dark:text-zinc-300 border-zinc-700/30",
+    default: "bg-zinc-900 text-zinc-300 border-zinc-800",
     success: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
     warning: "bg-amber-500/10 text-amber-400 border-amber-500/20",
-    danger: "bg-red-500/10 text-red-400 border-red-500/20",
-    info: "bg-blue-500/10 text-blue-400 border-blue-500/20",
-    outline: "bg-transparent text-zinc-300 border-zinc-700",
+    danger: "bg-rose-500/10 text-rose-450 border-rose-500/20",
+    info: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
+    outline: "bg-transparent text-zinc-400 border-zinc-850",
   };
 
   return (
     <span
-      className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider ${variants[variant]} ${className}`}
+      className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[9px] font-mono font-bold uppercase tracking-wider ${variants[variant]} ${className}`}
     >
       {children}
     </span>
@@ -439,12 +437,12 @@ export function EmptyState({
     <motion.div
       initial={{ opacity: 0, scale: 0.98 }}
       animate={{ opacity: 1, scale: 1 }}
-      className="flex flex-col items-center justify-center py-14 text-center border border-dashed border-zinc-800 rounded-xl bg-zinc-900/10 px-4"
+      className="flex flex-col items-center justify-center py-14 text-center border border-dashed border-zinc-900 rounded-xl bg-zinc-950/20 px-4"
     >
-      <div className="mb-4 rounded-full bg-zinc-900 border border-zinc-800 p-3.5 text-zinc-400">
+      <div className="mb-4 rounded-full bg-zinc-950 border border-zinc-900 p-3.5 text-zinc-400">
         <Icon size={24} />
       </div>
-      <h3 className="mb-1 text-sm font-bold text-zinc-900 dark:text-white">
+      <h3 className="mb-1 text-sm font-bold text-zinc-200">
         {title}
       </h3>
       <p className="mb-5 max-w-xs text-xs text-zinc-500 leading-relaxed">{description}</p>
@@ -459,7 +457,7 @@ export function LoadingSpinner() {
       <motion.div
         animate={{ rotate: 360 }}
         transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
-        className="h-6 w-6 rounded-full border-2 border-zinc-800 border-t-emerald-500"
+        className="h-6 w-6 rounded-full border-2 border-zinc-900 border-t-emerald-500"
       />
     </div>
   );
@@ -467,7 +465,7 @@ export function LoadingSpinner() {
 
 export function SkeletonLoader({ className = "" }: { className?: string }) {
   return (
-    <div className={`shimmer rounded bg-zinc-200 dark:bg-zinc-850 ${className}`} />
+    <div className={`shimmer rounded bg-zinc-900 ${className}`} />
   );
 }
 

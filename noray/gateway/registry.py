@@ -6,8 +6,8 @@ status metadata for local and cloud models.
 """
 
 from __future__ import annotations
-from typing import Dict, Any, Optional
-from pydantic import BaseModel, Field
+
+from pydantic import BaseModel
 
 
 class ModelMetadata(BaseModel):
@@ -27,38 +27,49 @@ class ModelMetadata(BaseModel):
 
 
 # Standard pre-registered model definitions
-DEFAULT_REGISTRY: Dict[str, ModelMetadata] = {
-    # --- Local Models (Ollama / LM Studio) ---
-    "qwen2.5-coder:7b": ModelMetadata(
-        name="qwen2.5-coder:7b",
-        provider="local",
-        context_window=32768,
+DEFAULT_REGISTRY: dict[str, ModelMetadata] = {
+    # --- Cloud Models (Google Gemini) ---
+    "gemini-1.5-flash": ModelMetadata(
+        name="gemini-1.5-flash",
+        provider="gemini",
+        context_window=1048576,
         supports_tools=True,
         supports_json=True,
-        memory_usage_gb=6.0,
-        gpu_required=True,
+        input_cost_per_1k=0.000075,
+        output_cost_per_1k=0.0003,
         priority=1
     ),
-    "llama3:8b": ModelMetadata(
-        name="llama3:8b",
-        provider="local",
-        context_window=8192,
-        supports_tools=True,
-        supports_json=True,
-        memory_usage_gb=6.5,
-        gpu_required=True,
-        priority=2
-    ),
-    "llama3.1:8b": ModelMetadata(
-        name="llama3.1:8b",
-        provider="local",
+
+    # --- Cloud Models (OpenRouter / Aggregated) ---
+    "openrouter/auto": ModelMetadata(
+        name="openrouter/auto",
+        provider="openrouter",
         context_window=128000,
         supports_tools=True,
         supports_json=True,
-        memory_usage_gb=6.5,
-        gpu_required=True,
         priority=2
     ),
+
+    # --- Cloud Models (Together AI) ---
+    "together/llama-3-70b": ModelMetadata(
+        name="together/llama-3-70b",
+        provider="together",
+        context_window=8192,
+        supports_tools=True,
+        priority=3
+    ),
+
+    # --- Cloud / API Models (DeepSeek) ---
+    "deepseek-chat": ModelMetadata(
+        name="deepseek-chat",
+        provider="deepseek",
+        context_window=64000,
+        supports_reasoning=True,
+        supports_tools=True,
+        priority=4
+    ),
+
+    # --- Local Models (Ollama) ---
     "gemma2:2b": ModelMetadata(
         name="gemma2:2b",
         provider="local",
@@ -69,25 +80,36 @@ DEFAULT_REGISTRY: Dict[str, ModelMetadata] = {
         gpu_required=False,
         priority=5
     ),
+    "qwen2.5-coder:7b": ModelMetadata(
+        name="qwen2.5-coder:7b",
+        provider="local",
+        context_window=32768,
+        supports_tools=True,
+        supports_json=True,
+        memory_usage_gb=6.0,
+        gpu_required=True,
+        priority=6
+    ),
+    "llama3:8b": ModelMetadata(
+        name="llama3:8b",
+        provider="local",
+        context_window=8192,
+        supports_tools=True,
+        supports_json=True,
+        memory_usage_gb=6.5,
+        gpu_required=True,
+        priority=7
+    ),
     "deepseek-r1:7b": ModelMetadata(
         name="deepseek-r1:7b",
         provider="local",
         context_window=16384,
         supports_reasoning=True,
         memory_usage_gb=6.0,
-        priority=3
+        priority=8
     ),
-    "phi3:mini": ModelMetadata(
-        name="phi3:mini",
-        provider="local",
-        context_window=4096,
-        supports_json=True,
-        memory_usage_gb=3.5,
-        gpu_required=False,
-        priority=4
-    ),
-    
-    # --- Cloud Models (OpenAI) ---
+
+    # --- Cloud Models (OpenAI & Anthropic) ---
     "gpt-4o-mini": ModelMetadata(
         name="gpt-4o-mini",
         provider="openai",
@@ -98,8 +120,6 @@ DEFAULT_REGISTRY: Dict[str, ModelMetadata] = {
         output_cost_per_1k=0.0006,
         priority=10
     ),
-    
-    # --- Cloud Models (Anthropic) ---
     "claude-3-5-sonnet-20241022": ModelMetadata(
         name="claude-3-5-sonnet-20241022",
         provider="anthropic",
@@ -110,18 +130,6 @@ DEFAULT_REGISTRY: Dict[str, ModelMetadata] = {
         input_cost_per_1k=0.003,
         output_cost_per_1k=0.015,
         priority=20
-    ),
-    
-    # --- Cloud Models (Google Gemini) ---
-    "gemini-1.5-flash": ModelMetadata(
-        name="gemini-1.5-flash",
-        provider="gemini",
-        context_window=1048576,
-        supports_tools=True,
-        supports_json=True,
-        input_cost_per_1k=0.000075,
-        output_cost_per_1k=0.0003,
-        priority=30
     )
 }
 
@@ -131,7 +139,7 @@ class ModelRegistry:
 
     def __init__(self) -> None:
         self.models = DEFAULT_REGISTRY.copy()
-        
+
         # Detect locally installed Ollama models
         installed = []
         try:
@@ -158,10 +166,10 @@ class ModelRegistry:
         """Register a new custom model in the registry."""
         self.models[model.name] = model
 
-    def get(self, name: str) -> Optional[ModelMetadata]:
+    def get(self, name: str) -> ModelMetadata | None:
         """Fetch metadata for a given model name."""
         return self.models.get(name)
 
-    def list_models(self) -> Dict[str, ModelMetadata]:
+    def list_models(self) -> dict[str, ModelMetadata]:
         """List all registered models metadata."""
         return self.models

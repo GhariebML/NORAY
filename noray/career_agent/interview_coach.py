@@ -7,13 +7,12 @@ Reads from the career profile for personalized preparation.
 """
 
 from __future__ import annotations
+
 import re
 from dataclasses import dataclass, field
-from typing import Any
 
-from noray.shared.models import CareerProfile
 from noray.career_agent.ats_analyzer import extract_keywords_from_posting
-
+from noray.shared.models import CareerProfile
 
 # ─── Data Models ──────────────────────────────────────────────
 
@@ -522,4 +521,4 @@ def _infer_result(achievement: str) -> str:
     numbers = re.findall(r"\d+[%k$€£]?", achievement)
     if numbers:
         return f"Achieved measurable improvement: {achievement}"
-    return f"Successfully delivered the expected outcomes."
+    return "Successfully delivered the expected outcomes."

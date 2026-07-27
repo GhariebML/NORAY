@@ -14,49 +14,49 @@ Provides structured definitions and handlers for:
 
 from __future__ import annotations
 
-import os
+from collections.abc import Callable
+from dataclasses import dataclass
 from pathlib import Path
-from dataclasses import dataclass, field
-from typing import Any, Callable, Dict, List, Optional
-import json
+from typing import Any
+
 
 @dataclass
 class ToolDefinition:
     """Structure describing a tool's parameters and schema."""
     name: str
     description: str
-    input_schema: Dict[str, Any]
-    handler: Callable[[Dict[str, Any]], Any]
+    input_schema: dict[str, Any]
+    handler: Callable[[dict[str, Any]], Any]
 
 class BuiltinToolRegistry:
     """Registry managing standard built-in tools for AI agents."""
-    
-    def __init__(self, workspace_root: str = "d:/NORAY"):
+
+    def __init__(self, workspace_root: str = str(Path(__file__).resolve().parent.parent.parent)):
         self.workspace_root = Path(workspace_root)
-        self.tools: Dict[str, ToolDefinition] = {}
+        self.tools: dict[str, ToolDefinition] = {}
         self._register_default_tools()
 
     def register(self, tool: ToolDefinition) -> None:
         """Register a tool definition."""
         self.tools[tool.name] = tool
 
-    def get(self, name: str) -> Optional[ToolDefinition]:
+    def get(self, name: str) -> ToolDefinition | None:
         """Get a tool definition by name."""
         return self.tools.get(name)
 
-    def execute(self, name: str, arguments: Dict[str, Any]) -> Any:
+    def execute(self, name: str, arguments: dict[str, Any]) -> Any:
         """Execute a tool with arguments."""
         tool = self.get(name)
         if not tool:
             raise ValueError(f"Tool {name} is not registered in BuiltinToolRegistry.")
-        
+
         # Simple schema validation could be added here
         try:
             return tool.handler(arguments)
         except Exception as e:
             return {"error": f"Tool execution failed: {str(e)}"}
 
-    def list_tools(self) -> List[Dict[str, Any]]:
+    def list_tools(self) -> list[dict[str, Any]]:
         """List metadata of all registered tools."""
         return [
             {
@@ -180,12 +180,12 @@ class BuiltinToolRegistry:
             raise PermissionError("Path access is restricted to the workspace root directory.")
         return safe_path
 
-    def _handle_list_directory(self, args: Dict[str, Any]) -> Any:
+    def _handle_list_directory(self, args: dict[str, Any]) -> Any:
         rel_path = args.get("path", "")
         target = self._resolve_path(rel_path)
         if not target.exists() or not target.is_dir():
             return {"error": f"Directory not found: {rel_path}"}
-        
+
         items = []
         for p in target.iterdir():
             items.append({
@@ -195,15 +195,15 @@ class BuiltinToolRegistry:
             })
         return {"items": items}
 
-    def _handle_read_file(self, args: Dict[str, Any]) -> Any:
+    def _handle_read_file(self, args: dict[str, Any]) -> Any:
         rel_path = args.get("path", "")
         target = self._resolve_path(rel_path)
         if not target.exists() or not target.is_file():
             return {"error": f"File not found: {rel_path}"}
-        
+
         # Read max 50KB to prevent context bloat
         try:
-            with open(target, "r", encoding="utf-8", errors="ignore") as f:
+            with open(target, encoding="utf-8", errors="ignore") as f:
                 content = f.read(50000)
             return {
                 "content": content,
@@ -212,11 +212,11 @@ class BuiltinToolRegistry:
         except Exception as e:
             return {"error": f"Failed to read file: {str(e)}"}
 
-    def _handle_query_db(self, args: Dict[str, Any]) -> Any:
+    def _handle_query_db(self, args: dict[str, Any]) -> Any:
         sql = args.get("sql", "").strip()
         if not sql.lower().startswith("select"):
             return {"error": "Query DB tool is read-only. Only SELECT queries are permitted."}
-        
+
         from noray.database import SessionLocal
         session = SessionLocal()
         try:
@@ -230,7 +230,7 @@ class BuiltinToolRegistry:
         finally:
             session.close()
 
-    def _handle_search_vector_store(self, args: Dict[str, Any]) -> Any:
+    def _handle_search_vector_store(self, args: dict[str, Any]) -> Any:
         collection = args.get("collection", "user_documents")
         query = args.get("query", "")
         limit = args.get("limit", 5)
@@ -247,7 +247,7 @@ class BuiltinToolRegistry:
         except Exception as e:
             return {"error": f"Vector search error: {str(e)}"}
 
-    def _handle_parse_pdf(self, args: Dict[str, Any]) -> Any:
+    def _handle_parse_pdf(self, args: dict[str, Any]) -> Any:
         rel_path = args.get("path", "")
         target = self._resolve_path(rel_path)
         if not target.exists() or not target.is_file():
@@ -267,7 +267,7 @@ class BuiltinToolRegistry:
         except Exception as e:
             return {"error": f"PDF parse error: {str(e)}"}
 
-    def _handle_manage_documents(self, args: Dict[str, Any]) -> Any:
+    def _handle_manage_documents(self, args: dict[str, Any]) -> Any:
         action = args.get("action", "list")
         if action == "list":
             # List ingested directories/files count in SQLite/Qdrant
@@ -297,7 +297,7 @@ class BuiltinToolRegistry:
             except Exception as e:
                 return {"error": str(e)}
 
-    def _handle_local_search(self, args: Dict[str, Any]) -> Any:
+    def _handle_local_search(self, args: dict[str, Any]) -> Any:
         query = args.get("query", "")
         limit = args.get("limit", 5)
 

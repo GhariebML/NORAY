@@ -6,9 +6,8 @@ Follows a structured academic format: hook → background → research → fit �
 """
 
 from __future__ import annotations
-import re
+
 from dataclasses import dataclass, field
-from typing import Any
 
 from noray.shared.models import CareerProfile
 
@@ -83,7 +82,6 @@ def _build_sop_sections(
 ) -> dict[str, str]:
     """Build each section of the SOP."""
     sections = {}
-    words_per_section = word_limit // 5
 
     # ── 1. Opening Hook ──
     sections["opening"] = _build_opening(profile, research_interests, scholarship_info, outline_only)
@@ -232,7 +230,7 @@ def _build_research_experience(
         pub_count = len(profile.publications)
         parts.append(f"I have {pub_count} publication(s), including work on {profile.publications[0].title}.")
         if pub_count > 1:
-            parts.append(f"These publications demonstrate my ability to conduct and communicate rigorous research.")
+            parts.append("These publications demonstrate my ability to conduct and communicate rigorous research.")
 
     # Projects
     if profile.projects:

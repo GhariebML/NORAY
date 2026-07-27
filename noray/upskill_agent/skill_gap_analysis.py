@@ -6,9 +6,10 @@ Supports both aggregate (tracked jobs) and targeted (single posting) modes.
 """
 
 from __future__ import annotations
-from typing import Any
-from dataclasses import dataclass, field
+
 import re
+from dataclasses import dataclass, field
+from typing import Any
 
 
 @dataclass
@@ -278,16 +279,16 @@ def _estimate_learning_time(skill: str, gap_type: str) -> str:
 def _suggest_study_direction(skill: str, category: str) -> str:
     """Suggest a study direction for a skill."""
     direction_map = {
-        "programming": f"Start with fundamentals, then build projects. Practice on LeetCode/HackerRank.",
-        "ml_ai": f"Start with theory (Andrew Ng), then hands-on (Kaggle). Build a portfolio project.",
-        "data": f"Learn through practice. Work with real datasets on Kaggle.",
-        "cloud": f"Start with free tier, get certified. Build and deploy projects.",
-        "web": f"Build projects from scratch. Start with tutorials, then full apps.",
-        "tools": f"Use in daily workflow. Learn through practice, not just reading.",
-        "soft": f"Read books, practice in real situations. Seek feedback.",
-        "domain": f"Study domain-specific literature. Apply ML to domain problems.",
+        "programming": "Start with fundamentals, then build projects. Practice on LeetCode/HackerRank.",
+        "ml_ai": "Start with theory (Andrew Ng), then hands-on (Kaggle). Build a portfolio project.",
+        "data": "Learn through practice. Work with real datasets on Kaggle.",
+        "cloud": "Start with free tier, get certified. Build and deploy projects.",
+        "web": "Build projects from scratch. Start with tutorials, then full apps.",
+        "tools": "Use in daily workflow. Learn through practice, not just reading.",
+        "soft": "Read books, practice in real situations. Seek feedback.",
+        "domain": "Study domain-specific literature. Apply ML to domain problems.",
     }
-    return direction_map.get(category, f"Find structured learning path. Practice consistently.")
+    return direction_map.get(category, "Find structured learning path. Practice consistently.")
 
 
 def _prioritize_gaps(gaps: list[SkillGap], job_frequency: dict[str, int]) -> list[SkillGap]:

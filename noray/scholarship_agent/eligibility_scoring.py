@@ -6,9 +6,10 @@ Checks nationality, degree level, GPA, field, languages, experience, and publica
 """
 
 from __future__ import annotations
+
 import re
-from typing import Any
 from dataclasses import dataclass, field
+from typing import Any
 
 
 @dataclass

@@ -12,7 +12,7 @@ import { useDagStore } from '../store/dagStore';
 import { useLayoutStore } from '../store/layoutStore';
 
 export default function ExecutionDAG() {
-  const { nodes, edges, setNodes, setEdges } = useDagStore();
+  const { nodes, edges, setEdges } = useDagStore();
   const { setSelectedNodeId } = useLayoutStore();
 
   const onConnect = useCallback(

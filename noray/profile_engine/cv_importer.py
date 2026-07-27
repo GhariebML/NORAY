@@ -7,15 +7,20 @@ and provides raw text for LLM-based extraction at a higher layer.
 """
 
 from __future__ import annotations
+
 import re
 from pathlib import Path
 from typing import Any
 
 from noray.shared.models import (
-    CareerProfile, Identity, Location, Language,
-    Education, Experience, Skills, Certification, Award, Publication,
+    Award,
+    CareerProfile,
+    Certification,
+    Education,
+    Experience,
+    Language,
+    Publication,
 )
-
 
 # ─── Public API ───────────────────────────────────────────────
 
@@ -261,7 +266,7 @@ def _extract_from_docx(file_path: Path) -> str:
         raise ImportError(
             "python-docx not installed. Install with:\n"
             "  pip install python-docx"
-        )
+        ) from None
 
 
 # ─── Pattern Extraction ───────────────────────────────────────

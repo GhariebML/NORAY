@@ -1,27 +1,82 @@
-# Deployment Guide
+# NORAY OS Production Deployment Manual
 
-NORAY is designed to be easily deployable to cloud environments using Docker.
+This guide describes how to deploy the **NORAY AI Operating System** to cloud hosting platforms (e.g. Railway, Render, Vercel, or custom Docker infrastructure).
 
-## Production Docker Compose
+---
 
-For production, you should use an optimized `docker-compose.prod.yml` that builds the Next.js frontend into a static container and serves the FastAPI backend via Gunicorn.
+## 🏗️ Architecture Topology
 
-1. **Build Images:**
+NORAY consists of a Next.js frontend, FastAPI backend, PostgreSQL database, Redis instance, and Qdrant vector database.
+
+```
+       [ Client Browser ]
+               │
+        (Vercel Frontend)
+               │ (HTTPS/WS)
+       (FastAPI Backend Server)
+       /       │              \
+  [Postgres] [Redis]       [Qdrant]
+```
+
+---
+
+## 🐳 Docker Deployment (docker-compose)
+
+Build and run the entire multi-service application locally or on a private virtual machine:
+
+1. **Clone & Environment Setup**:
    ```bash
-   docker-compose -f docker-compose.prod.yml build
+   cp .env.example .env
+   # Edit .env variables to add database credentials and LLM API keys
    ```
-2. **Start Services:**
+
+2. **Launch Services**:
    ```bash
-   docker-compose -f docker-compose.prod.yml up -d
+   docker-compose up --build -d
    ```
 
-## Cloud Providers
+3. **Database Migrations**:
+   Run database migrations inside the backend container to ensure database structures are up to date:
+   ```bash
+   docker-compose exec backend alembic upgrade head
+   ```
 
-### AWS / GCP / Azure
-- Deploy the frontend to Vercel or AWS Amplify.
-- Deploy the FastAPI backend via AWS App Runner, ECS, or Google Cloud Run.
-- Use managed databases (RDS for PostgreSQL, Elasticache for Redis) instead of local containers.
-- Use a managed Qdrant Cloud cluster for vector embeddings.
+---
 
-### Local AI in Production
-If deploying on a secure private cloud with sensitive data, you can provision a GPU instance (e.g., AWS `g5.xlarge`) and run Ollama alongside the backend to keep all LLM queries offline.
+## 🚂 Railway Deployment (Recommended)
+
+Railway is suitable for hosting the database engines, cache, vector store, and FastAPI backend.
+
+### Step 1: Deploy Core Databases
+- Create a new project in Railway.
+- Provision a **PostgreSQL** service database.
+- Provision a **Redis** service cache.
+- Provision a custom container service for **Qdrant** using image `qdrant/qdrant:v1.7.0`. Add a persistent volume mount `/qdrant/storage`.
+
+### Step 2: Deploy the FastAPI Backend
+- Connect your GitHub repository to a new Railway Service.
+- Set the Root Directory to `/` and select the **Dockerfile** at the root path.
+- Configure Environment Variables:
+  - `ENVIRONMENT=production`
+  - `DATABASE_URL` (Bind this directly to Railway's Postgres URL: `${{Postgres.DATABASE_URL}}`)
+  - `REDIS_URL` (Bind this directly to Railway's Redis URL: `${{Redis.REDIS_URL}}`)
+  - `QDRANT_URL` (Point to your Qdrant container URL: `http://<qdrant-service-name>:6333`)
+  - `ALLOWED_ORIGINS` (Set this to the production Next.js URL, e.g. `https://noray.vercel.app`)
+  - Add API keys (`OPENAI_API_KEY`, `GEMINI_API_KEY`, `DEEPSEEK_API_KEY`, `OPENROUTER_API_KEY`).
+  - `EMBEDDINGS_PROVIDER=local` or `openai`
+- Port: Set port to `8001`.
+
+---
+
+## 🔺 Vercel Deployment (Frontend)
+
+Vercel is suitable for hosting the Next.js frontend statically.
+
+1. **Deploy Project**:
+   - Create a project on Vercel and import the `/frontend` subfolder.
+   
+2. **Environment Variables**:
+   - Add `NEXT_PUBLIC_API_URL` pointing to the public URL of the Railway FastAPI backend (e.g. `https://noray-backend.up.railway.app`).
+
+3. **CORS Validation**:
+   - Ensure the Vercel app domain is included in the backend service `ALLOWED_ORIGINS` config to authorize cross-origin requests.

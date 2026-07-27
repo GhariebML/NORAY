@@ -7,11 +7,13 @@ Defines stage-specific exceptions that identify which architectural layer
 
 from fastapi import Request
 from fastapi.responses import JSONResponse
+
 from noray.api.middleware.tracing import get_current_trace_id
+
 
 class WorkspaceStageError(Exception):
     """Exception raised when a specific phase of the workspace RAG pipeline fails."""
-    
+
     def __init__(self, stage: str, error: str, details: str, trace_id: str | None = None):
         self.stage = stage
         self.error = error

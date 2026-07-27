@@ -5,10 +5,11 @@ Tracks token usage, embedding costs, inference costs, retrieval overhead, and to
 Provides metrics for optimization and dashboards.
 """
 
-from typing import Dict, Any, List
-from pydantic import BaseModel, Field
-from datetime import datetime
 import uuid
+from datetime import datetime
+
+from pydantic import BaseModel, Field
+
 
 class CostEntry(BaseModel):
     entry_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
@@ -22,18 +23,18 @@ class CostEntry(BaseModel):
 
 class CostTracker:
     def __init__(self):
-        self._entries: List[CostEntry] = []
+        self._entries: list[CostEntry] = []
 
     def record(self, entry: CostEntry) -> None:
         self._entries.append(entry)
-        
+
     def get_total_cost(self, execution_id: str = None) -> float:
         return sum(
-            e.cost_usd for e in self._entries 
+            e.cost_usd for e in self._entries
             if execution_id is None or e.execution_id == execution_id
         )
-        
-    def get_suggestions(self) -> List[str]:
+
+    def get_suggestions(self) -> list[str]:
         """Analyzes historical costs and suggests optimizations."""
         suggestions = []
         total = self.get_total_cost()

@@ -1,6 +1,4 @@
-import { useLayoutStore } from '../store/layoutStore';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Settings, Maximize, Minus, X } from 'lucide-react';
+import { Settings } from 'lucide-react';
 
 export default function TopNav() {
   return (

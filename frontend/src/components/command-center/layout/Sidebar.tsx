@@ -1,6 +1,6 @@
 import { useLayoutStore, MainView } from '../store/layoutStore';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Activity, Network, Cpu, Database, Server, Wrench, Shield, LineChart, Target, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Activity, Network, Cpu, Database, Server, Wrench, Shield, Target, ChevronLeft, ChevronRight } from 'lucide-react';
 import clsx from 'clsx';
 
 const NAV_ITEMS: { id: MainView; label: string; icon: any }[] = [

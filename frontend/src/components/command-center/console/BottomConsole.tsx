@@ -51,7 +51,7 @@ export default function BottomConsole() {
                   animate={{ opacity: 1, x: 0 }}
                   className="flex items-start gap-3 py-0.5 group"
                 >
-                  <span className="text-slate-600 shrink-0 select-none">
+                  <span className="text-slate-600 shrink-0 select-none" suppressHydrationWarning>
                     {new Date(log.timestamp).toLocaleTimeString([], { hour12: false })}
                   </span>
                   <span className={clsx("shrink-0 font-bold", 

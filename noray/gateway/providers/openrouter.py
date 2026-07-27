@@ -3,10 +3,12 @@ NORAY — OpenRouter LLM Provider Adapter
 """
 
 from __future__ import annotations
+
 import os
 import time
+from collections.abc import Iterator
+
 import httpx
-from typing import Iterator, Optional
 
 from noray.gateway.base import BaseLLMProvider, LLMConfig, LLMResponse
 
@@ -14,7 +16,7 @@ from noray.gateway.base import BaseLLMProvider, LLMConfig, LLMResponse
 class OpenRouterProvider(BaseLLMProvider):
     """Adapter targeting OpenRouter."""
 
-    def __init__(self, api_key: Optional[str] = None) -> None:
+    def __init__(self, api_key: str | None = None) -> None:
         self.api_key = api_key or os.getenv("OPENROUTER_API_KEY")
         self.base_url = "https://openrouter.ai/api/v1"
 
@@ -48,7 +50,7 @@ class OpenRouterProvider(BaseLLMProvider):
             payload["response_format"] = {"type": "json_object"}
 
         start_time = time.time()
-        
+
         try:
             with httpx.Client(timeout=30.0) as client:
                 res = client.post(url, json=payload, headers=headers)
@@ -58,7 +60,7 @@ class OpenRouterProvider(BaseLLMProvider):
             latency_ms = (time.time() - start_time) * 1000
             content = data["choices"][0]["message"]["content"]
             usage = data.get("usage", {})
-            
+
             # OpenRouter optionally returns cost in usage, but for now we mock it as 0.0 unless returned
             estimated_cost = usage.get("total_cost", 0.0)
 
@@ -72,7 +74,7 @@ class OpenRouterProvider(BaseLLMProvider):
                 latency_ms=latency_ms
             )
         except Exception as e:
-            raise RuntimeError(f"OpenRouter execution failed: {e}")
+            raise RuntimeError(f"OpenRouter execution failed: {e}") from e
 
     def generate_stream(self, prompt: str, config: LLMConfig) -> Iterator[LLMResponse]:
         yield self.generate(prompt, config)

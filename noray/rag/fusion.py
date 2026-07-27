@@ -1,11 +1,12 @@
-from typing import List, Dict, Any, Optional
+from typing import Any
+
 
 def reciprocal_rank_fusion(
-    dense_results: List[Dict[str, Any]],
-    sparse_results: List[Dict[str, Any]],
+    dense_results: list[dict[str, Any]],
+    sparse_results: list[dict[str, Any]],
     k: int = 60,
     limit: int = 10
-) -> List[Dict[str, Any]]:
+) -> list[dict[str, Any]]:
     """
     Combines dense and sparse search results using Reciprocal Rank Fusion (RRF).
     
@@ -28,7 +29,7 @@ def reciprocal_rank_fusion(
                 content_map[doc_id] = hit["content"]
             elif "content" in hit.get("payload", {}):
                 content_map[doc_id] = hit["payload"]["content"]
-                
+
             score = 1.0 / (k + rank)
             rrf_scores[doc_id] = rrf_scores.get(doc_id, 0.0) + score
 
@@ -50,5 +51,5 @@ def reciprocal_rank_fusion(
         if doc_id in content_map:
             hit["content"] = content_map[doc_id]
         fused_results.append(hit)
-        
+
     return fused_results

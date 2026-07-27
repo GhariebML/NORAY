@@ -5,10 +5,11 @@ All paths, model settings, and defaults in one place.
 Uses pydantic-settings for robust environment variable validation.
 """
 
-from pathlib import Path
 import os
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pathlib import Path
+
 from pydantic import Field
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 # Disable symlinks warning on Windows for huggingface_hub to improve compatibility
 os.environ["HF_HUB_DISABLE_SYMLINKS_WARNING"] = "1"
@@ -44,25 +45,33 @@ class Settings(BaseSettings):
     TAVILY_API_KEY: str | None = Field(default=None)
     SERPAPI_API_KEY: str | None = Field(default=None)
     LINKEDIN_API_KEY: str | None = Field(default=None)
-    
+
     # LLM Provider API Keys & Base URLs
     OPENAI_API_KEY: str | None = Field(default=None)
     ANTHROPIC_API_KEY: str | None = Field(default=None)
     GOOGLE_API_KEY: str | None = Field(default=None)
+    GEMINI_API_KEY: str | None = Field(default=None)
     OPENROUTER_API_KEY: str | None = Field(default=None)
     TOGETHER_API_KEY: str | None = Field(default=None)
     MISTRAL_API_KEY: str | None = Field(default=None)
     DEEPSEEK_API_KEY: str | None = Field(default=None)
     OLLAMA_BASE_URL: str = Field(default="http://localhost:11434/v1")
 
-    # Infrastructure
+    # Infrastructure & Servers
     QDRANT_HOST: str = Field(default="localhost")
     QDRANT_PORT: str = Field(default="6333")
+    QDRANT_URL: str | None = Field(default=None)
+    QDRANT_API_KEY: str | None = Field(default=None)
     REDIS_HOST: str = Field(default="localhost")
     REDIS_PORT: str = Field(default="6379")
+    REDIS_URL: str | None = Field(default=None)
+    ALLOWED_ORIGINS: str = Field(default="http://localhost:3000,http://127.0.0.1:3000")
 
-    # AI Config
+    # AI & Vector Store Config
     AI_PROVIDER: str = Field(default="local")
+    VECTOR_STORE_PROVIDER: str = Field(default="qdrant")
+    EMBEDDINGS_PROVIDER: str = Field(default="local")
+    EMBEDDINGS_MODEL: str = Field(default="all-MiniLM-L6-v2")
     EMBEDDING_MODEL_KEY: str = Field(default="bge-m3")
     ALLOW_OFFLINE: bool = Field(default=True)
     ENVIRONMENT: str = Field(default="development")

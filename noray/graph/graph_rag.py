@@ -27,9 +27,9 @@ Design Decisions:
 
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
-from noray.graph.base import BaseGraphStore, GraphNode, GraphEdge
+from noray.graph.base import BaseGraphStore, GraphEdge, GraphNode
 from noray.graph.extractor import EntityRelationExtractor
 
 
@@ -51,7 +51,7 @@ class GraphRAGFuser:
     def __init__(
         self,
         graph_store: BaseGraphStore,
-        extractor: Optional[EntityRelationExtractor] = None,
+        extractor: EntityRelationExtractor | None = None,
         max_hops: int = 2,
         max_graph_triples: int = 20,
     ):
@@ -63,10 +63,10 @@ class GraphRAGFuser:
     def enrich_context(
         self,
         query: str,
-        vector_hits: List[Dict[str, Any]],
+        vector_hits: list[dict[str, Any]],
         *,
         include_graph_summary: bool = True,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Enrich RAG retrieval results with graph-derived context.
 
         Args:
@@ -99,7 +99,7 @@ class GraphRAGFuser:
                     hit_entity_names.add(e.name)
 
         # Step 3: Find matching graph nodes for extracted entities
-        seed_node_ids: List[str] = []
+        seed_node_ids: list[str] = []
         all_query_entities = list(set(entity_names) | hit_entity_names)
 
         for entity_name in all_query_entities:
@@ -110,8 +110,8 @@ class GraphRAGFuser:
                 seed_node_ids.append(node.id)
 
         # Step 4: Traverse graph around seed nodes
-        graph_nodes: List[GraphNode] = []
-        graph_edges: List[GraphEdge] = []
+        graph_nodes: list[GraphNode] = []
+        graph_edges: list[GraphEdge] = []
 
         if seed_node_ids:
             graph_nodes, graph_edges = self.graph_store.get_subgraph(
@@ -138,16 +138,16 @@ class GraphRAGFuser:
 
     def _format_triples(
         self,
-        nodes: List[GraphNode],
-        edges: List[GraphEdge],
-    ) -> List[str]:
+        nodes: list[GraphNode],
+        edges: list[GraphEdge],
+    ) -> list[str]:
         """Format graph relationships as human-readable triples.
 
         Example output:
             "Python [Skill] --REQUIRED_FOR--> Machine Learning Engineer [Role]"
         """
         node_map = {n.id: n for n in nodes}
-        triples: List[str] = []
+        triples: list[str] = []
 
         for edge in edges:
             source = node_map.get(edge.source_id)
@@ -166,12 +166,12 @@ class GraphRAGFuser:
 
     def _build_combined_context(
         self,
-        vector_hits: List[Dict[str, Any]],
-        triples: List[str],
+        vector_hits: list[dict[str, Any]],
+        triples: list[str],
         include_summary: bool,
     ) -> str:
         """Build a unified context string combining vector chunks and graph facts."""
-        parts: List[str] = []
+        parts: list[str] = []
 
         # Section 1: Retrieved Document Chunks
         if vector_hits:
@@ -205,8 +205,8 @@ class GraphRAGFuser:
         self,
         query: str,
         *,
-        max_hops: Optional[int] = None,
-    ) -> Dict[str, Any]:
+        max_hops: int | None = None,
+    ) -> dict[str, Any]:
         """Search the Knowledge Graph only (no vector search).
 
         Useful for exploring entity connections, e.g.:
@@ -224,7 +224,7 @@ class GraphRAGFuser:
         # Extract entities from query
         entities, _ = self.extractor.extract(query)
 
-        seed_ids: List[str] = []
+        seed_ids: list[str] = []
         for entity in entities:
             matches = self.graph_store.find_nodes(name=entity.name, limit=3)
             for m in matches:

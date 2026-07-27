@@ -2,49 +2,32 @@
 
 import { useEffect, useState } from "react";
 import {
-  Briefcase,
-  GraduationCap,
+  Sparkles,
   TrendingUp,
-  FileText,
   Clock,
-  CheckCircle,
   AlertCircle,
   Cpu,
-  Sparkles,
   Server,
-  Zap,
-  Check,
-  Search,
   Activity,
   Play,
-  RotateCcw,
-  ArrowRight,
   Database,
   Layers,
-  HardDrive,
   Users,
-  Eye,
-  Key,
-  Shield,
-  HelpCircle,
   Compass,
   Upload,
   Minimize2,
 } from "lucide-react";
 import {
-  PageHeader,
-  StatCard,
   Card,
   Badge,
   Button,
   LoadingSpinner,
-  EmptyState,
   PageTransition,
 } from "@/components/ui";
 import { applicationsApi, workspaceApi, type Application } from "@/lib/api";
 import {
-  PieChart, Pie, Cell, ResponsiveContainer, Tooltip,
-  BarChart, Bar, XAxis, YAxis, CartesianGrid,
+  ResponsiveContainer, Tooltip,
+  XAxis, YAxis, CartesianGrid,
   AreaChart, Area,
 } from "recharts";
 import { motion, AnimatePresence } from "framer-motion";
@@ -87,11 +70,11 @@ interface AgentStatus {
 
 export default function DashboardPage() {
   const [applications, setApplications] = useState<Application[]>([]);
-  const [stats, setStats] = useState<Record<string, unknown>>({});
+  const [, setStats] = useState<Record<string, unknown>>({});
   const [health, setHealth] = useState<SystemHealth | null>(null);
   const [docs, setDocs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [, setError] = useState<string | null>(null);
 
   // Time and welcome states
   const [time, setTime] = useState("");
@@ -111,7 +94,6 @@ export default function DashboardPage() {
   ]);
 
   // Key shortcuts listener helper info
-  const [showHotkeys, setShowHotkeys] = useState(false);
 
   // Clock Ticker
   useEffect(() => {
@@ -195,23 +177,7 @@ export default function DashboardPage() {
 
   if (loading) return <LoadingSpinner />;
 
-  const jobCount = applications.filter((a) => a.type === "job").length;
-  const scholarshipCount = applications.filter((a) => a.type === "scholarship").length;
-  const interviewCount = applications.filter((a) =>
-    ["interview", "shortlisted"].includes(a.status)
-  ).length;
-  const offerCount = applications.filter((a) =>
-    ["awarded", "accepted"].includes(a.status)
-  ).length;
 
-  const recentApps = [...applications]
-    .sort((a, b) => (b.applied_date || "").localeCompare(a.applied_date || ""))
-    .slice(0, 4);
-
-  const upcomingDeadlines = applications
-    .filter((a) => a.deadline && new Date(a.deadline) > new Date())
-    .sort((a, b) => (a.deadline || "").localeCompare(b.deadline || ""))
-    .slice(0, 4);
 
   // Active AI Agents Data
   const agents: AgentStatus[] = [
@@ -265,28 +231,6 @@ export default function DashboardPage() {
     }
   ];
 
-  // Recharts Chart datasets
-  const STATUS_COLORS: Record<string, string> = {
-    discovered: "#52525b",
-    preparing: "#3b82f6",
-    submitted: "#f59e0b",
-    interview: "#8b5cf6",
-    shortlisted: "#c084fc",
-    awarded: "#10b981",
-    accepted: "#059669",
-    rejected: "#ef4444",
-  };
-
-  const statusData = Object.entries(
-    applications.reduce((acc, a) => {
-      acc[a.status] = (acc[a.status] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>)
-  ).map(([name, value]) => ({
-    name: name.charAt(0).toUpperCase() + name.slice(1),
-    value,
-    fill: STATUS_COLORS[name] || "#a1a1aa",
-  }));
 
   // Timeline data (group by week)
   const timelineData = (() => {
@@ -638,7 +582,7 @@ export default function DashboardPage() {
               <div className="space-y-2 font-mono text-[9px] text-zinc-400 max-h-[160px] overflow-y-auto pr-1">
                 {events.map((evt, idx) => (
                   <div key={idx} className="flex items-start gap-2.5 p-1 border-b border-zinc-900/40">
-                    <span className="text-emerald-500">[{new Date().toLocaleTimeString("en-US", { hour12: false })}]</span>
+                    <span className="text-emerald-500" suppressHydrationWarning>[{new Date().toLocaleTimeString("en-US", { hour12: false })}]</span>
                     <span className="text-zinc-500">INFO:</span>
                     <span>{evt}</span>
                   </div>

@@ -6,5 +6,5 @@ discover and apply to jobs and scholarships, generate ATS-optimized
 application documents, and plan long-term career growth.
 """
 
-__version__ = "0.1.0"
+__version__ = "1.0.0"
 __author__ = "NORAY"

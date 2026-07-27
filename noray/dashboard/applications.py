@@ -6,8 +6,9 @@ timeline views, and pipeline visualization data.
 """
 
 from __future__ import annotations
+
+from dataclasses import dataclass
 from typing import Any
-from dataclasses import dataclass, field
 
 from noray.dashboard.jobs import load_applications as load_jobs
 from noray.dashboard.scholarships import load_applications as load_scholarships

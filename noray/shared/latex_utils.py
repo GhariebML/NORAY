@@ -5,12 +5,10 @@ Handles CV and cover letter compilation, PDF verification,
 and artifact cleanup. Shared by career_agent and scholarship_agent.
 """
 
-import subprocess
 import shutil
-from pathlib import Path
+import subprocess
 from dataclasses import dataclass
-
-from noray.config import CV_DIR, COVER_LETTERS_DIR
+from pathlib import Path
 
 
 @dataclass
