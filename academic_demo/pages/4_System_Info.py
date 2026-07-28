@@ -12,19 +12,19 @@ import time
 from academic_demo.components.utils import inject_custom_styles, render_header
 from academic_demo.components.api import get_health, get_diagnostics
 
-# Page config
 st.set_page_config(page_title="System Diagnostics — NORAY OS", page_icon="⚙️", layout="wide")
 inject_custom_styles()
 render_header("System Info", "Operational statuses, active database links, and live service latencies.")
 
-# Measure latency and fetch health
 start_time = time.time()
 health = get_health()
 ping_latency = int((time.time() - start_time) * 1000)
 
-diagnostics = get_diagnostics()
+try:
+    diagnostics = get_diagnostics()
+except Exception:
+    diagnostics = {}
 
-# Status indicator cards
 col_srv, col_db, col_mem = st.columns(3)
 
 with col_srv:
@@ -39,11 +39,11 @@ with col_srv:
                 {status_text}
             </div>
             <p style="color: #71717a; font-size: 11px; margin-top: 10px;">
-                HTTP host server endpoint running on port 8001
+                HTTP server running on port 8001
             </p>
         </div>
         """,
-        unsafe_allow_html=True
+        unsafe_allow_html=True,
     )
 
 with col_db:
@@ -57,11 +57,11 @@ with col_db:
                 {qdrant_stat}
             </div>
             <p style="color: #71717a; font-size: 11px; margin-top: 10px;">
-                Collection: <code>user_documents</code> ({len(diagnostics.get("qdrant_collections", []))} active collections)
+                Collection: <code>user_documents</code>
             </p>
         </div>
         """,
-        unsafe_allow_html=True
+        unsafe_allow_html=True,
     )
 
 with col_mem:
@@ -69,20 +69,19 @@ with col_mem:
     st.markdown(
         f"""
         <div class="glass-card" style="text-align: center;">
-            <h4 style="color: #a1a1aa; margin-bottom: 5px;">BM25 index count</h4>
+            <h4 style="color: #a1a1aa; margin-bottom: 5px;">BM25 Index Count</h4>
             <div style="font-size: 28px; font-weight: bold; color: #10b981; font-family: monospace;">
                 {bm25_count}
             </div>
             <p style="color: #71717a; font-size: 11px; margin-top: 10px;">
-                Lexical fallback index serialized to disk pickle files
+                Lexical fallback index
             </p>
         </div>
         """,
-        unsafe_allow_html=True
+        unsafe_allow_html=True,
     )
 
-# Details table
-st.markdown("### 📊 Operational Parameters & Hardware Info")
+st.markdown("### Operational Parameters & Hardware Info")
 
 col_left, col_right = st.columns(2)
 
@@ -90,7 +89,7 @@ with col_left:
     st.markdown(
         f"""
         <div class="glass-card">
-            <h4 style="color: #ffffff; margin-bottom: 15px;">🌐 API Configurations</h4>
+            <h4 style="color: #ffffff; margin-bottom: 15px;">API Configurations</h4>
             <table style="width: 100%; border-collapse: collapse; font-family: monospace; font-size: 13px;">
                 <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
                     <td style="padding: 10px 0; color: #a1a1aa;">EMBEDDINGS PROVIDER</td>
@@ -111,14 +110,14 @@ with col_left:
             </table>
         </div>
         """,
-        unsafe_allow_html=True
+        unsafe_allow_html=True,
     )
 
 with col_right:
     st.markdown(
         f"""
         <div class="glass-card">
-            <h4 style="color: #ffffff; margin-bottom: 15px;">🖥️ API Latency Metrics</h4>
+            <h4 style="color: #ffffff; margin-bottom: 15px;">API Latency Metrics</h4>
             <table style="width: 100%; border-collapse: collapse; font-family: monospace; font-size: 13px;">
                 <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
                     <td style="padding: 10px 0; color: #a1a1aa;">API PING ROUNDTRIP</td>
@@ -139,5 +138,5 @@ with col_right:
             </table>
         </div>
         """,
-        unsafe_allow_html=True
+        unsafe_allow_html=True,
     )

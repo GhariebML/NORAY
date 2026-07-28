@@ -8,10 +8,10 @@ from academic_demo.components.config import API_BASE_URL
 
 logger = logging.getLogger("academic_demo.api")
 
-# ─── Xiaomi Mimio Direct API Configuration ────────────────────────
-MIMIO_API_KEY = os.getenv("MIMIO_API_KEY", "sk-scxcd6h8oe05k3xqrec5ahxv98a89si8xpy4t6qb22x429r9")
-MIMIO_BASE_URL = os.getenv("MIMIO_BASE_URL", "https://api.mimio.ai/v1")
-MIMIO_MODEL = os.getenv("MIMIO_MODEL", "mimio-2.5-pro")
+# ─── Xiaomi MiMo Direct API Configuration ────────────────────────
+MIMIO_API_KEY = os.getenv("MIMIO_API_KEY", "")
+MIMIO_BASE_URL = os.getenv("MIMIO_BASE_URL", "https://api.xiaomimimo.com/v1")
+MIMIO_MODEL = os.getenv("MIMIO_MODEL", "mimo-v2.5-pro")
 
 # Try loading from Streamlit secrets
 try:
@@ -31,9 +31,20 @@ def _init_local_session_docs():
 
 def _call_mimio_direct(query: str, system_prompt: str = "") -> Dict[str, Any]:
     """
-    Call the Xiaomi Mimio API directly for LLM generation.
+    Call the Xiaomi MiMo API directly for LLM generation.
     Used when the FastAPI backend is unreachable (Streamlit Cloud standalone mode).
+    Returns structured error messages instead of raw exceptions.
     """
+    if not MIMIO_API_KEY:
+        return {
+            "content": "[Provider Error] Xiaomi MiMo API key is not configured. "
+                       "Set MIMIO_API_KEY in your environment or Streamlit secrets.",
+            "model": MIMIO_MODEL,
+            "provider": "mimio",
+            "input_tokens": 0,
+            "output_tokens": 0,
+        }
+
     url = f"{MIMIO_BASE_URL}/chat/completions"
     headers = {
         "Authorization": f"Bearer {MIMIO_API_KEY}",
@@ -65,10 +76,54 @@ def _call_mimio_direct(query: str, system_prompt: str = "") -> Dict[str, Any]:
             "input_tokens": usage.get("prompt_tokens", 0),
             "output_tokens": usage.get("completion_tokens", 0),
         }
-    except Exception as e:
-        logger.error(f"Xiaomi Mimio direct API call failed: {e}")
+    except requests.exceptions.ConnectionError as e:
+        error_lower = str(e).lower()
+        if "failed to resolve" in error_lower or "name" in error_lower:
+            error_msg = f"DNS resolution failed — the endpoint '{MIMIO_BASE_URL}' could not be reached. " \
+                        f"Check MIMIO_BASE_URL in your .env file."
+        elif "connection refused" in error_lower:
+            error_msg = f"Connection refused by '{MIMIO_BASE_URL}'. The service may be down."
+        else:
+            error_msg = f"Cannot connect to MiMo endpoint: {error_lower}"
+        logger.error(f"MiMo direct API connection error: {e}")
         return {
-            "content": f"Xiaomi Mimio API is temporarily unavailable. Error: {str(e)}",
+            "content": f"[Provider Error] {error_msg}",
+            "model": MIMIO_MODEL,
+            "provider": "mimio",
+            "input_tokens": 0,
+            "output_tokens": 0,
+        }
+    except requests.exceptions.Timeout:
+        logger.error("MiMo direct API call timed out")
+        return {
+            "content": "[Provider Error] Request to MiMo timed out (30s). The model may be under heavy load.",
+            "model": MIMIO_MODEL,
+            "provider": "mimio",
+            "input_tokens": 0,
+            "output_tokens": 0,
+        }
+    except requests.exceptions.HTTPError as e:
+        status = e.response.status_code if e.response is not None else "unknown"
+        if status == 401:
+            error_msg = "Authentication failed. Check your MIMIO_API_KEY."
+        elif status == 429:
+            error_msg = "Rate limit exceeded. Try again later."
+        elif status == 403:
+            error_msg = "Access denied. Check your API key permissions."
+        else:
+            error_msg = f"HTTP {status} error from MiMo API."
+        logger.error(f"MiMo direct API HTTP error: {e}")
+        return {
+            "content": f"[Provider Error] {error_msg}",
+            "model": MIMIO_MODEL,
+            "provider": "mimio",
+            "input_tokens": 0,
+            "output_tokens": 0,
+        }
+    except Exception as e:
+        logger.error(f"Xiaomi MiMo direct API call failed: {e}")
+        return {
+            "content": f"[Provider Error] MiMo request failed: {str(e)}",
             "model": MIMIO_MODEL,
             "provider": "mimio",
             "input_tokens": 0,
