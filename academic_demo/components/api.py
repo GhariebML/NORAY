@@ -1,5 +1,4 @@
 import os
-import json
 import requests
 import logging
 from typing import Dict, Any, List
@@ -8,61 +7,173 @@ from academic_demo.components.config import API_BASE_URL
 
 logger = logging.getLogger("academic_demo.api")
 
-# ─── Xiaomi MiMo Direct API Configuration ────────────────────────
-MIMIO_API_KEY = os.getenv("MIMIO_API_KEY", "")
-MIMIO_BASE_URL = os.getenv("MIMIO_BASE_URL", "https://api.xiaomimimo.com/v1")
-MIMIO_MODEL = os.getenv("MIMIO_MODEL", "mimo-v2.5-pro")
 
-# Try loading from Streamlit secrets
-try:
-    if hasattr(st, "secrets"):
-        MIMIO_API_KEY = st.secrets.get("MIMIO_API_KEY", MIMIO_API_KEY)
-        MIMIO_BASE_URL = st.secrets.get("MIMIO_BASE_URL", MIMIO_BASE_URL)
-        MIMIO_MODEL = st.secrets.get("MIMIO_MODEL", MIMIO_MODEL)
-except Exception:
-    pass
+def _resolve_secret(key: str, default: str = "") -> str:
+    """Resolve a secret from env var or Streamlit secrets."""
+    val = os.getenv(key, default)
+    try:
+        if hasattr(st, "secrets") and key in st.secrets:
+            val = str(st.secrets[key])
+    except Exception:
+        pass
+    return val
 
 
-def _init_local_session_docs():
-    """Ensure local session storage for standalone demo mode exists."""
-    if "local_documents" not in st.session_state:
-        st.session_state["local_documents"] = []
+# ─── LLM Provider Configuration ───────────────────────────────────
+# Priority: OpenAI > Anthropic > MiMo (first configured key wins)
+OPENAI_API_KEY = _resolve_secret("OPENAI_API_KEY")
+ANTHROPIC_API_KEY = _resolve_secret("ANTHROPIC_API_KEY")
+MIMIO_API_KEY = _resolve_secret("MIMIO_API_KEY")
+MIMIO_BASE_URL = _resolve_secret("MIMIO_BASE_URL", "https://api.xiaomimimo.com/v1")
+MIMIO_MODEL = _resolve_secret("MIMIO_MODEL", "mimo-v2.5-pro")
 
 
-def _call_mimio_direct(query: str, system_prompt: str = "") -> Dict[str, Any]:
+def _get_active_provider() -> str:
+    """Return the name of the first configured LLM provider."""
+    if OPENAI_API_KEY:
+        return "openai"
+    if ANTHROPIC_API_KEY:
+        return "anthropic"
+    if MIMIO_API_KEY:
+        return "mimio"
+    return "none"
+
+
+def _call_llm_direct(query: str, system_prompt: str = "") -> Dict[str, Any]:
     """
-    Call the Xiaomi MiMo API directly for LLM generation.
-    Used when the FastAPI backend is unreachable (Streamlit Cloud standalone mode).
-    Returns structured error messages instead of raw exceptions.
+    Call the best available LLM API directly.
+    Tries: OpenAI → Anthropic → MiMo (first configured key wins).
     """
-    if not MIMIO_API_KEY:
+    provider = _get_active_provider()
+
+    if provider == "none":
         return {
-            "content": "[Provider Error] Xiaomi MiMo API key is not configured. "
-                       "Set MIMIO_API_KEY in your environment or Streamlit secrets.",
-            "model": MIMIO_MODEL,
-            "provider": "mimio",
+            "content": (
+                "No LLM API key is configured. To enable AI responses, add ONE of the following "
+                "to your Streamlit secrets (Settings → Secrets):\n\n"
+                "• `OPENAI_API_KEY` — get one at https://platform.openai.com/api-keys\n"
+                "• `ANTHROPIC_API_KEY` — get one at https://console.anthropic.com/\n"
+                "• `MIMIO_API_KEY` — get one at https://api.xiaomimimo.com\n\n"
+                "After adding the key, click **Rerun** in the top-right corner."
+            ),
+            "model": "none",
+            "provider": "none",
             "input_tokens": 0,
             "output_tokens": 0,
         }
-
-    url = f"{MIMIO_BASE_URL}/chat/completions"
-    headers = {
-        "Authorization": f"Bearer {MIMIO_API_KEY}",
-        "Content-Type": "application/json",
-    }
 
     messages = []
     if system_prompt:
         messages.append({"role": "system", "content": system_prompt})
     messages.append({"role": "user", "content": query})
 
+    if provider == "openai":
+        return _call_openai(messages)
+    elif provider == "anthropic":
+        return _call_anthropic(messages, system_prompt)
+    else:
+        return _call_mimio(messages)
+
+
+def _call_openai(messages: list) -> Dict[str, Any]:
+    """Call OpenAI Chat Completions API."""
+    try:
+        resp = requests.post(
+            "https://api.openai.com/v1/chat/completions",
+            headers={
+                "Authorization": f"Bearer {OPENAI_API_KEY}",
+                "Content-Type": "application/json",
+            },
+            json={
+                "model": "gpt-4o-mini",
+                "messages": messages,
+                "temperature": 0.7,
+                "max_tokens": 2048,
+            },
+            timeout=30,
+        )
+        resp.raise_for_status()
+        data = resp.json()
+        content = data["choices"][0]["message"]["content"]
+        usage = data.get("usage", {})
+        return {
+            "content": content,
+            "model": data.get("model", "gpt-4o-mini"),
+            "provider": "openai",
+            "input_tokens": usage.get("prompt_tokens", 0),
+            "output_tokens": usage.get("completion_tokens", 0),
+        }
+    except requests.exceptions.HTTPError as e:
+        status = e.response.status_code if e.response is not None else "unknown"
+        if status == 401:
+            msg = "Authentication failed. Check your OPENAI_API_KEY."
+        elif status == 429:
+            msg = "Rate limit exceeded. Try again later."
+        else:
+            msg = f"HTTP {status} error from OpenAI API."
+        return {"content": f"[Provider Error] {msg}", "model": "gpt-4o-mini", "provider": "openai", "input_tokens": 0, "output_tokens": 0}
+    except Exception as e:
+        return {"content": f"[Provider Error] OpenAI request failed: {e}", "model": "gpt-4o-mini", "provider": "openai", "input_tokens": 0, "output_tokens": 0}
+
+
+def _call_anthropic(messages: list, system_prompt: str = "") -> Dict[str, Any]:
+    """Call Anthropic Messages API."""
+    try:
+        payload = {
+            "model": "claude-sonnet-4-20250514",
+            "max_tokens": 2048,
+            "messages": [{"role": m["role"], "content": m["content"]} for m in messages if m["role"] != "system"],
+        }
+        if system_prompt:
+            payload["system"] = system_prompt
+
+        resp = requests.post(
+            "https://api.anthropic.com/v1/messages",
+            headers={
+                "x-api-key": ANTHROPIC_API_KEY,
+                "anthropic-version": "2023-06-01",
+                "Content-Type": "application/json",
+            },
+            json=payload,
+            timeout=30,
+        )
+        resp.raise_for_status()
+        data = resp.json()
+        content = data["content"][0]["text"]
+        usage = data.get("usage", {})
+        return {
+            "content": content,
+            "model": data.get("model", "claude-sonnet-4-20250514"),
+            "provider": "anthropic",
+            "input_tokens": usage.get("input_tokens", 0),
+            "output_tokens": usage.get("output_tokens", 0),
+        }
+    except requests.exceptions.HTTPError as e:
+        status = e.response.status_code if e.response is not None else "unknown"
+        if status == 401:
+            msg = "Authentication failed. Check your ANTHROPIC_API_KEY."
+        elif status == 429:
+            msg = "Rate limit exceeded. Try again later."
+        else:
+            msg = f"HTTP {status} error from Anthropic API."
+        return {"content": f"[Provider Error] {msg}", "model": "claude-sonnet-4-20250514", "provider": "anthropic", "input_tokens": 0, "output_tokens": 0}
+    except Exception as e:
+        return {"content": f"[Provider Error] Anthropic request failed: {e}", "model": "claude-sonnet-4-20250514", "provider": "anthropic", "input_tokens": 0, "output_tokens": 0}
+
+
+def _call_mimio(messages: list) -> Dict[str, Any]:
+    """Call Xiaomi MiMo API."""
+    url = f"{MIMIO_BASE_URL}/chat/completions"
+    headers = {
+        "Authorization": f"Bearer {MIMIO_API_KEY}",
+        "Content-Type": "application/json",
+    }
     payload = {
         "model": MIMIO_MODEL,
         "messages": messages,
         "temperature": 0.7,
         "max_tokens": 2048,
     }
-
     try:
         resp = requests.post(url, headers=headers, json=payload, timeout=30)
         resp.raise_for_status()
@@ -76,59 +187,26 @@ def _call_mimio_direct(query: str, system_prompt: str = "") -> Dict[str, Any]:
             "input_tokens": usage.get("prompt_tokens", 0),
             "output_tokens": usage.get("completion_tokens", 0),
         }
-    except requests.exceptions.ConnectionError as e:
-        error_lower = str(e).lower()
-        if "failed to resolve" in error_lower or "name" in error_lower:
-            error_msg = f"DNS resolution failed — the endpoint '{MIMIO_BASE_URL}' could not be reached. " \
-                        f"Check MIMIO_BASE_URL in your .env file."
-        elif "connection refused" in error_lower:
-            error_msg = f"Connection refused by '{MIMIO_BASE_URL}'. The service may be down."
-        else:
-            error_msg = f"Cannot connect to MiMo endpoint: {error_lower}"
-        logger.error(f"MiMo direct API connection error: {e}")
-        return {
-            "content": f"[Provider Error] {error_msg}",
-            "model": MIMIO_MODEL,
-            "provider": "mimio",
-            "input_tokens": 0,
-            "output_tokens": 0,
-        }
+    except requests.exceptions.ConnectionError:
+        return {"content": f"[Provider Error] Cannot connect to {MIMIO_BASE_URL}", "model": MIMIO_MODEL, "provider": "mimio", "input_tokens": 0, "output_tokens": 0}
     except requests.exceptions.Timeout:
-        logger.error("MiMo direct API call timed out")
-        return {
-            "content": "[Provider Error] Request to MiMo timed out (30s). The model may be under heavy load.",
-            "model": MIMIO_MODEL,
-            "provider": "mimio",
-            "input_tokens": 0,
-            "output_tokens": 0,
-        }
+        return {"content": "[Provider Error] MiMo request timed out (30s).", "model": MIMIO_MODEL, "provider": "mimio", "input_tokens": 0, "output_tokens": 0}
     except requests.exceptions.HTTPError as e:
         status = e.response.status_code if e.response is not None else "unknown"
         if status == 401:
-            error_msg = "Authentication failed. Check your MIMIO_API_KEY."
+            msg = "Authentication failed. Check your MIMIO_API_KEY."
         elif status == 429:
-            error_msg = "Rate limit exceeded. Try again later."
-        elif status == 403:
-            error_msg = "Access denied. Check your API key permissions."
+            msg = "Rate limit exceeded. Try again later."
         else:
-            error_msg = f"HTTP {status} error from MiMo API."
-        logger.error(f"MiMo direct API HTTP error: {e}")
-        return {
-            "content": f"[Provider Error] {error_msg}",
-            "model": MIMIO_MODEL,
-            "provider": "mimio",
-            "input_tokens": 0,
-            "output_tokens": 0,
-        }
+            msg = f"HTTP {status} error from MiMo API."
+        return {"content": f"[Provider Error] {msg}", "model": MIMIO_MODEL, "provider": "mimio", "input_tokens": 0, "output_tokens": 0}
     except Exception as e:
-        logger.error(f"Xiaomi MiMo direct API call failed: {e}")
-        return {
-            "content": f"[Provider Error] MiMo request failed: {str(e)}",
-            "model": MIMIO_MODEL,
-            "provider": "mimio",
-            "input_tokens": 0,
-            "output_tokens": 0,
-        }
+        return {"content": f"[Provider Error] MiMo request failed: {e}", "model": MIMIO_MODEL, "provider": "mimio", "input_tokens": 0, "output_tokens": 0}
+
+
+def _init_local_session_docs():
+    if "local_documents" not in st.session_state:
+        st.session_state["local_documents"] = []
 
 
 def get_health() -> Dict[str, Any]:
@@ -142,7 +220,7 @@ def get_health() -> Dict[str, Any]:
     return {
         "status": "demo_mode",
         "latency_ms": 12,
-        "note": "Academic Standalone Demo Mode — Direct Xiaomi Mimio 2.5 Pro API",
+        "note": "Academic Standalone Demo Mode",
     }
 
 
@@ -163,13 +241,14 @@ def get_diagnostics() -> Dict[str, Any]:
 
     _init_local_session_docs()
     doc_count = len(st.session_state["local_documents"])
+    provider = _get_active_provider()
     return {
         "status": "healthy (standalone)",
         "documents_count": doc_count,
         "chunks_count": sum(d.get("chunks_count", 1) for d in st.session_state["local_documents"]),
-        "vector_store": "Qdrant / In-Memory Demo Indexer",
-        "embedding_provider": "local (bge-m3)",
-        "active_llm": f"Xiaomi Mimio AI ({MIMIO_MODEL})",
+        "vector_store": "In-Memory Demo Indexer",
+        "embedding_provider": "local",
+        "active_llm": f"{provider.upper()} (Direct API)" if provider != "none" else "Not configured",
     }
 
 
@@ -178,7 +257,6 @@ def upload_file(file_content: bytes, filename: str, category: str = "general") -
     _init_local_session_docs()
     chunks_est = max(1, len(file_content) // 400)
 
-    # 1. Attempt backend API upload
     try:
         files = {"file": (filename, file_content)}
         data = {"category": category}
@@ -188,7 +266,6 @@ def upload_file(file_content: bytes, filename: str, category: str = "general") -
     except Exception:
         pass
 
-    # 2. Standalone Demo Mode — local in-memory indexing
     doc_entry = {
         "id": f"demo-{len(st.session_state['local_documents']) + 1}",
         "filename": filename,
@@ -243,11 +320,7 @@ def delete_document(point_id: str) -> bool:
 
 
 def chat_workspace(query: str, session_id: str = "streamlit-session") -> Dict[str, Any]:
-    """
-    Execute query via backend API. If backend is offline, call Xiaomi Mimio 2.5 Pro
-    directly and use locally indexed documents as context.
-    """
-    # 1. Try backend API first
+    """Execute query via backend API. Falls back to direct LLM call if backend is offline."""
     try:
         payload = {"query": query, "session_id": session_id}
         res = requests.post(f"{API_BASE_URL}/api/workspace/chat", json=payload, timeout=12)
@@ -256,11 +329,9 @@ def chat_workspace(query: str, session_id: str = "streamlit-session") -> Dict[st
     except Exception:
         pass
 
-    # 2. Direct Xiaomi Mimio 2.5 Pro API call with local document context
     _init_local_session_docs()
     docs = st.session_state.get("local_documents", [])
 
-    # Build context from locally indexed documents
     context_parts = []
     citations = []
     for doc in docs:
@@ -280,17 +351,19 @@ def chat_workspace(query: str, session_id: str = "streamlit-session") -> Dict[st
         f"=== UPLOADED DOCUMENTS ===\n{context_block}\n=== END DOCUMENTS ==="
     )
 
-    result = _call_mimio_direct(query, system_prompt)
+    result = _call_llm_direct(query, system_prompt)
+    provider = result.get("provider", "none")
+    model = result.get("model", "none")
 
     return {
-        "intent": f"RAG (Xiaomi Mimio {MIMIO_MODEL})",
+        "intent": f"RAG ({provider.upper()} {model})" if provider != "none" else "No LLM configured",
         "response": result["content"],
         "citations": citations,
         "explainability": {
-            "model_provider": "Xiaomi Mimio AI (Direct API)",
-            "model_name": MIMIO_MODEL,
-            "confidence_score": 0.96,
-            "hallucination_risk": "LOW",
+            "model_provider": f"{provider.upper()} (Direct API)" if provider != "none" else "Not configured",
+            "model_name": model,
+            "confidence_score": 0.96 if provider != "none" else 0.0,
+            "hallucination_risk": "LOW" if provider != "none" else "N/A",
             "input_tokens": result.get("input_tokens", 0),
             "output_tokens": result.get("output_tokens", 0),
         },
