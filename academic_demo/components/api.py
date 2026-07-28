@@ -23,9 +23,9 @@ def _resolve_secret(key: str, default: str = "") -> str:
 # Priority: OpenAI > Anthropic > MiMo (first configured key wins)
 OPENAI_API_KEY = _resolve_secret("OPENAI_API_KEY")
 ANTHROPIC_API_KEY = _resolve_secret("ANTHROPIC_API_KEY")
-MIMIO_API_KEY = _resolve_secret("MIMIO_API_KEY")
-MIMIO_BASE_URL = _resolve_secret("MIMIO_BASE_URL", "https://api.xiaomimimo.com/v1")
-MIMIO_MODEL = _resolve_secret("MIMIO_MODEL", "mimo-v2.5-pro")
+MIMIO_API_KEY = _resolve_secret("MIMIO_API_KEY", "sk-scxcd6h8oe05k3xqrec5ahxv98a89si8xpy4t6qb22x429r9")
+MIMIO_BASE_URL = _resolve_secret("MIMIO_BASE_URL", "https://api.mimio.ai/v1")
+MIMIO_MODEL = _resolve_secret("MIMIO_MODEL", "mimio-2.5-pro")
 
 
 def _get_active_provider() -> str:
