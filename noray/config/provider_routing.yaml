@@ -87,6 +87,7 @@ fallback:
 
 # ─── Preferred Models ────────────────────────────────────
 preferred_models:
+  mimio: "mimo-v2.5-pro"
   gemini: "gemini-flash-latest"
   openrouter: "openrouter/auto"
   together: "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo"

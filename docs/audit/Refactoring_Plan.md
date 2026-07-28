@@ -1,301 +1,337 @@
-# NORAY OS — Refactoring Plan
+# Refactoring Plan
 
+**Project:** NORAY OS
 **Audit Date:** July 2026
 
 ---
 
-## 1. Folder Restructuring
+## 1. Executive Summary
 
-### Current Structure Issues
-- `noray/agents/` vs `noray/career_agent/` vs `noray/intelligence/` — three agent-related directories
-- `noray/services/` is a grab-bag of unrelated services
-- `noray/shared/` contains both models and utilities
-- `rag_project/` is orphaned
-
-### Recommended Structure
-
-```
-noray/
-├── api/                      # API layer (keep as-is)
-│   ├── routes/
-│   ├── schemas.py
-│   └── middleware/
-├── core/                     # NEW: Consolidated core
-│   ├── config.py             # From config.py + config/
-│   ├── models.py             # From shared/models.py
-│   ├── prompts.py            # From shared/prompts.py + prompts/
-│   └── exceptions.py         # From api/errors.py + new
-├── llm/                      # LLM layer (keep as-is)
-│   ├── providers/
-│   ├── smart_router.py
-│   └── factory.py
-├── agents/                   # CONSOLIDATED: All agents
-│   ├── base.py               # Agent base class
-│   ├── career.py             # From career_agent/
-│   ├── scholarship.py        # From scholarship_agent/
-│   ├── upskill.py            # From upskill_agent/
-│   ├── document.py           # From document_generator/
-│   ├── research.py           # From research/
-│   └── tools/                # From agents/tools/
-├── rag/                      # RAG layer (keep as-is)
-├── graph/                    # Graph layer (keep as-is)
-├── data/                     # NEW: Data access layer
-│   ├── profile.py            # From shared/profile_store.py
-│   ├── applications.py       # From dashboard/
-│   └── cache.py              # From cache/
-├── services/                 # CONSOLIDATED: Only shared services
-│   ├── conversation.py       # From services/conversation_manager.py
-│   └── task_runner.py        # From services/task_runner.py
-└── observability/            # Observability (keep as-is)
-```
+This refactoring plan addresses structural issues identified in the codebase audit. The goal is to improve maintainability, reduce technical debt, and prepare for production deployment.
 
 ---
 
-## 2. Architecture Improvements
+## 2. Folder Restructuring
 
-### 2.1 Consolidate Document Generation
+### 2.1 Current Structure Issues
+| Issue | Location | Impact |
+|---|---|---|
+| Dead code in gateway/ | 
+oray/gateway/ | Confusion, maintenance burden |
+| Mocked retriever | 
+oray/rag/universal_retriever.py | Misleading |
+| Standalone demo | ag_project/ | Repo clutter |
+| Educational notebooks | Notebooks_RAGs/ | Repo clutter |
+| Empty output dirs | scholarships/, upskill/ | Confusion |
 
-**Current:** 3 implementations
-- `noray/document_generator/service.py` (modern, AI-powered)
-- `noray/career_agent/cv_optimizer.py` (legacy, LaTeX)
-- `noray/career_agent/cover_letter_generator.py` (legacy, LaTeX)
-
-**Action:** Deprecate legacy generators. Keep `document_generator/service.py` as single source. Move LaTeX compilation to a shared utility.
-
-### 2.2 Consolidate Prompt Management
-
-**Current:** 2 systems
-- `noray/prompts/*.yaml` (versioned, with loader)
-- `noray/shared/prompts.py` (Python strings)
-
-**Action:** Migrate all prompts to YAML system. Create a single `PromptManager` that loads from YAML with fallback to defaults.
-
-### 2.3 Consolidate LLM Calling
-
-**Current:** 3 patterns
-- `SmartRouter.generate_with_fallback()` (intended)
-- `LLMProviderFactory.get_provider().generate()` (bypasses router)
-- `shared/llm_utils.call_llm()` (simple wrapper)
-
-**Action:** Deprecate direct provider calls and `call_llm()`. Route everything through SmartRouter.
-
----
-
-## 3. Reusable Components
-
-### 3.1 Frontend Component Library
-
-Create dedicated component files instead of monolithic `ui.tsx`:
-
-```
-components/ui/
-├── Button.tsx
-├── Card.tsx
-├── Badge.tsx
-├── Modal.tsx          # NEW
-├── DataTable.tsx      # NEW
-├── FormInput.tsx      # NEW
-├── Tooltip.tsx        # NEW
-├── Dropdown.tsx       # NEW
-├── Tabs.tsx           # NEW
-├── ErrorBoundary.tsx  # NEW
-├── SkeletonLoader.tsx
-├── LoadingSpinner.tsx
-├── EmptyState.tsx
-├── Toast.tsx
-├── PageHeader.tsx
-└── StatCard.tsx
-```
-
-### 3.2 Backend Service Layer
-
-Create proper service interfaces:
-
-```python
-# noray/services/base.py
-class BaseService:
-    def __init__(self, db: Session, cache: RedisCache):
-        self.db = db
-        self.cache = cache
-
-# noray/services/job_service.py
-class JobService(BaseService):
-    def search(self, query: str, filters: dict) -> list[Job]:
-        ...
-    def score(self, job: Job, profile: CareerProfile) -> JobScore:
-        ...
-    def apply(self, job_id: str, profile: CareerProfile) -> Application:
-        ...
-```
-
----
-
-## 4. State Management
-
-### Current (Frontend)
-- Zustand stores for command center only (5 stores)
-- All page state is local `useState`
-- No global state for user profile, settings, or notifications
-
-### Recommended
-```
-stores/
-├── authStore.ts        # NEW: Authentication state
-├── profileStore.ts     # NEW: User profile (cached from API)
-├── notificationStore.ts # NEW: Notifications
-├── settingsStore.ts    # NEW: App settings
-├── dagStore.ts         # Existing
-├── agentStore.ts       # Existing
-├── layoutStore.ts      # Existing
-├── logStore.ts         # Existing
-└── websocketClient.ts  # Existing
-```
-
----
-
-## 5. Custom Hooks
-
-Create reusable hooks:
-
-```typescript
-// hooks/
-├── useApi.ts           # API call with loading/error states
-├── useAuth.ts          # Authentication state
-├── useProfile.ts       # Profile data
-├── useWebSocket.ts     # WebSocket connection
-├── useDebounce.ts      # Debounced search
-├── useLocalStorage.ts  # Persistent state
-└── useToast.ts         # Toast notifications
-```
-
----
-
-## 6. Services & Controllers
-
-### Current
-Routes contain business logic directly:
-
-```python
-@router.post("/search")
-async def search_jobs(request: JobSearchRequest):
-    # 20 lines of business logic in the route
-    profile = load_profile()
-    results = search_jobs(...)
-    return results
-```
-
-### Recommended
-Separate controllers from routes:
-
-```python
-# noray/api/routes/jobs.py
-@router.post("/search")
-async def search_jobs(request: JobSearchRequest):
-    return await job_controller.search(request)
-
-# noray/api/controllers/job_controller.py
-class JobController:
-    async def search(self, request: JobSearchRequest):
-        profile = self.profile_service.get()
-        results = self.job_service.search(request.query, profile)
-        return results
-```
-
----
-
-## 6. Dependency Injection
-
-### Current
-- `DIContainer` exists in `intelligence/core/di.py` but only used by intelligence layer
-- Most modules use direct imports and lazy imports
-
-### Recommended
-Expand DI to all layers:
-
-```python
-# noray/core/container.py
-class Container:
-    def __init__(self):
-        self.db = DatabaseSession()
-        self.cache = RedisCache()
-        self.profile = ProfileService(self.db)
-        self.smart_router = SmartRouter()
-        self.job_service = JobService(self.db, self.cache, self.smart_router)
-        self.document_service = DocumentService(self.smart_router, self.profile)
-```
-
----
-
-## 7. Repository Pattern
-
-### Current
-Direct SQLAlchemy queries in routes and services:
-
-```python
-apps = db.query(ApplicationModel).filter(...).all()
-```
-
-### Recommended
-Repository abstraction:
-
-```python
-# noray/data/repositories/application_repository.py
-class ApplicationRepository:
-    def __init__(self, db: Session):
-        self.db = db
+### 2.2 Recommended Structure
+`mermaid
+graph TB
+    ROOT[NORAY-main] --> NORAY[noray/]
+    ROOT --> FRONTEND[frontend/]
+    ROOT --> TESTS[tests/]
+    ROOT --> DOCS[docs/]
+    ROOT --> SCRIPTS[scripts/]
+    ROOT --> ARCHIVE[archive/]
     
-    def get_all(self, filters: dict) -> list[Application]:
-        return self.db.query(ApplicationModel).filter(...).all()
+    NORAY --> API[api/]
+    NORAY --> RAG[rag/]
+    NORAY --> LLM[llm/]
+    NORAY --> AGENTS[agents/]
+    NORAY --> INTELLIGENCE[intelligence/]
+    NORAY --> GRAPH[graph/]
+    NORAY --> MODELS[models/]
+    NORAY --> SERVICES[services/]
+    NORAY --> OBSERVABILITY[observability/]
+    NORAY --> SHARED[shared/]
+    NORAY --> CONFIG[config/]
     
-    def create(self, data: dict) -> Application:
-        app = ApplicationModel(**data)
-        self.db.add(app)
-        self.db.commit()
-        return app
-```
+    ARCHIVE --> GATEWAY_OLD[archive/gateway/]
+    ARCHIVE --> RAG_DEMO[archive/rag_project/]
+    ARCHIVE --> NOTEBOOKS[archive/Notebooks_RAGs/]
+`
+
+### 2.3 Actions
+| Action | Priority | Effort |
+|---|---|---|
+| Move gateway/ to rchive/ | High | Low |
+| Move ag_project/ to rchive/ | High | Low |
+| Move Notebooks_RAGs/ to rchive/ | Medium | Low |
+| Remove universal_retriever.py | High | Low |
+| Create scripts/ directory | Medium | Low |
 
 ---
 
-## 8. Testing Improvements
+## 3. Architecture Improvements
 
-### Current Issues
-- Heavy mocking (mock SmartRouter, mock providers)
-- 2 test files hang (call real LLM)
-- No integration tests
-- No e2e tests
+### 3.1 Consolidate Routing Systems
+**Current:** Two routing systems (ModelRouter and SmartRouter)
+**Target:** Single SmartRouter with all features
 
-### Recommended
-```
-tests/
-├── unit/               # Fast, no I/O
-│   ├── test_models.py
-│   ├── test_task_analyzer.py
-│   └── test_fusion.py
-├── integration/        # Real DB, real Qdrant
-│   ├── test_api.py
-│   ├── test_rag_pipeline.py
-│   └── test_profile_store.py
-├── e2e/                # Full stack
-│   ├── test_document_generation.py
-│   └── test_job_search.py
-└── fixtures/           # Shared test data
-```
+`mermaid
+graph LR
+    CURRENT[Current] --> MR[ModelRouter]
+    CURRENT --> SR[SmartRouter]
+    
+    TARGET[Target] --> UNIFIED[Unified SmartRouter]
+    
+    MR --> UNIFIED
+    SR --> UNIFIED
+`
+
+**Actions:**
+| Action | Priority | Effort |
+|---|---|---|
+| Merge ModelRouter into SmartRouter | High | Medium |
+| Update all imports | High | Low |
+| Remove outer.py | High | Low |
+| Add tier-based scoring to SmartRouter | Medium | Medium |
+
+### 3.2 Consolidate Embedding Managers
+**Current:** Two embedding managers (EmbeddingsManager and LocalEmbeddings)
+**Target:** Single EmbeddingsManager with local support
+
+**Actions:**
+| Action | Priority | Effort |
+|---|---|---|
+| Merge LocalEmbeddings into EmbeddingsManager | High | Medium |
+| Update all imports | High | Low |
+| Remove local_embeddings.py | High | Low |
+
+### 3.3 Consolidate Reranker Managers
+**Current:** Two reranker systems
+**Target:** Single RerankerManager
+
+**Actions:**
+| Action | Priority | Effort |
+|---|---|---|
+| Merge reranker implementations | Medium | Medium |
+| Update all imports | Medium | Low |
 
 ---
 
-## Refactoring Priority
+## 4. Reusable Components
 
-| Priority | Item | Effort | Risk |
-|----------|------|--------|------|
-| 1 | Delete `rag_project/` orphan | 5 min | None |
-| 2 | Delete unused frontend components | 30 min | None |
-| 3 | Unify error response format | 2 hrs | Low |
-| 4 | Add React error boundaries | 2 hrs | Low |
-| 5 | Consolidate LLM calling patterns | 1 day | Medium |
-| 6 | Consolidate prompt systems | 2 days | Medium |
-| 7 | Extract frontend UI components | 3 days | Low |
-| 8 | Add custom hooks | 2 days | Low |
-| 9 | Implement repository pattern | 3 days | Medium |
-| 10 | Consolidate document generators | 2 days | Medium |
-| 11 | Add DI to all layers | 3 days | Medium |
-| 12 | Restructure folders | 1 day | High |
+### 4.1 Backend Shared Utilities
+| Component | Location | Purpose | Status |
+|---|---|---|---|
+| is_port_open | database.py, health.py | Port checking | Duplicate |
+| Retry logic | smart_router.py | Retry with backoff | Inconsistent |
+| Circuit breaker | smart_router.py | Failure detection | Inconsistent |
+| Health check | health.py | Service checking | Good |
+
+**Actions:**
+| Action | Priority | Effort |
+|---|---|---|
+| Extract is_port_open to shared/utils.py | Medium | Low |
+| Extract retry logic to shared/retry.py | Medium | Medium |
+| Extract circuit breaker to shared/circuit_breaker.py | Medium | Medium |
+
+### 4.2 Frontend Shared Components
+| Component | Location | Purpose | Status |
+|---|---|---|---|
+| Card patterns | Multiple pages | Data display | Inconsistent |
+| Loading spinners | Multiple pages | Loading state | Inconsistent |
+| Error alerts | Multiple pages | Error state | Inconsistent |
+
+**Actions:**
+| Action | Priority | Effort |
+|---|---|---|
+| Standardize Card components | Medium | Medium |
+| Create shared Loading component | Medium | Low |
+| Create shared Error component | Medium | Low |
+
+---
+
+## 5. State Management
+
+### 5.1 Current State
+| Approach | Usage | Issues |
+|---|---|---|
+| Zustand | Global state | Good |
+| React hooks | Local state | Good |
+| API client | Data fetching | Monolithic |
+
+### 5.2 Recommendations
+| Recommendation | Priority | Effort |
+|---|---|---|
+| Split pi.ts by domain | High | Medium |
+| Add React Query for data fetching | Medium | High |
+| Add optimistic updates | Medium | Medium |
+
+---
+
+## 6. Hooks & Services
+
+### 6.1 Recommended Hooks
+| Hook | Purpose | Priority |
+|---|---|---|
+| useAuth | Authentication state | Critical |
+| useJobs | Job search data | High |
+| useScholarships | Scholarship data | High |
+| useProfile | Profile management | High |
+| useDocuments | Document management | Medium |
+| useChat | Chat session | Medium |
+
+### 6.2 Recommended Services
+| Service | Purpose | Priority |
+|---|---|---|
+| AuthService | Authentication logic | Critical |
+| JobService | Job search logic | High |
+| ScholarshipService | Scholarship logic | High |
+| ProfileService | Profile management | High |
+| DocumentService | Document management | Medium |
+| ChatService | Chat logic | Medium |
+
+---
+
+## 7. Controllers
+
+### 7.1 Recommended Backend Controllers
+| Controller | Purpose | Priority |
+|---|---|---|
+| AuthController | Authentication endpoints | Critical |
+| JobController | Job search endpoints | High |
+| ScholarshipController | Scholarship endpoints | High |
+| ProfileController | Profile endpoints | High |
+| DocumentController | Document endpoints | Medium |
+| ChatController | Chat endpoints | Medium |
+
+---
+
+## 8. Dependency Injection
+
+### 8.1 Current State
+| Feature | Status | Notes |
+|---|---|---|
+| IoC container | Functional | intelligence/core/di.py |
+| FastAPI DI | Functional | Route dependencies |
+| Service registration | Partial | Some manual wiring |
+
+### 8.2 Recommendations
+| Recommendation | Priority | Effort |
+|---|---|---|
+| Extend IoC container to all services | Medium | Medium |
+| Add service interfaces | Medium | Medium |
+| Add configuration-based registration | Low | Low |
+
+---
+
+## 9. Repository Pattern
+
+### 9.1 Current State
+| Pattern | Status | Notes |
+|---|---|---|
+| Direct ORM queries | Functional | In routes |
+| Repository abstraction | Partial | In some services |
+| Unit of Work | ? Missing | No transaction management |
+
+### 9.2 Recommendations
+| Recommendation | Priority | Effort |
+|---|---|---|
+| Create repository interfaces | High | Medium |
+| Implement repositories for all models | High | High |
+| Add Unit of Work pattern | Medium | Medium |
+
+---
+
+## 10. Caching
+
+### 10.1 Current State
+| Feature | Status | Notes |
+|---|---|---|
+| Redis cache | Functional | TTL-based |
+| Memory fallback | Functional | In-memory |
+| Query caching | ? Missing | No query results |
+
+### 10.2 Recommendations
+| Recommendation | Priority | Effort |
+|---|---|---|
+| Add query result caching | High | Medium |
+| Add response caching | Medium | Medium |
+| Add cache invalidation | Medium | Medium |
+
+---
+
+## 11. Testing
+
+### 11.1 Current State
+| Feature | Status | Notes |
+|---|---|---|
+| Test framework | Configured | pytest |
+| Unit tests | ? Missing | No tests |
+| Integration tests | ? Missing | No tests |
+| E2E tests | ? Missing | No tests |
+
+### 11.2 Recommendations
+| Recommendation | Priority | Effort |
+|---|---|---|
+| Add unit tests for core modules | Critical | High |
+| Add integration tests for API | High | High |
+| Add E2E tests for critical flows | Medium | High |
+| Add test fixtures | High | Medium |
+| Add test coverage reporting | Medium | Low |
+
+---
+
+## 12. Refactoring Priority Matrix
+
+| Category | Items | Priority | Effort |
+|---|---|---|---|
+| Dead code removal | gateway/, universal_retriever.py, ag_project/ | Critical | Low |
+| Consolidate routing | Merge ModelRouter into SmartRouter | High | Medium |
+| Consolidate embeddings | Merge embedding managers | High | Medium |
+| Extract shared utilities | is_port_open, retry, circuit breaker | Medium | Low |
+| Add authentication | AuthService, AuthController | Critical | High |
+| Add RBAC | Role-based access control | High | High |
+| Add tests | Unit, integration, E2E | Critical | High |
+| Split pi.ts | Domain-based API client | High | Medium |
+| Add hooks | React Query hooks | Medium | Medium |
+| Add repositories | Repository pattern | Medium | Medium |
+
+---
+
+## 13. Refactoring Timeline
+
+`mermaid
+gantt
+    title Refactoring Timeline
+    dateFormat  YYYY-MM-DD
+    section Quick Wins
+    Remove dead code           :a1, 2026-08-01, 3d
+    Extract shared utils       :a2, 2026-08-01, 5d
+    Fix embedding dimension    :a3, 2026-08-01, 1d
+    section Consolidation
+    Merge routing systems      :b1, 2026-08-05, 7d
+    Merge embedding managers   :b2, 2026-08-05, 5d
+    Merge reranker managers    :b3, 2026-08-12, 5d
+    section Architecture
+    Add authentication         :c1, 2026-08-19, 21d
+    Add RBAC                   :c2, 2026-09-09, 14d
+    Add repositories           :c3, 2026-09-23, 14d
+    section Frontend
+    Split api.ts               :d1, 2026-08-19, 7d
+    Add React Query            :d2, 2026-08-26, 14d
+    Standardize components     :d3, 2026-09-09, 14d
+    section Testing
+    Add unit tests             :e1, 2026-09-23, 21d
+    Add integration tests      :e2, 2026-10-14, 14d
+    Add E2E tests              :e3, 2026-10-28, 14d
+`
+
+---
+
+## 14. Success Metrics
+
+| Metric | Current | Target |
+|---|---|---|
+| Dead code lines | ~1,500 | 0 |
+| Duplicate code | ~800 lines | < 100 |
+| Test coverage | 0% | > 70% |
+| Files > 500 lines | 3 | 0 |
+| API client lines | 596 | < 200 per file |
+| Component reusability | Low | High |
+
+---
+
+*This document was generated as part of the NORAY OS Phase 1 Technical Audit.*

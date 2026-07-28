@@ -1,138 +1,295 @@
-# NORAY OS — Prioritized Roadmap
+# Prioritized Roadmap
 
+**Project:** NORAY OS
 **Audit Date:** July 2026
 
 ---
 
-## Phase 1: Critical (4-6 weeks)
+## 1. Roadmap Overview
 
-| # | Item | Complexity | Dependencies | Risk | Impact |
-|---|------|------------|-------------|------|--------|
-| 1.1 | JWT Authentication | Medium | User model, password hashing | Low | Unlocks all other security |
-| 1.2 | API Rate Limiting | Low | Redis | Low | Prevents abuse, controls costs |
-| 1.3 | CI/CD Pipeline | Low | GitHub Actions | Low | Automated quality gates |
-| 1.4 | Docker Production Image | Medium | Multi-stage Dockerfile | Low | Deployable artifact |
-| 1.5 | Error Handling Unification | Low | None | Low | Consistent API contracts |
-| 1.6 | Frontend Error Boundaries | Low | React error boundary component | Low | Prevents cascading crashes |
-| 1.7 | CORS Lockdown | Low | Environment config | Low | Production-ready origins |
-| 1.8 | Secrets Management | Medium | Docker secrets or vault | Medium | No plaintext keys |
-| 1.9 | API Documentation | Low | OpenAPI/Swagger | Low | Developer experience |
-| 1.10 | Code Consolidation | High | Analysis of 3 doc generators | Medium | Reduces tech debt |
-
----
-
-## Phase 2: High Priority (6-8 weeks)
-
-| # | Item | Complexity | Dependencies | Risk | Impact |
-|---|------|------------|-------------|------|--------|
-| 2.1 | Redis Query/Result Caching | Medium | Redis infrastructure | Low | 50-80% latency reduction |
-| 2.2 | RBAC Authorization | Medium | Auth system (1.1) | Low | Multi-user support |
-| 2.3 | Email Notifications | Medium | SMTP service | Medium | User engagement |
-| 2.4 | Saved Searches & Alerts | Low | Database schema | Low | Job/scholarship discovery |
-| 2.5 | Application Notes & Attachments | Low | Database schema | Low | Better tracking |
-| 2.6 | Profile Versioning | Medium | Diff/merge logic | Low | Change tracking |
-| 2.7 | Data Export (JSON/CSV) | Low | None | Low | Data portability |
-| 2.8 | Prompt Injection Mitigation | Medium | Input sanitization | Medium | Security hardening |
-| 2.9 | Embedding Caching | Low | Redis | Low | Cost reduction |
-| 2.10 | Context Size Management | Medium | Token counting | Low | Prevents token overflow |
-| 2.11 | Namespace Support (Qdrant) | Medium | Qdrant collections | Low | Document organization |
-| 2.12 | Health Check Endpoints Enhancement | Low | None | Low | Better monitoring |
-
----
-
-## Phase 3: Medium Priority (8-12 weeks)
-
-| # | Item | Complexity | Dependencies | Risk | Impact |
-|---|------|------------|-------------|------|--------|
-| 3.1 | Conversation History & Search | Medium | Redis/PostgreSQL | Low | AI memory management |
-| 3.2 | Session Restore | Medium | Conversation cache | Low | Continuity |
-| 3.3 | Document Version History | Medium | File storage | Low | Change tracking |
-| 3.4 | Provider Cost Analytics | Low | SmartRouter analytics | Low | Cost visibility |
-| 3.5 | LinkedIn OAuth Integration | High | LinkedIn API | Medium | Better profile import |
-| 3.6 | Incremental Indexing | Medium | Document hashing | Medium | Faster re-indexing |
-| 3.7 | Source Attribution | Medium | RAG pipeline | Low | Answer traceability |
-| 3.8 | Relevance Feedback | Medium | Click tracking | Low | Retrieval improvement |
-| 3.9 | Webhook Support | Medium | Event system | Low | Integration platform |
-| 3.10 | Plugin System | High | Dynamic loading | High | Extensibility |
-| 3.11 | A/B Testing (Documents) | Medium | Version management | Low | Quality improvement |
-| 3.12 | LaTeX Document Output | Medium | LaTeX compilation | Low | Professional output |
-| 3.13 | MCP Server Integration | High | Subprocess management | Medium | Tool extensibility |
-| 3.14 | Log Aggregation | Medium | ELK/Loki setup | Medium | Production observability |
-
----
-
-## Phase 4: Nice to Have (12-16 weeks)
-
-| # | Item | Complexity | Dependencies | Risk | Impact |
-|---|------|------------|-------------|------|--------|
-| 4.1 | Multi-tenancy / Teams | High | Auth, data isolation | High | Enterprise readiness |
-| 4.2 | SSO (OAuth/Google/GitHub) | Medium | Auth system | Medium | User convenience |
-| 4.3 | Push Notifications | High | Service worker, FCM | Medium | User engagement |
-| 4.4 | Calendar Integration | Medium | Google Calendar API | Low | Interview management |
-| 4.5 | Email Integration | High | IMAP/SMTP parsing | High | Communication tracking |
-| 4.6 | Custom Analytics Dashboards | Medium | Chart components | Low | Reporting flexibility |
-| 4.7 | Collaborative Editing | High | CRDT/OT | High | Team collaboration |
-| 4.8 | AI Learning from Feedback | High | Feedback loop | High | Continuous improvement |
-| 4.9 | Kubernetes Deployment | High | K8s manifests | Medium | Enterprise deployment |
-| 4.10 | Disaster Recovery | Medium | Backup automation | Low | Data safety |
-| 4.11 | Compliance (GDPR/SOC2) | High | Audit logging, encryption | High | Enterprise compliance |
-| 4.12 | SDK (Python/JS) | High | API stability | Medium | Developer ecosystem |
-| 4.13 | CLI Tool | Medium | API client | Low | Power user experience |
-| 4.14 | Zapier/IFTTT Integration | Medium | Webhook support | Low | Automation |
-
----
-
-## Risk Matrix
-
-```mermaid
-quadrantChart
-    title Risk vs Impact
-    x-axis Low Impact --> High Impact
-    y-axis Low Risk --> High Risk
-    quadrant-1 "High Impact, High Risk"
-    quadrant-2 "High Impact, Low Risk"
-    quadrant-3 "Low Impact, Low Risk"
-    quadrant-4 "Low Impact, High Risk"
-    "Plugin System": [0.85, 0.85]
-    "Multi-tenancy": [0.90, 0.80]
-    "Email Integration": [0.75, 0.85]
-    "JWT Auth": [0.95, 0.30]
-    "CI/CD": [0.80, 0.15]
-    "Docker Image": [0.75, 0.20]
-    "Rate Limiting": [0.85, 0.15]
-    "Caching": [0.80, 0.20]
-    "Error Boundaries": [0.60, 0.10]
-    "API Docs": [0.50, 0.10]
-```
-
----
-
-## Timeline
-
-```mermaid
+`mermaid
 gantt
     title NORAY OS Development Roadmap
-    dateFormat YYYY-MM-DD
+    dateFormat  YYYY-MM-DD
     section Phase 1 - Critical
-    JWT Authentication       :2026-08-01, 14d
-    Rate Limiting            :2026-08-01, 7d
-    CI/CD Pipeline           :2026-08-08, 7d
-    Docker Image             :2026-08-08, 10d
-    Error Handling           :2026-08-15, 7d
-    Code Consolidation       :2026-08-15, 21d
-    section Phase 2 - High
-    Redis Caching            :2026-09-01, 10d
-    RBAC                     :2026-09-01, 14d
-    Email Notifications      :2026-09-15, 14d
-    Saved Searches           :2026-09-15, 7d
-    Profile Versioning       :2026-09-22, 10d
+    Authentication System     :a1, 2026-08-01, 30d
+    Rate Limiting             :a2, 2026-08-01, 14d
+    Backup System             :a3, 2026-08-15, 21d
+    Audit Logging             :a4, 2026-08-15, 21d
+    Security Hardening        :a5, 2026-09-01, 14d
+    section Phase 2 - High Priority
+    RBAC Implementation       :b1, 2026-09-15, 30d
+    Caching Layer             :b2, 2026-09-15, 21d
+    Conversation History      :b3, 2026-10-01, 21d
+    CI/CD Pipeline            :b4, 2026-10-01, 14d
+    Monitoring Setup          :b5, 2026-10-15, 21d
     section Phase 3 - Medium
-    Conversation History     :2026-10-15, 14d
-    Session Restore          :2026-10-15, 10d
-    Document Versioning      :2026-10-29, 10d
-    LinkedIn OAuth           :2026-11-01, 21d
-    section Phase 4 - Nice
-    Multi-tenancy            :2026-12-01, 28d
-    SSO                      :2026-12-15, 14d
-    Plugin System            :2027-01-01, 28d
-```
+    Multi-Tenancy             :c1, 2026-11-01, 45d
+    Task Queue                :c2, 2026-11-01, 30d
+    Feature Flags             :c3, 2026-11-15, 21d
+    Version History           :c4, 2026-12-01, 21d
+    section Phase 4 - Nice to Have
+    Plugin System             :d1, 2027-01-01, 60d
+    SSO/OAuth                 :d2, 2027-01-15, 45d
+    Multi-Language            :d3, 2027-02-01, 30d
+`
+
+---
+
+## 2. Phase 1: Critical (Weeks 1-8)
+
+### Objectives
+- Secure the system against unauthorized access
+- Enable production deployment capability
+- Ensure data safety and compliance
+
+### Items
+
+| # | Item | Complexity | Dependencies | Risk | Impact |
+|---|---|---|---|---|---|
+| 1 | JWT Authentication | High | None | Low | Critical |
+| 2 | User Registration/Login | High | JWT Auth | Low | Critical |
+| 3 | API Key Management | Medium | JWT Auth | Low | High |
+| 4 | Rate Limiting | Medium | None | Low | Critical |
+| 5 | CORS Restriction | Low | None | Low | High |
+| 6 | Input Sanitization | Medium | None | Low | High |
+| 7 | Backup/Restore | Medium | None | Medium | Critical |
+| 8 | Audit Logging | Medium | Auth | Low | Critical |
+| 9 | Dockerfiles | Medium | None | Low | Critical |
+| 10 | CI/CD Pipeline | High | Dockerfiles | Medium | High |
+
+### Deliverables
+- [ ] JWT authentication system
+- [ ] User registration and login
+- [ ] Rate limiting middleware
+- [ ] CORS configuration
+- [ ] Input validation and sanitization
+- [ ] Backup and restore scripts
+- [ ] Audit logging system
+- [ ] Application Dockerfiles
+- [ ] GitHub Actions CI/CD
+
+### Success Criteria
+- All API endpoints require authentication
+- Rate limiting prevents abuse
+- Daily backups are automated
+- All actions are logged
+- Application can be deployed via Docker
+- CI/CD runs on every push
+
+---
+
+## 3. Phase 2: High Priority (Weeks 9-16)
+
+### Objectives
+- Enable team collaboration
+- Improve performance and reliability
+- Add observability and monitoring
+
+### Items
+
+| # | Item | Complexity | Dependencies | Risk | Impact |
+|---|---|---|---|---|---|
+| 1 | RBAC | High | Auth | Medium | High |
+| 2 | Resource Permissions | High | RBAC | Medium | High |
+| 3 | Redis Caching | Medium | Redis | Low | High |
+| 4 | Query Caching | Medium | Redis | Low | High |
+| 5 | Conversation History | Medium | Auth | Low | High |
+| 6 | Session Restore | Medium | History | Low | High |
+| 7 | APM Setup | Medium | None | Low | High |
+| 8 | Distributed Tracing | Medium | APM | Low | Medium |
+| 9 | Metrics Collection | Medium | None | Low | High |
+| 10 | Alerting | Medium | Metrics | Low | High |
+
+### Deliverables
+- [ ] RBAC system (Admin, User, Viewer)
+- [ ] Resource-level permissions
+- [ ] Redis caching layer
+- [ ] Query result caching
+- [ ] Conversation history persistence
+- [ ] Session restore functionality
+- [ ] APM integration (DataDog/New Relic)
+- [ ] Distributed tracing (Jaeger)
+- [ ] Prometheus metrics
+- [ ] Grafana dashboards
+
+### Success Criteria
+- Users can be assigned roles
+- Resources are permission-protected
+- Cache hit rate > 60%
+- Response times improved by 30%
+- All conversations are persisted
+- Full observability stack operational
+
+---
+
+## 4. Phase 3: Medium Priority (Weeks 17-24)
+
+### Objectives
+- Enable multi-tenant support
+- Add operational features
+- Improve developer experience
+
+### Items
+
+| # | Item | Complexity | Dependencies | Risk | Impact |
+|---|---|---|---|---|---|
+| 1 | Teams/Organizations | High | RBAC | Medium | Medium |
+| 2 | Tenant Isolation | High | Teams | High | Medium |
+| 3 | Task Queue | High | None | Medium | Medium |
+| 4 | Background Workers | High | Task Queue | Medium | Medium |
+| 5 | Scheduling | Medium | Task Queue | Low | Medium |
+| 6 | Feature Flags | Medium | None | Low | Medium |
+| 7 | Version History | Medium | Auth | Low | Medium |
+| 8 | Snapshots | Medium | Versioning | Low | Medium |
+| 9 | API Versioning | Medium | None | Low | Medium |
+| 10 | Documentation | Medium | None | Low | Medium |
+
+### Deliverables
+- [ ] Team/organization management
+- [ ] Tenant data isolation
+- [ ] Background task processing
+- [ ] Scheduled job execution
+- [ ] Feature flag system
+- [ ] Document version history
+- [ ] State snapshots
+- [ ] API versioning (/api/v1/)
+- [ ] API documentation (OpenAPI)
+
+### Success Criteria
+- Multiple teams can use the system
+- Data is isolated per tenant
+- Background tasks process reliably
+- Features can be toggled per user
+- Document history is trackable
+- API is versioned and documented
+
+---
+
+## 5. Phase 4: Nice to Have (Weeks 25-32)
+
+### Objectives
+- Add enterprise features
+- Enable extensibility
+- Support global deployment
+
+### Items
+
+| # | Item | Complexity | Dependencies | Risk | Impact |
+|---|---|---|---|---|---|
+| 1 | Plugin System | High | None | Medium | Low |
+| 2 | SSO/OAuth | High | Auth | Medium | Low |
+| 3 | Multi-Language | High | None | Low | Low |
+| 4 | Timezone Support | Medium | None | Low | Low |
+| 5 | Custom Branding | Medium | None | Low | Low |
+| 6 | Webhook Support | Medium | None | Low | Low |
+| 7 | MCP Integration | High | Plugin | Medium | Low |
+| 8 | Compliance (SOC2) | High | Audit | High | Low |
+
+### Deliverables
+- [ ] Plugin architecture
+- [ ] SSO/OAuth integration
+- [ ] Multi-language support
+- [ ] Timezone handling
+- [ ] White-label customization
+- [ ] Webhook notifications
+- [ ] MCP protocol support
+- [ ] SOC2 compliance
+
+### Success Criteria
+- Third-party plugins can be developed
+- Enterprise SSO is supported
+- System supports multiple languages
+- Timezones are handled correctly
+- System can be customized per tenant
+- Events can trigger webhooks
+- External tools can integrate via MCP
+- SOC2 compliance achieved
+
+---
+
+## 6. Risk Assessment
+
+### High-Risk Items
+| Item | Risk | Mitigation |
+|---|---|---|
+| Tenant Isolation | Data leakage | Comprehensive testing |
+| Plugin System | Security vulnerabilities | Sandboxing |
+| SOC2 Compliance | Audit failure | Early preparation |
+| SSO/OAuth | Integration complexity | Use established libraries |
+
+### Medium-Risk Items
+| Item | Risk | Mitigation |
+|---|---|---|
+| RBAC | Permission bugs | Thorough testing |
+| Task Queue | Reliability issues | Monitoring |
+| Multi-Language | Translation quality | Professional translation |
+
+### Low-Risk Items
+| Item | Risk | Mitigation |
+|---|---|---|
+| Feature Flags | Complexity creep | Simple implementation |
+| API Versioning | Breaking changes | Deprecation policy |
+| Documentation | Staleness | Automated generation |
+
+---
+
+## 7. Resource Requirements
+
+### Development Resources
+| Phase | Duration | Team Size | Skills |
+|---|---|---|---|
+| Phase 1 | 8 weeks | 2-3 | Backend, Security, DevOps |
+| Phase 2 | 8 weeks | 2-3 | Backend, Frontend, DevOps |
+| Phase 3 | 8 weeks | 2-3 | Backend, Frontend |
+| Phase 4 | 8 weeks | 2-3 | Backend, Enterprise |
+
+### Infrastructure Requirements
+| Phase | Requirements |
+|---|---|
+| Phase 1 | Docker, CI/CD, Backup storage |
+| Phase 2 | APM, Monitoring, Redis |
+| Phase 3 | Multi-tenant DB, Task queue |
+| Phase 4 | SSO provider, Compliance tools |
+
+---
+
+## 8. Success Metrics
+
+### Phase 1 Metrics
+| Metric | Target |
+|---|---|
+| Authentication coverage | 100% endpoints |
+| Rate limiting | 1000 req/min per user |
+| Backup success rate | 99.9% |
+| Audit log coverage | 100% actions |
+| Docker build success | 100% |
+
+### Phase 2 Metrics
+| Metric | Target |
+|---|---|
+| Cache hit rate | > 60% |
+| Response time improvement | > 30% |
+| Conversation persistence | 100% |
+| Monitoring coverage | 100% |
+| Alert response time | < 5 minutes |
+
+### Phase 3 Metrics
+| Metric | Target |
+|---|---|
+| Tenant isolation | 100% data separation |
+| Task queue reliability | 99.9% |
+| Feature flag adoption | 50% features |
+| API versioning | v1 stable |
+
+### Phase 4 Metrics
+| Metric | Target |
+|---|---|
+| Plugin ecosystem | 5+ plugins |
+| SSO adoption | 80% enterprise users |
+| Language support | 5+ languages |
+| Compliance | SOC2 certified |
+
+---
+
+*This document was generated as part of the NORAY OS Phase 1 Technical Audit.*

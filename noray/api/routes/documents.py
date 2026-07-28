@@ -24,7 +24,10 @@ router = APIRouter()
 # ── Constants ──────────────────────────────────────────────────────────────────
 
 UPLOAD_DIR = Path(__file__).resolve().parent.parent.parent / "data" / "uploads"
-UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+try:
+    UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+except OSError:
+    pass  # Vercel read-only filesystem
 
 ALLOWED_EXTENSIONS = {".pdf", ".docx", ".pptx", ".xlsx", ".xls", ".txt", ".md", ".markdown", ".csv", ".png", ".jpg", ".jpeg", ".tiff", ".bmp"}
 MAX_UPLOAD_SIZE_MB = 50

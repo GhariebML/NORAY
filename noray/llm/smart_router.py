@@ -193,10 +193,10 @@ HEALTH_PING_TIMEOUT: float = float(_cfg("health.ping_timeout_seconds", 5.0))
 
 WARM_UP_ENABLED: bool = _cfg("warm_up.enabled", True)
 WARM_UP_DELAY: float = float(_cfg("warm_up.delay_seconds", 2.0))
-WARM_UP_MODELS: list[str] = _cfg("warm_up.preferred_models", ["mimio-2.5-pro", "gemma4:12b", "qwen2.5-coder:7b"])
+WARM_UP_MODELS: list[str] = _cfg("warm_up.preferred_models", ["mimo-v2.5-pro", "gemma4:12b", "qwen2.5-coder:7b"])
 
 PROVIDER_DEFAULT_MODELS: dict[str, str] = _cfg("preferred_models", {
-    "mimio": "mimio-2.5-pro",
+    "mimio": "mimo-v2.5-pro",
     "gemini": "gemini-flash-latest",
     "openrouter": "openrouter/auto",
     "together": "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo",

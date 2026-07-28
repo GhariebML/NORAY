@@ -17,7 +17,7 @@ from noray.llm.factory import LLMProviderFactory
 
 logger = logging.getLogger("noray.llm.health")
 
-ALL_PROVIDERS = ["openai", "anthropic", "gemini", "ollama", "openrouter", "deepseek", "mistral", "together"]
+ALL_PROVIDERS = ["mimio", "openai", "anthropic", "gemini", "ollama", "openrouter", "deepseek", "mistral", "together"]
 RETRYABLE_STATUSES = {429, 500, 502, 503, 504}
 
 

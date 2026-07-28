@@ -9,4 +9,20 @@ services:
       - key: ENVIRONMENT
         value: production
       - key: ALLOWED_ORIGINS
-        value: https://noray-frontend.vercel.app,http://localhost:3000
+        value: https://noray-frontend.vercel.app,http://localhost:3000,http://127.0.0.1:3000
+      - key: EMBEDDINGS_PROVIDER
+        value: local
+      - key: EMBEDDINGS_MODEL
+        value: all-MiniLM-L6-v2
+      - key: AI_PROVIDER
+        value: auto
+      - key: MIMIO_BASE_URL
+        value: https://api.xiaomimimo.com/v1
+      - key: MIMIO_MODEL
+        value: mimo-v2.5-pro
+      - key: ALLOW_OFFLINE
+        value: "true"
+      - key: QDRANT_URL
+        value: ""
+      - key: REDIS_URL
+        value: ""

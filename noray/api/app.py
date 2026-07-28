@@ -78,7 +78,9 @@ origins = [
     "http://localhost:3001",
     "http://127.0.0.1:3000",
     "http://127.0.0.1:3001",
-    "https://NORAY.ai",
+    "https://noray.ai",
+    "https://noray-frontend.vercel.app",
+    "https://noray-academic.streamlit.app",
 ]
 env_origins = os.getenv("ALLOWED_ORIGINS")
 if env_origins:

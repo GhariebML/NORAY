@@ -1,56 +1,56 @@
 import platform
 from typing import Any
 
-import psutil
-
-try:
-    import GPUtil
-except ImportError:
-    GPUtil = None
 
 def get_hardware_info() -> dict[str, Any]:
     """Detects system hardware for optimal LLM selection."""
-    info = {
+    info: dict[str, Any] = {
         "os": platform.system(),
-        "cpu_count": psutil.cpu_count(logical=True),
-        "ram_gb": round(psutil.virtual_memory().total / (1024 ** 3), 2),
+        "cpu_count": 1,
+        "ram_gb": 1.0,
         "gpu_available": False,
         "gpu_vendor": None,
         "vram_gb": 0.0,
-        "metal_available": False
+        "metal_available": False,
     }
 
-    # Check for Apple Silicon (Metal)
+    try:
+        import psutil
+        info["cpu_count"] = psutil.cpu_count(logical=True) or 1
+        info["ram_gb"] = round(psutil.virtual_memory().total / (1024 ** 3), 2)
+    except ImportError:
+        pass
+
     if info["os"] == "Darwin" and platform.machine() == "arm64":
         info["gpu_available"] = True
         info["metal_available"] = True
         info["gpu_vendor"] = "Apple"
-        # Apple shares RAM as VRAM
         info["vram_gb"] = info["ram_gb"]
-
-    # Check for NVIDIA GPUs
-    elif GPUtil:
-        gpus = GPUtil.getGPUs()
-        if gpus:
-            gpu = gpus[0]
-            info["gpu_available"] = True
-            info["gpu_vendor"] = "NVIDIA"
-            info["vram_gb"] = round(gpu.memoryTotal / 1024, 2)
+    else:
+        try:
+            import GPUtil
+            gpus = GPUtil.getGPUs()
+            if gpus:
+                gpu = gpus[0]
+                info["gpu_available"] = True
+                info["gpu_vendor"] = "NVIDIA"
+                info["vram_gb"] = round(gpu.memoryTotal / 1024, 2)
+        except (ImportError, Exception):
+            pass
 
     return info
+
 
 def recommend_local_model(hw_info: dict[str, Any]) -> str:
     """Recommends the best local LLM based on hardware constraints."""
     ram = hw_info["ram_gb"]
     vram = hw_info["vram_gb"]
 
-    # Priority 1: VRAM for GPU inference
     if hw_info["gpu_available"] and vram >= 12.0:
         if vram >= 24.0:
             return "qwen2.5:14b"
         return "qwen2.5:7b"
 
-    # Priority 2: RAM for CPU/Unified Memory inference
     if ram < 16:
         return "qwen2.5:3b"
     elif 16 <= ram < 32:
@@ -59,6 +59,7 @@ def recommend_local_model(hw_info: dict[str, Any]) -> str:
         return "qwen2.5:14b"
     else:
         return "deepseek-r1:14b"
+
 
 if __name__ == "__main__":
     hw = get_hardware_info()

@@ -292,6 +292,13 @@ class VectorStoreFactory:
 
     @staticmethod
     def get_vector_store(provider: str = None) -> BaseVectorStore:
+        # Use pydantic-settings to read .env values (os.getenv alone won't read .env)
+        try:
+            from noray.config import settings
+            q_url = settings.QDRANT_HOST and f"http://{settings.QDRANT_HOST}:{settings.QDRANT_PORT}"
+        except Exception:
+            q_url = None
+
         target_provider = (provider or os.getenv("VECTOR_STORE_PROVIDER", "qdrant")).lower()
 
         if provider is None and VectorStoreFactory._instance is not None:
@@ -302,14 +309,19 @@ class VectorStoreFactory:
         else:
             # Default is Qdrant
             # Check if Qdrant server is available via environment variables
-            q_url = os.getenv("QDRANT_URL")
-            q_host = os.getenv("QDRANT_HOST")
-            q_port = os.getenv("QDRANT_PORT", "6333")
+            env_q_url = os.getenv("QDRANT_URL")
+            env_q_host = os.getenv("QDRANT_HOST")
+            env_q_port = os.getenv("QDRANT_PORT", "6333")
 
-            if q_url:
+            # Priority: explicit env var > pydantic settings > file-based fallback
+            if env_q_url:
+                instance = QdrantVectorStore(url=env_q_url)
+            elif env_q_host:
+                instance = QdrantVectorStore(url=f"http://{env_q_host}:{env_q_port}")
+            elif q_url:
+                # Use pydantic settings from .env
                 instance = QdrantVectorStore(url=q_url)
-            elif q_host:
-                instance = QdrantVectorStore(url=f"http://{q_host}:{q_port}")
+                logger.info("Using Qdrant server from .env: %s", q_url)
             else:
                 # Supports qdrant path mapping for file base persistence
                 _default_qdrant2 = str(Path(__file__).resolve().parent.parent.parent / "data" / "qdrant")

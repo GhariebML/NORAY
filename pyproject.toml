@@ -42,7 +42,10 @@ dev = [
 ]
 
 [tool.setuptools.packages.find]
-include = ["NORAY*"]
+include = ["noray*"]
+
+[tool.vercel]
+entrypoint = "noray/api/app.py"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

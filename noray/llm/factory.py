@@ -35,7 +35,7 @@ class LLMProviderFactory:
 
         from noray.config import settings
 
-        if name in ["mimio", "xiaomi", "default"]:
+        if name in ["mimio", "xiaomi"]:
             provider = MimioProvider(api_key=settings.MIMIO_API_KEY, base_url=settings.MIMIO_BASE_URL)
         elif name == "openai":
             provider = OpenAIProvider(api_key=settings.OPENAI_API_KEY)
